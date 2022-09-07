@@ -1,0 +1,18 @@
+import numpy
+
+from ixpeobssim.srcmodel.roi import xPointSource, xROIModel
+from ixpeobssim.srcmodel.spectrum import power_law
+from ixpeobssim.srcmodel.polarization import constant
+
+# Define the source properties and create the actual source.
+ra, dec = 45., 45.
+spec = power_law(10., 2.)
+pol_deg = constant(0.5)
+pol_ang = constant(numpy.radians(65.))
+src = xPointSource('Point source', ra, dec, spec, pol_deg, pol_ang)
+
+# Create the complete region of interest.
+ROI_MODEL = xROIModel(ra, dec)
+ROI_MODEL.add_source(src)
+
+print(ROI_MODEL)

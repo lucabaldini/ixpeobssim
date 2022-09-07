@@ -1,0 +1,23 @@
+
+div.body h1 {
+  font-size: 180%;
+}
+
+div.body h2 {
+  font-size: 160%;
+}
+
+div.body h3 {
+  font-size: 140%;
+}
+
+div.body h4 {
+  font-size: 120%;
+}
+
+div.body h1,
+div.body h2,
+div.body h3,
+div.body h4 {
+  /*color: #FF9900;*/
+}

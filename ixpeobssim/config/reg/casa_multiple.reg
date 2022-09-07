@@ -1,0 +1,17 @@
+# Region file format: DS9 version 4.1
+# Filename: /Users/omodei/GRBWorkDir/MY_PYTHON_MODULES/ximpol/ximpol/srcmodel/fits/casa_1p5_3p0_keV.fits
+global color=green dashlist=8 3 width=1 font="helvetica 10 normal" select=1 highlite=1 dash=0 fixed=0 edit=1 move=1 delete=1 include=1 source=1
+icrs
+circle(350.86367,58.81529,178.19283")
+#circle(350.84834,58.8377,90.372101")
+circle(350.84622,58.83934,45.425727")
+circle(350.88743,58.838252,45.425727")
+circle(350.92545,58.830318,45.425727")
+circle(350.92332,58.814466,45.425727")
+circle(350.91222,58.796975,45.425727")
+circle(350.89006,58.792332,45.425727")
+circle(350.85788,58.789049,45.425727")
+circle(350.83045,58.793141,45.425727")
+circle(350.80669,58.803515,45.425727")
+circle(350.80506,58.823194,45.425727")
+circle(350.82458,58.833318,45.425727")

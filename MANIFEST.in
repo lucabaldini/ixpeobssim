@@ -1,0 +1,11 @@
+graft ixpeobssim/benchmarks
+graft ixpeobssim/caldb
+graft ixpeobssim/config
+graft ixpeobssim/examples
+graft ixpeobssim/instrument
+graft ixpeobssim/irf
+graft ixpeobssim/irfgen
+graft ixpeobssim/obsdata
+graft ixpeobssim/srcmodel
+graft ixpeobssim/targets
+graft ixpeobssim/xspec

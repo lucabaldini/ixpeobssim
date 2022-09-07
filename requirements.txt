@@ -1,0 +1,8 @@
+numpy>=1.17
+scipy>=1.4
+matplotlib>=3.0
+astropy>=4.0
+regions>=0.4
+skyfield>=1.23
+pytest-cov
+coverage

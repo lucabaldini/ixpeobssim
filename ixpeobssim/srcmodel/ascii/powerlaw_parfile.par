@@ -1,0 +1,7 @@
+# This file represents an example of a spectrum parameter file for XSPEC support
+model       phabs*powerlaw
+COMP1       phabs
+nH          3.
+COMP2       powerlaw
+PhoIndex    1.
+norm        10.

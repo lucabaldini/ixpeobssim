@@ -1,0 +1,7 @@
+# Region file format: DS9 version 4.1
+# Filename: /data/work/ixpeobssim/ixpeobssim/config/fits/MSH_Rad_PF.fits
+global color=green dashlist=8 3 width=1 font="helvetica 10 normal roman" select=1 highlite=1 dash=0 fixed=0 edit=1 move=1 delete=1 include=1 source=1
+fk5
+circle(15:13:48.164,-59:06:17.20,60.8654")
+circle(15:13:55.945,-59:08:07.25,60.8654")
+circle(15:14:02.847,-59:10:03.16,60.8654")

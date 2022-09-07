@@ -1,0 +1,123 @@
+NASA meatball <https://www.nasa.gov/>
+IXPE header image <https://ixpe.msfc.nasa.gov/for_scientists/index.html>
+
+  * Home <https://ixpe.msfc.nasa.gov/index.html>
+  * About <https://ixpe.msfc.nasa.gov/about/index.html>
+  * For Scientists
+    <https://ixpe.msfc.nasa.gov/for_scientists/index.html> Papers
+    <https://ixpe.msfc.nasa.gov/for_scientists/papers/>
+    Presentations <https://ixpe.msfc.nasa.gov/for_scientists/presentations/>
+    Templates <https://ixpe.msfc.nasa.gov/for_scientists/templates/>
+    Plan <https://ixpe.msfc.nasa.gov/for_scientists/ltp.html>
+    WebPIMMS <https://ixpe.msfc.nasa.gov/for_scientists/pimms/>
+  * MSFC X-ray Astronomy <https://wwwastro.msfc.nasa.gov/index.html>
+  * Links <https://ixpe.msfc.nasa.gov/links.html>
+  * Contact <https://ixpe.msfc.nasa.gov/contact.html>
+  * Partners <https://ixpe.msfc.nasa.gov/partners.html>
+
+
+    For Scientists: The Long-Term Plan
+
+------------------------------------------------------------------------
+
+This is the current Year-1 Long-Term Plan (LTP) for IXPE, assuming a
+2021-Dec-09 launch. The Science Advisory Team also requested transient
+targets to be added when and if they become bright. At such time, the
+LTP will be adjusted, attempting to minimize the impact on the overall
+plan; however, nothing is guaranteed. The current LTP can accommodate
+the addition of approximately a half-dozen transients. Should there be a
+lack of transients in the coming year, additional time and/or targets
+will be added to the plan.
+
+IXPE is telemetry limited for bright sources and this requires that
+observations be handled slightly differently from the way most X-ray
+missions operate. If IXPE is observing a bright source that could
+potentially fill on-board storage, we shall divide the observation into
+multiple segments.
+
+COLUMNS:
+
+SG: This is a segment number. If it is zero, then the observation has
+not been segmented.
+
+Name: This is a common name for the target.
+
+Start: The Year-Month-Day the observation will begin. The observations
+ends just before the next target begins.
+
+buffer: This is an estimate as to how much data will stll be on the
+spacecraft when the observation ends in MB. The on-board storage can
+hold just over 5500 MB and when planning we keep this number below 4000 MB.
+
+SG	Name	Start	buffer
+0	Cas A	2022-01-11	0.0
+0	Cen X-3	2022-01-31	299.8
+1	4U 0142+61	2022-02-03	0.0
+0	Cen A	2022-02-15	0.0
+1	Her X-1	2022-02-17	0.0
+1	Crab	2022-02-22	3023.2
+2	Her X-1	2022-02-23	2846.6
+2	4U 0142+61	2022-02-25	1199.8
+1	Sgr A complex	2022-03-05	174.3
+2	Crab	2022-03-10	3201.9
+0	Mrk 501	2022-03-11	2862.4
+2	Sgr A complex	2022-03-14	0.0
+0	Mrk 501	2022-04-02	0.0
+0	GS 1826-238	2022-04-04	8.3
+0	S5 0716+714	2022-04-06	0.0
+0	GRS 1915+105	2022-04-12	0.0
+0	Vela Pulsar	2022-04-19	0.0
+0	Mrk 421	2022-05-11	486.5
+0	Cyg X-1	2022-05-14	2620.6
+0	MCG-5-23-16	2022-05-21	113.5
+0	Vela X-1	2022-06-02	2552.4
+0	BL Lac	2022-06-09	646.6
+0	3C 454.3	2022-06-18	143.9
+0	3C 273	2022-06-20	0.0
+0	Mrk 501	2022-06-23	0.0
+0	Cyg X-2	2022-06-25	1670.7
+0	3C 279	2022-06-27	1164.5
+0	Cen A	2022-06-30	1066.7
+0	GX 301-2	2022-07-02	39.7
+0	Tycho	2022-07-08	0.0
+0	MSH15-52	2022-07-27	0.0
+0	X Persei	2022-08-27	0.0
+0	1RXS J170849.0	2022-09-02	0.0
+0	GX9+9	2022-09-26	4086.2
+0	4U 1626-67	2022-09-28	0.0
+0	1ES 1959+650	2022-10-02	0.0
+
+NOTES
+
+ToOs will cause planned times to shift around. Plan only covers time up
+to the end of Sep.
+
+Currently the plan does not include observations of J0211+1051, Mrk 421,
+3C 345.3, 3C 273, 3C 279, 1ES 1959+650, IC 4329A, Circinus galaxy, and
+SN 1006. These will be added as the year progresses.
+
+If needed the observation of MCG-5-23-16 will be segmented to adjust the
+timing of Cyg X-1. This will be done to facilitate coordinated
+observations with XL-Calibur.
+
+
+      Polarization
+
+  * The Physics of Polarization
+    <https://www2.hao.ucar.edu/sites/default/files/users/whawkins/Tutorial%201.pdf>
+  * Polarization - Creation <https://ixpe.msfc.nasa.gov/creation.html>
+  * Polarization - Detection <https://ixpe.msfc.nasa.gov/detectors.html>
+
+
+      Useful Resources
+
+  * In the News <https://ixpe.msfc.nasa.gov/news.html>
+  * Chandra X-ray Observatory <http://chandra.harvard.edu/>
+  * Multimedia <https://ixpe.msfc.nasa.gov/multimedia/>
+      o Podcasts <https://ixpe.msfc.nasa.gov/multimedia/podcasts/>
+      o Vodcasts <https://ixpe.msfc.nasa.gov/multimedia/vodcasts/>
+      o Images <https://ixpe.msfc.nasa.gov/multimedia/images/>
+
+<http://www.usa.gov/> + NASA Privacy, Security, Notices
+<https://www.nasa.gov/about/highlights/HP_Privacy.html> | Last Updated:
+January 22, 2022 | Author/Curator: Mitzi Adams, mitzi.adams @ nasa.gov

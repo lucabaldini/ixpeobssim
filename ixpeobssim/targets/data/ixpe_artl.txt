@@ -1,0 +1,80 @@
+NASA meatball <https://www.nasa.gov/>
+IXPE header image <https://ixpe.msfc.nasa.gov/for_scientists/index.html>
+
+  * Home <https://ixpe.msfc.nasa.gov/index.html>
+  * About <https://ixpe.msfc.nasa.gov/about/index.html>
+  * For Scientists
+    <https://ixpe.msfc.nasa.gov/for_scientists/index.html> Technical
+    Information <https://ixpe.msfc.nasa.gov/for_scientists/>
+    Papers <https://ixpe.msfc.nasa.gov/for_scientists/papers/>
+    Presentations <https://ixpe.msfc.nasa.gov/for_scientists/presentations/>
+    Templates <https://ixpe.msfc.nasa.gov/for_scientists/templates/>
+    Plan <https://ixpe.msfc.nasa.gov/for_scientists/ltp.html>
+    WebPIMMS <https://ixpe.msfc.nasa.gov/for_scientists/pimms/>
+  * MSFC X-ray Astronomy <https://wwwastro.msfc.nasa.gov/index.html>
+  * Links <https://ixpe.msfc.nasa.gov/links.html>
+  * Contact <https://ixpe.msfc.nasa.gov/contact.html>
+  * Partners <https://ixpe.msfc.nasa.gov/partners.html>
+
+
+    For Scientists: As Run Target List
+
+------------------------------------------------------------------------
+
+This is the IXPE As Run Target list (updated as targets are added).
+
+COLUMNS:
+OBSID: This is the observation ID.
+Name: This is a common name for the target.
+Start Time: The Year-Month-Day Hour:Minute that the observation began.
+This is roughly mid-slew.
+End Time: The Year-Month-Day Hour:Minute that the observation ended. The
+MOC will get all the data from the observation 1 to 5 days after the end
+time. If an observation was segmented, it will not considered to be
+completed until all segments are completed. This page reports when the
+observation ends not the segment.
+
+OBSID 	Name 	Start Time 	End Time
+01001301	Cas A	2022-01-11T11:23	2022-01-29T12:39
+01006501	Cen X-3	2022-01-29T12:39	2022-01-31T06:58
+01003299	4U 0142+61	2022-01-31T07:23	2022-02-27T19:14
+01004301	Cen A	2022-02-15T00:13	2022-02-17T13:52
+01001899	Her X-1	2022-02-17T13:52	2022-02-24T19:36
+01001099	Crab	2022-02-21T16:12	2022-03-08T02:38
+01003499	Sgr A complex	2022-02-27T19:14	2022-03-24T01:51
+01004501	Mrk 501	2022-03-08T02:38	2022-03-10T08:19
+01002701	4U 1626-67	2022-03-24T01:51	2022-03-27T05:39
+01004601	Mrk 501	2022-03-27T05:39	2022-03-29T07:14
+01002801	GS 1826-238	2022-03-29T07:14	2022-03-31T09:20
+01005301	S5 0716+714	2022-03-31T09:20	2022-04-05T19:50
+01001299	Vela Pulsar	2022-04-05T19:50	2022-04-30T10:33
+01001601	Cyg X-2	2022-04-30T10:33	2022-05-02T11:09
+01002501	Vela X-1	2022-04-15T18:07	2022-04-21T12:21
+01002901	Cyg X-1	2022-05-15T15:20	2022-05-16T11:05
+01003301	MCG-5-23-16	2022-05-14T12:52	2022-05-15T15:20
+01003701	Mrk 421	2022-05-04T10:00	2022-05-06T11:10
+01006201	1ES 1959+650	2022-05-03T11:21	2022-05-04T10:00
+01006301	BL Lac	2022-05-06T11:10	2022-05-14T12:52
+01006601	Cyg X-2	2022-05-02T11:09	2022-05-03T11:21
+
+
+      Polarization
+
+  * The Physics of Polarization
+    <https://www2.hao.ucar.edu/sites/default/files/users/whawkins/Tutorial%201.pdf>
+  * Polarization - Creation <https://ixpe.msfc.nasa.gov/creation.html>
+  * Polarization - Detection <https://ixpe.msfc.nasa.gov/detectors.html>
+
+
+      Useful Resources
+
+  * In the News <https://ixpe.msfc.nasa.gov/news.html>
+  * Chandra X-ray Observatory <http://chandra.harvard.edu/>
+  * Multimedia <https://ixpe.msfc.nasa.gov/multimedia/>
+      o Podcasts <https://ixpe.msfc.nasa.gov/multimedia/podcasts/>
+      o Vodcasts <https://ixpe.msfc.nasa.gov/multimedia/vodcasts/>
+      o Images <https://ixpe.msfc.nasa.gov/multimedia/images/>
+
+<http://www.usa.gov/> + NASA Privacy, Security, Notices
+<https://www.nasa.gov/about/highlights/HP_Privacy.html> | Last Updated:
+June 13, 2022 | Author/Curator: Mitzi Adams, mitzi.adams @ nasa.gov
