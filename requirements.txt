@@ -6,3 +6,4 @@ regions>=0.4
 skyfield>=1.23
 pytest-cov
 coverage
+sphinxcontrib-programoutput
