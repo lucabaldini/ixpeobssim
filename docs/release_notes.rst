@@ -5,6 +5,9 @@ Release notes
 
 *ixpeobssim (29.0.0) - Thu, 08 Sep 2022 11:19:50 +0200*
 
+First version for public release.
+
+
 *ixpeobssim (28.4.0) - Sat, 27 Aug 2022 10:59:55 +0200*
 
 * Merging in pull request https://bitbucket.org/ixpesw/ixpeobssim/pull-requests/271
