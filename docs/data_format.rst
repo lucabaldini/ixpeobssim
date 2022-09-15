@@ -93,9 +93,9 @@ mere sampling of a few interesting quantities on a regularly spaced time grid.
 We also emphasize that the GTI and OCTI do not necessarily fill the entirety
 of the time intervals that can be in principle allocated for science data taking
 and calibration, the exact behavior of the observatory being controlled by the
-``--gtiminduration``, ``--gtistartpad``, ``--gtistoppad``, ``--onorbitcalminduration``,
-``--onorbitcalstartpad`` and ``--onorbitcalstoppad`` flags of
-:ref:`reference-xpobssim`.
+``--gtiminduration``, ``--gtistartpad``, ``--gtistoppad``, ``--onorbitcaldemult``,
+``--onorbitcalminduration``, ``--onorbitcalstartpad``, ``--onorbitcalstoppad``,
+and ``--onorbitcalrate`` flags of :ref:`reference-xpobssim`.
 
 .. note::
 
