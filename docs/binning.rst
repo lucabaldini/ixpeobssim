@@ -43,7 +43,7 @@ spurious modulation
 
 .. math::
    q_i & \rightarrow \text{content of the \texttt{Q} column in level-2 files}\\
-   u_i & \rightarrow \text{content of the \texttt{Q} column in level-2 files}
+   u_i & \rightarrow \text{content of the \texttt{U} column in level-2 files}
 
 Additionally, the polarization analysis tools are aware of the event weights
 
