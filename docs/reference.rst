@@ -7,6 +7,27 @@ Here is the synopsis of all the applications in the IXPE observation simulation
 framework, along with the complete, up-to-date summary of the corresponding
 command-line switches.
 
+Simulation facilities
+---------------------
+
+.. _reference-xpmdp:
+xpmdp
+~~~~~
+.. command-output:: xpmdp --help
+
+.. _reference-xpobssim:
+xpobssim
+~~~~~~~~
+.. command-output:: xpobssim --help
+
+
+
+
+
+
+
+
+
 
 .. _reference-xpancrkey:
 
@@ -80,19 +101,7 @@ xpirfview
 
 
 
-.. _reference-xpmdp:
 
-xpmdp
------
-.. command-output:: xpmdp.py --help
-
-
-
-.. _reference-xpobssim:
-
-xpobssim
---------
-.. command-output:: xpobssim.py --help
 
 
 
