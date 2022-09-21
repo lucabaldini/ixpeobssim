@@ -24,23 +24,24 @@ extensions:
 
 The ``EVENTS`` extension comes in the form of a binary table with 10 columns:
 
-* ``TRG_ID``: the trigger identifier. The use of trigger ID, instead of event ID, is to emphasize
+* ``TRG_ID`` (1J): the trigger identifier. The use of trigger ID, instead of event ID, is to emphasize
   that the DAQ can discard triggers based on the ROI size.
-* ``TIME``: sum of ``SEC`` and ``MICROSEC``.
-* ``STATUS``: 16-bits of processing status/error flags.
-* ``STATUS2``: 16-bits of processing status/error flags.
-* ``PI``: pixel-equalization and gain-corrected event signal.
-* ``W_MOM``: statistical weight of this event (from moments analysis).
-* ``X``: calculated position, projected onto the J2000 tangent plane axis parallel
-  to celestial equator using the preliminary aspect correction.
-* ``Y``: calculated position, projected onto the J2000 tangent plane axis parallel
-  to celestial equator using the preliminary aspect correction.
-* ``Q``: value of Stokes parameter q in J2000 tangent plane axis.
-* ``U``: value of Stokes parameter u in J2000 tangent plane axis.
+* ``TIME`` (1D): sum of ``SEC`` and ``MICROSEC`` [s].
+* ``STATUS`` (16X): 16-bits of processing status/error flags.
+* ``STATUS2`` (16X): 16-bits of processing status/error flags.
+* ``PI`` (1J): pixel-equalization and gain-corrected event signal.
+* ``W_MOM`` (1E): statistical weight of this event (from moments analysis).
+* ``X`` (E): calculated position, projected onto the J2000 tangent plane axis parallel
+  to celestial equator using the preliminary aspect correction [pixel].
+* ``Y`` (E): calculated position, projected onto the J2000 tangent plane axis parallel
+  to celestial equator using the preliminary aspect correction [pixel].
+* ``Q`` (D): value of Stokes parameter q in J2000 tangent plane axis.
+* ``U`` (D): value of Stokes parameter u in J2000 tangent plane axis.
 
 Note the primary header does not include the WCS information to
 map ``X`` and ``Y`` in the sky.
-
+Note a few differences remain between 'EVENTS' columns format,
+in data files and in ixpeobssim simulated files.
 
 ``ixpeobssim`` event lists
 --------------------------
