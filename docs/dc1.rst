@@ -19,7 +19,7 @@ Pulsar ephemeris
 
 Based on the consideration that, under most circumstances, the ephemeris for
 known periodic sources will be available when IXPE observes the target, we provide
-below the those used for the simulation for the two pulsars involved in the data
+below those used for the simulation for the two pulsars involved in the data
 challenge.
 
 

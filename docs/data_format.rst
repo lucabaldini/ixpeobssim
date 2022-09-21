@@ -77,7 +77,7 @@ Additional extensions, specific to simulated data, include:
   by the ``--scdata`` command-line switch in :ref:`reference-xpobssim`, while
   the step of the grid is controlled by the ``--scdatainterval`` switch);
 * ``OCTI``: contains the on-orbit calibration time interval for a given DU
-  (the table is only generated if the ``--onbrdcalib`` :ref:`reference-xpobssim`
+  (the table is only generated if the ``--onorbitcalib`` :ref:`reference-xpobssim`
   command-line switch is set);
 * ``CHRG_MAP``: contains the charging map at the end of the observation, in a
   form that can be used as an input for subsequent simulations
@@ -91,11 +91,11 @@ the different states a given observation is traversing, while the latter is a
 mere sampling of a few interesting quantities on a regularly spaced time grid.
 
 We also emphasize that the GTI and OCTI do not necessarily fill the entirety
-of the time intervals that can be in principle allocate for science data taking
+of the time intervals that can be in principle allocated for science data taking
 and calibration, the exact behavior of the observatory being controlled by the
-``--gtiminduration``, ``--gtistartpad``, ``--gtistoppad``, ``--onbrdcalminduration``,
-``--onbrdcalminstartpad`` and ``--onbrdcalminstoppad`` flags of
-:ref:`reference-xpobssim`.
+``--gtiminduration``, ``--gtistartpad``, ``--gtistoppad``, ``--onorbitcaldemult``,
+``--onorbitcalminduration``, ``--onorbitcalstartpad``, ``--onorbitcalstoppad``,
+and ``--onorbitcalrate`` flags of :ref:`reference-xpobssim`.
 
 .. note::
 

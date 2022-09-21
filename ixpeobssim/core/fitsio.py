@@ -103,7 +103,7 @@ def read_hdu_list_in_memory(file_path, extension='fits'):
 
     This is a convenience function that is meant to open a file within a context
     manager (so that it is properly closed after the fact) and create a copy
-    of the content in memory. This is less than trivial, as astopy typically
+    of the content in memory. This is less than trivial, as astropy typically
     keeps some kind of pointer back to the original file when dealing with FITS
     files, and it is not obvious how to make sure that all the resources are
     properly closed at runtime.

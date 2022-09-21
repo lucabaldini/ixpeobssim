@@ -43,7 +43,7 @@ achieved by selecting the RAD or TAN modes, respectively, and optionally passing
 the right ascension and the declination of the center for the rotation via the
 --ra and --dec command-line switches.
 
-Additionally, the user can feed into tha application pair of FITS images
+Additionally, the user can feed into the application pairs of FITS images
 (in either the Q/U, X/Y components of the polarization vector or polarization
 degree/angle) in the same exact fashion of the machinery used for simulating
 complex polarization patterns for extended sources in ixpeobssim. This is

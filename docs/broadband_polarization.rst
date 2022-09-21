@@ -26,7 +26,7 @@ response functions*.)
 
    To make a long story short, going through the effort of a full
    spectro-polarimetric fit with a proper model is likely to give you the right
-   answer, but there are simpler and faster way around that might bring
+   answer, but there are simpler and faster ways around that might bring
    you close enough in specific circumstances.
 
 
