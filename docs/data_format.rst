@@ -40,7 +40,7 @@ The ``EVENTS`` extension comes in the form of a binary table with 10 columns:
 
 Note the primary header does not include the WCS information to
 map ``X`` and ``Y`` in the sky.
-Note a slight difference remains between 'EVENTS' columns format,
+Note a few differences remain between 'EVENTS' columns format,
 in data files and in ixpeobssim simulated files.
 
 ``ixpeobssim`` event lists
