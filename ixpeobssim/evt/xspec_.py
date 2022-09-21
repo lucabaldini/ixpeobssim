@@ -410,7 +410,7 @@ def load_local_models(package_name='ixpeobssim'):
     logger.info('Done.')
 
 
-def setup_fit_model(expression, par_values=None):
+def setup_fit_model(expression, parameters=None):
     """Create a model for spectral fitting in XSPEC.
 
     Note we abort if the model cannot be created---this can happen, e.g.,
@@ -429,11 +429,13 @@ def setup_fit_model(expression, par_values=None):
         logger.error('Could not create model "%s"', expression)
         logger.error('Did you forget to compile the local models?')
         abort('Cannot proceed with fitting')
-    if par_values is not None:
-        for i, par_value in enumerate(par_values):
+    if parameters is not None:
+        params_dict = {}
+        for i, param in enumerate(parameters):
             par_index = i + 1
-            logger.info('Setting parameter %d to %.2f..', par_index, par_value)
-            model(par_index).values = par_value
+            logger.info('Setting parameter %d to %s..', par_index, param)
+            params_dict[par_index] = param
+        model.setPars(params_dict)
     # If needed, freeze the phony normalization for additive, purely polarimetric
     # models.
     if expression in POLARIMETRIC_ADDITIVE_MODELS:
