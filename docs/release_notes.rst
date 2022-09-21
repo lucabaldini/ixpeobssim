@@ -2,6 +2,9 @@
 Release notes
 =============
 
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/1
+* As run target list updated.
+
 
 *ixpeobssim (29.0.0) - Thu, 08 Sep 2022 11:19:50 +0200*
 
