@@ -700,7 +700,7 @@ class xPeriodicPointSource(xPointSource):
         # Rotate the polarization angle from the sky reference frame to the
         # GPD reference frame.
         pol_ang = phi_to_detphi(pol_ang, irf_set.du_id, roll_angle)
-        photon_list.fill(energy, ra_pnt, dec_pnt, detx, dety, pol_deg, pol_ang)
+        photon_list.fill(energy, ra, dec, detx, dety, pol_deg, pol_ang)
         # If the vignetting is enabled, apply it.
         if kwargs.get('vignetting'):
             photon_list.apply_vignetting(irf_set.vign, ra_pnt, dec_pnt)
