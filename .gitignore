@@ -1,3 +1,12 @@
+
+# XSPEC temporary and compiled object
+ixpeobssim/xspec/Makefile
+ixpeobssim/xspec/*.o
+ixpeobssim/xspec/*.tcl
+ixpeobssim/xspec/lpack_ixpeobssim.cxx
+ixpeobssim/xspec/ixpeobssimFunctionMap.*
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
