@@ -2,6 +2,9 @@
 Release notes
 =============
 
+
+*ixpeobssim (29.1.1) - Thu, 22 Sep 2022 20:17:42 +0200*
+
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/630
 * Data file required by a magnetar unit test restored.
 * Path to a CALDB file fixed in order to be able to run xpobssim with
