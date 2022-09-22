@@ -2,7 +2,7 @@
 Release notes
 =============
 
-* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/630
 * Data file required by a magnetar unit test restored.
 * Path to a CALDB file fixed in order to be able to run xpobssim with
   the charging option enabled.
