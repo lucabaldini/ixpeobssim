@@ -50,28 +50,6 @@ else:
     xspec_stat_methods = []
 
 
-def read_parametr_file(path):
-    """ Read the input parameters from file. We require a csv file with
-    one line per parameter and up to six columns (<val>, <sigma>, <hard_min>,
-    <soft_min>, <soft_max>, <hard_max>). Columns may be skipped by inserting
-    multiple commas, essentially following the syntax of the Standard XSPEC's
-    "newpar" command --- see
-    https://heasarc.gsfc.nasa.gov/xanadu/xspec/xspec11/manual/node35.html#SECTION00651000000000000000
-    Note that specifying the hard limits without the corresponding soft ones
-    may result in the ranges not being set correctly, please check the console
-    log for errors.
-    """
-    params = []
-    with open(path) as f:
-        for line in f:
-            if line.startswith("#"):
-                continue
-            else:
-                vals = line.split(',')
-                params.append(line.strip('\n'))
-    return params
-
-
 def xpxspec(**kwargs):
     """Do a spectro-polarimetric fit in XSPEC
     """
@@ -83,7 +61,7 @@ def xpxspec(**kwargs):
     xspec_.select_energy_range(kwargs.get('emin'), kwargs.get('emax'))
     paramsfile = kwargs.get('paramsfile')
     if paramsfile is not None:
-        params = read_parametr_file(paramsfile)
+        params = xspec_.read_parameter_file(paramsfile)
     else:
         params = kwargs.get('params')
     xspec_.setup_fit_model(kwargs.get('model'), params)

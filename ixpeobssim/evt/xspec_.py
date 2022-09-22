@@ -256,6 +256,27 @@ class xXspecFitData:
         return stat_box
 
 
+def read_parameter_file(path):
+    """ Read the input parameters from file. We require a csv file with
+    one line per parameter and up to six columns (<val>, <sigma>, <hard_min>,
+    <soft_min>, <soft_max>, <hard_max>). Columns may be skipped by inserting
+    multiple commas, essentially following the syntax of the Standard XSPEC's
+    "newpar" command --- see
+    https://heasarc.gsfc.nasa.gov/xanadu/xspec/xspec11/manual/node35.html#SECTION00651000000000000000
+    Note that specifying the hard limits without the corresponding soft ones
+    may result in the ranges not being set correctly, please check the console
+    log for errors.
+    """
+    params = []
+    with open(path) as f:
+        for line in f:
+            if line.startswith("#"):
+                continue
+            else:
+                vals = line.split(',')
+                params.append(line.strip('\n'))
+    return params
+
 
 def compare_fit_data(fit_data, target_values, threshold=5.):
     """Compare the best-fit parameter values with the input model.
