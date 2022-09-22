@@ -2,6 +2,12 @@
 Release notes
 =============
 
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/
+* Data file required by a magnetar unit test restored.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/629
+
+
 
 *ixpeobssim (29.1.0) - Wed, 21 Sep 2022 21:40:16 +0200*
 
