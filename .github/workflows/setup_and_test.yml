@@ -1,13 +1,17 @@
 name: CI
 on:
     push:
+      branches:
+        - main    
       paths-ignore:
         - "README.md"
         - "**/docs/**"
+      tags:
+        - '*'
 
     pull_request:
       branches:
-        - master
+        - main
         
     schedule:
         - cron: "0 11 * * 1"

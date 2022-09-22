@@ -1,14 +1,18 @@
 name: Deploy
 on:
-    push:        
+    push:
+      branches:
+        - main    
       paths-ignore:
         - "README.md"
         - "**/docs/**"
         #- ".github/workflows/docs.yml"
+      tags:
+        - '*'
 
     pull_request:
       branches:
-        - master
+        - main
 
 jobs:
 
