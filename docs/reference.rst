@@ -13,7 +13,7 @@ Simulation facilities
 .. _reference-xpmdp:
 xpmdp
 ~~~~~
-.. command-output:: pwd; source ../setup.sh; xpmdp --help
+.. command-output:: python ../ixpeobssim/bin/xpmdp.py --help
    :shell:
 
 .. _reference-xpobssim:
