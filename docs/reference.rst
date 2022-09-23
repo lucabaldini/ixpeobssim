@@ -13,9 +13,8 @@ Simulation facilities
 .. _reference-xpmdp:
 xpmdp
 ~~~~~
-.. command-output:: . ../setup.sh; python ../ixpeobssim/bin/xpmdp.py --help
+.. command-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpmdp.py --help
    :shell:
-   :ellipsis: 0,13
 
 .. _reference-xpobssim:
 xpobssim
