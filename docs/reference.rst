@@ -7,24 +7,74 @@ Here is the synopsis of all the applications in the IXPE observation simulation
 framework, along with the complete, up-to-date summary of the corresponding
 command-line switches.
 
+
+
 Simulation facilities
 ---------------------
-
-.. _reference-xpmdp:
-xpmdp
-~~~~~
-.. command-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpmdp.py --help
-   :shell:
 
 .. _reference-xpobssim:
 xpobssim
 ~~~~~~~~
-.. command-output:: xpobssim --help
+.. command-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpobssim.py --help
+   :ellipsis: 1,11
+   :shell:
+
+.. _reference-xpphotonlist:
+xpphotonlist
+~~~~~~~~~~~~
+.. command-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpphotonlist.py --help
+   :ellipsis: 1,11
+   :shell:
+
+.. _reference-xpcalib:
+xpcalib
+-------
+.. command-output:: xpcalib.py --help
 
 
 
+Sensitivity estimation
+----------------------
+
+.. _reference-xpmdp:
+xpmdp
+~~~~~
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpmdp.py --help
+   :ellipsis: 1,11
+   :shell:
 
 
+.. _reference-xppimms:
+xppimms
+~~~~~~~
+.. command-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xppimms.py --help
+   :ellipsis: 1,11
+   :shell:
+
+
+
+Analysis facilities
+-------------------
+
+.. _reference-xpbin:
+xpbin
+-----
+.. command-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpbin.py --help
+   :ellipsis: 1,11
+   :shell:
+
+
+.. _reference-xpselect:
+xpeselect
+---------
+.. command-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpselect.py --help
+   :ellipsis: 1,11
+   :shell:
+
+
+
+Visualization facilities
+------------------------
 
 
 
@@ -38,11 +88,6 @@ xpancrkey
 
 
 
-.. _reference-xpbin:
-
-xpbin
------
-.. command-output:: xpbin.py --help
 
 
 
@@ -54,11 +99,6 @@ xpbinview
 
 
 
-.. _reference-xpcalib:
-
-xpcalib
--------
-.. command-output:: xpcalib.py --help
 
 
 
@@ -144,20 +184,6 @@ xpphase
    for more details.
 
 
-.. _reference-xpphotonlist:
-
-xpphotonlist
-------------
-.. command-output:: xpphotonlist.py --help
-
-
-
-.. _reference-xppimms:
-
-xppimms
--------
-.. command-output:: xppimms.py --help
-
 
 
 .. _reference-xppiscale:
@@ -167,12 +193,6 @@ xppicorr
 .. command-output:: xppicorr.py --help
 
 
-
-.. _reference-xpselect:
-
-xpeselect
----------
-.. command-output:: xpselect.py --help
 
 
 
