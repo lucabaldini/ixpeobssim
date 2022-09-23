@@ -13,7 +13,8 @@ Simulation facilities
 .. _reference-xpmdp:
 xpmdp
 ~~~~~
-.. command-output:: xpmdp --help
+.. command-output:: pwd; source ../setup.sh; xpmdp --help
+   :shell:
 
 .. _reference-xpobssim:
 xpobssim
