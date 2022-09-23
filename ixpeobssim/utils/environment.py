@@ -39,7 +39,7 @@ from ixpeobssim.utils.packaging_ import retrieve_version, xPackageVersion
 #
 # You can check whether the Python bindings for xspec are installed by
 #
-# >>> from ixpeobssim import PYXSPEC_INSTALLED
+# >>> from ixpeobssim.utils.environment import PYXSPEC_INSTALLED
 # >>> if PYXSPEC_INSTALLED:
 # >>>     import ixpeobssim.evt.xspec_ as xspec_
 #
