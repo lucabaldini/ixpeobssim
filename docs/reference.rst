@@ -16,24 +16,35 @@ Simulation facilities
 
 xpobssim
 ~~~~~~~~
-.. command-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpobssim.py --help
-   :ellipsis: 1,11
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpobssim.py --help
+   :ellipsis: 0,11
    :shell:
 
 .. _reference-xpphotonlist:
 
 xpphotonlist
 ~~~~~~~~~~~~
-.. command-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpphotonlist.py --help
-   :ellipsis: 1,11
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpphotonlist.py --help
+   :ellipsis: 0,11
    :shell:
+
+
+.. warning::
+
+   ``xpphotonlist`` is designed to generate list of photons at the top of
+   the focal plane, to be fed into the full simulation of the focal-plane
+   detectors---which we are not planning to release to the public. This
+   application is, therefore, of limited use for the Community; yet, it
+   can be used as an inspiration for a useful feature that could be adapted
+   to different applications.
+
 
 .. _reference-xpcalib:
 
 xpcalib
 ~~~~~~~
-.. command-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpcalib.py --help
-   :ellipsis: 1,11
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpcalib.py --help
+   :ellipsis: 0,11
    :shell:
 
 
@@ -46,7 +57,7 @@ Sensitivity estimation
 xpmdp
 ~~~~~
 .. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpmdp.py --help
-   :ellipsis: 1,11
+   :ellipsis: 0,11
    :shell:
 
 
@@ -54,8 +65,8 @@ xpmdp
 
 xppimms
 ~~~~~~~
-.. command-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xppimms.py --help
-   :ellipsis: 1,11
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xppimms.py --help
+   :ellipsis: 0,11
    :shell:
 
 
@@ -63,8 +74,8 @@ xppimms
 
 xpvisibility
 ~~~~~~~~~~~~
-.. command-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpvisibility.py --help
-   :ellipsis: 1,11
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpvisibility.py --help
+   :ellipsis: 0,11
    :shell:
 
 
@@ -76,8 +87,8 @@ Analysis facilities
 
 xpbin
 ~~~~~
-.. command-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpbin.py --help
-   :ellipsis: 1,11
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpbin.py --help
+   :ellipsis: 0,11
    :shell:
 
 
@@ -85,8 +96,8 @@ xpbin
 
 xpeselect
 ~~~~~~~~~
-.. command-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpselect.py --help
-   :ellipsis: 1,11
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpselect.py --help
+   :ellipsis: 0,11
    :shell:
 
 
@@ -94,8 +105,8 @@ xpeselect
 
 xpxspec
 ~~~~~~~
-.. command-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpxspec.py --help
-   :ellipsis: 1,11
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpxspec.py --help
+   :ellipsis: 0,11
    :shell:
 
 
@@ -103,8 +114,8 @@ xpxspec
 
 xpphase
 ~~~~~~~
-.. command-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpphase.py --help
-   :ellipsis: 1,11
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpphase.py --help
+   :ellipsis: 0,11
    :shell:
 
 .. warning::
@@ -127,8 +138,8 @@ xpphase
 
 xpophase
 ~~~~~~~~
-.. command-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpophase.py --help
-   :ellipsis: 1,11
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpophase.py --help
+   :ellipsis: 0,11
    :shell:
 
 
@@ -136,8 +147,8 @@ xpophase
 
 xpstokesalign
 ~~~~~~~~~~~~~
-.. command-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpstokesalign.py --help
-   :ellipsis: 1,11
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpstokesalign.py --help
+   :ellipsis: 0,11
    :shell:
 
 
@@ -145,8 +156,8 @@ xpstokesalign
 
 xpstokesrandom
 ~~~~~~~~~~~~~~
-.. command-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpstokesrandom.py --help
-   :ellipsis: 1,11
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpstokesrandom.py --help
+   :ellipsis: 0,11
    :shell:
 
 
@@ -154,8 +165,8 @@ xpstokesrandom
 
 xpstokesshuffle
 ~~~~~~~~~~~~~~~
-.. command-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpstokesshuffle.py --help
-   :ellipsis: 1,11
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpstokesshuffle.py --help
+   :ellipsis: 0,11
    :shell:
 
 
@@ -163,8 +174,8 @@ xpstokesshuffle
 
 xpstokessmear
 ~~~~~~~~~~~~~
-.. command-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpstokessmear.py --help
-   :ellipsis: 1,11
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpstokessmear.py --help
+   :ellipsis: 0,11
    :shell:
 
 
@@ -172,8 +183,8 @@ xpstokessmear
 
 xpexposure
 ~~~~~~~~~~
-.. command-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpexposure.py --help
-   :ellipsis: 1,11
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpexposure.py --help
+   :ellipsis: 0,11
    :shell:
 
 
@@ -185,8 +196,8 @@ Visualization facilities
 
 xpbinview
 ~~~~~~~~~
-.. command-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpbinview.py --help
-   :ellipsis: 1,11
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpbinview.py --help
+   :ellipsis: 0,11
    :shell:
 
 
@@ -194,8 +205,8 @@ xpbinview
 
 xpirfview
 ~~~~~~~~~
-.. command-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpirfview.py --help
-   :ellipsis: 1,11
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpirfview.py --help
+   :ellipsis: 0,11
    :shell:
 
 
@@ -203,8 +214,8 @@ xpirfview
 
 xpobsview
 ~~~~~~~~~
-.. command-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpobsview.py --help
-   :ellipsis: 1,11
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpobsview.py --help
+   :ellipsis: 0,11
    :shell:
 
 
@@ -212,21 +223,12 @@ xpobsview
 Miscellanea
 -----------
 
-.. _reference-xpancrkey:
+.. _reference-xpsonify:
 
-xpancrkey
-~~~~~~~~~
-.. command-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpancrkey.py --help
-   :ellipsis: 1,11
-   :shell:
-
-
-.. _reference-xpchrgmap:
-
-xpchrgmap
-~~~~~~~~~
-.. command-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpchrgmap.py --help
-   :ellipsis: 1,11
+xpsonify
+~~~~~~~~
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpsonify.py --help
+   :ellipsis: 0,11
    :shell:
 
 
@@ -234,8 +236,8 @@ xpchrgmap
 
 xpevtstat
 ~~~~~~~~~
-.. command-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpevtstat.py --help
-   :ellipsis: 1,11
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpevtstat.py --help
+   :ellipsis: 0,11
    :shell:
 
 
@@ -243,44 +245,8 @@ xpevtstat
 
 xpgrppha
 ~~~~~~~~
-.. command-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpgrppha.py --help
-   :ellipsis: 1,11
-   :shell:
-
-
-.. _reference-xppicorr:
-
-xppicorr
-~~~~~~~~
-.. command-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xppicorr.py --help
-   :ellipsis: 1,11
-   :shell:
-
-
-.. _reference-xpsimfmt:
-
-xpsimfmt
-~~~~~~~~
-.. command-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpsimfmt.py --help
-   :ellipsis: 1,11
-   :shell:
-
-
-.. _reference-xpsimspec:
-
-xpsimspec
-~~~~~~~~~
-.. command-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpsimspec.py --help
-   :ellipsis: 1,11
-   :shell:
-
-
-.. _reference-xpsonify:
-
-xpsonify
-~~~~~~~~
-.. command-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpsonify.py --help
-   :ellipsis: 1,11
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpgrppha.py --help
+   :ellipsis: 0,11
    :shell:
 
 
@@ -288,8 +254,53 @@ xpsonify
 
 xpsrccoords
 ~~~~~~~~~~~
-.. command-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpsrccoords.py --help
-   :ellipsis: 1,11
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpsrccoords.py --help
+   :ellipsis: 0,11
+   :shell:
+
+
+.. _reference-xpancrkey:
+
+xpancrkey
+~~~~~~~~~
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpancrkey.py --help
+   :ellipsis: 0,11
+   :shell:
+
+
+.. _reference-xpchrgmap:
+
+xpchrgmap
+~~~~~~~~~
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpchrgmap.py --help
+   :ellipsis: 0,11
+   :shell:
+
+
+.. _reference-xppicorr:
+
+xppicorr
+~~~~~~~~
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xppicorr.py --help
+   :ellipsis: 0,11
+   :shell:
+
+
+.. _reference-xpsimfmt:
+
+xpsimfmt
+~~~~~~~~
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpsimfmt.py --help
+   :ellipsis: 0,11
+   :shell:
+
+
+.. _reference-xpsimspec:
+
+xpsimspec
+~~~~~~~~~
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpsimspec.py --help
+   :ellipsis: 0,11
    :shell:
 
 
@@ -297,6 +308,6 @@ xpsrccoords
 
 xpstripmc
 ~~~~~~~~~
-.. command-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpstripmc.py --help
-   :ellipsis: 1,11
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpstripmc.py --help
+   :ellipsis: 0,11
    :shell:
