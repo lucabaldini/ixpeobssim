@@ -13,7 +13,7 @@ Simulation facilities
 .. _reference-xpmdp:
 xpmdp
 ~~~~~
-.. command-output:: source ../setup.sh; python ../ixpeobssim/bin/xpmdp.py --help
+.. command-output:: . ../setup.sh; python ../ixpeobssim/bin/xpmdp.py --help
    :shell:
    :ellipsis: 0,13
 
