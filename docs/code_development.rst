@@ -45,9 +45,10 @@ you will need to tell git on your machine who you are, i.e.:
 Cloning the repository
 ----------------------
 
-Go to the webpage `ixpeobssim <https://github.com/lucabaldini/ixpeobssim>`_,
-and click on the top right "fork" icon. Create your fork, then clone it on
-your local device, by typing:
+In order to clone the repository, go to the webpage
+`ixpeobssim <https://github.com/lucabaldini/ixpeobssim>`_, and click on the top
+right "fork" icon. Create your fork, then clone it on your local device, by
+typing:
 
 .. code-block:: bash
 
