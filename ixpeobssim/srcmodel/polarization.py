@@ -28,7 +28,7 @@ from astropy.io import fits
 from astropy import wcs
 from scipy.interpolate import RegularGridInterpolator
 
-from ixpeobssim import ASTROPY_VERSION
+from ixpeobssim.utils.environment import ASTROPY_VERSION
 from ixpeobssim.core.spline import xInterpolatedBivariateSplineLinear
 from ixpeobssim.core.spline import xInterpolatedUnivariateSpline
 from ixpeobssim.core.spline import xInterpolatedUnivariateSplineLinear

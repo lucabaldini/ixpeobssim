@@ -25,7 +25,7 @@ import sys
 
 import numpy
 
-from ixpeobssim import PYXSPEC_INSTALLED
+from ixpeobssim.utils.environment import PYXSPEC_INSTALLED
 from ixpeobssim.core.rand import xUnivariateGenerator, xUnivariateAuxGenerator
 from ixpeobssim.core.spline import xInterpolatedUnivariateSpline
 from ixpeobssim.evt.mdp import xMDPTable

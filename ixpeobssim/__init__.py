@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-#
 # Copyright (C) 2015--2019, the ixpeobssim team.
 #
 # This program is free software; you can redistribute it and/or modify
@@ -21,25 +19,14 @@
 
 from __future__ import print_function, division
 
-import re
 import os
-import sys
-
-import numpy
-import scipy
-import astropy
-import matplotlib
-import regions
-import skyfield
 
 import ixpeobssim.utils.os_
 from ixpeobssim.utils.logging_ import logger
-from ixpeobssim.utils.packaging_ import retrieve_version, parse_version_string, xPackageVersion
 
 PACKAGE_NAME = 'ixpeobssim'
 
-"""Basic folder structure of the package.
-"""
+# Basic folder structure of the package.
 IXPEOBSSIM_ROOT = os.path.abspath(os.path.dirname(__file__))
 IXPEOBSSIM_BASE = os.path.abspath(os.path.join(IXPEOBSSIM_ROOT, os.pardir))
 IXPEOBSSIM_BENCHMARKS = os.path.join(IXPEOBSSIM_ROOT, 'benchmarks')
@@ -82,10 +69,9 @@ IXPEOBSSIM_TOOLS = os.path.join(IXPEOBSSIM_BASE, 'tools')
 IXPEOBSSIM_UTILS = os.path.join(IXPEOBSSIM_ROOT, 'utils')
 IXPEOBSSIM_XSPEC = os.path.join(IXPEOBSSIM_ROOT, 'xspec')
 
-""" This is the output directory.
-
-Note that we create the folder if it does not exist.
-"""
+# This is the output directory.
+#
+# Note that we create the folder if it does not exist.
 try:
     IXPEOBSSIM_DATA = os.environ['IXPEOBSSIM_DATA']
 except KeyError:
@@ -95,8 +81,7 @@ IXPEOBSSIM_DATA_BENCHMARKS = os.path.join(IXPEOBSSIM_DATA, 'benchmarks')
 ixpeobssim.utils.os_.mkdir(IXPEOBSSIM_DATA_BENCHMARKS)
 
 
-"""Folder and infrastructure for auxiliary files.
-"""
+# Folder and infrastructure for auxiliary files.
 try:
     IXPEOBSSIM_AUXFILES = os.environ['IXPEOBSSIM_AUXFILES']
 except KeyError:
@@ -124,7 +109,7 @@ def auxfiles_missing(*file_list):
     for file_name in file_list:
         if not os.path.exists(auxfile_path(file_name)):
             missing_files.append(file_name)
-    if len(missing_files):
+    if len(missing_files) > 0:
         logger.warning('You are missing the following auxiliary file(s).')
         for file_name in missing_files:
             logger.warning(auxfile_url(file_name))
@@ -134,8 +119,7 @@ def auxfiles_missing(*file_list):
 
 
 
-"""Version information.
-"""
+# Version information.
 IXPEOBSSIM_VERSION_FILE_PATH = os.path.join(IXPEOBSSIM_ROOT, '__version__.py')
 
 def version_info():
@@ -145,47 +129,11 @@ def version_info():
     when the file is changed), so that you don't have to bother with
     reloading stuff.
     """
-    input_file = open(IXPEOBSSIM_VERSION_FILE_PATH, 'r')
-    tag = input_file.readline().split('=')[-1].strip(' \'\n')
-    build_date = input_file.readline().split('=')[-1].strip(' \'\n')
-    input_file.close()
+    with open(IXPEOBSSIM_VERSION_FILE_PATH, 'r', encoding='utf8') as input_file:
+        tag = input_file.readline().split('=')[-1].strip(' \'\n')
+        build_date = input_file.readline().split('=')[-1].strip(' \'\n')
     return tag, build_date
 
 
-"""Release notes file.
-"""
+# Release notes file.
 IXPEOBSSIM_RELEASE_NOTES_PATH = os.path.join(IXPEOBSSIM_DOC, 'release_notes.rst')
-
-
-"""Since the Python wrapper to xspec is not always trivial to set up, we put
-this guard, here, to signal downstream whether pyxspec is indeed installed
-or not.
-
-You can check whether the Python bindings for xspec are installed by
-
->>> from ixpeobssim import PYXSPEC_INSTALLED
->>> if PYXSPEC_INSTALLED:
->>>     import ixpeobssim.evt.xspec_ as xspec_
-
-If PYXSPEC_INSTALLED is false you should refrain from touching anything into
-ixpeobssim.evt.xspec_, or event try to import anything from in there.
-"""
-try:
-    import xspec
-    PYXSPEC_INSTALLED = True
-except ImportError:
-    logger.warning('PyXSPEC is not installed, you will no be able to use it.')
-    PYXSPEC_INSTALLED = False
-
-
-# Retrieve the Python version.
-PYTHON_VERSION = xPackageVersion(sys.version_info.major, sys.version_info.minor,
-                                 sys.version_info.micro)
-
-# Retrieve the version numbers for some of the most important third-party packages.
-NUMPY_VERSION = retrieve_version(numpy)
-SCIPY_VERSION = retrieve_version(scipy)
-ASTROPY_VERSION = retrieve_version(astropy)
-MATPLOTLIB_VERSION = retrieve_version(matplotlib)
-SKYFIELD_VERSION = retrieve_version(skyfield)
-REGIONS_VERSION = retrieve_version(regions)

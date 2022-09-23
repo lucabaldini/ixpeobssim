@@ -22,7 +22,7 @@ import numpy
 
 import ixpeobssim.core.pipeline as pipeline
 import ixpeobssim.config.toy_point_source as input_model
-from ixpeobssim import PYXSPEC_INSTALLED
+from ixpeobssim.utils.environment import PYXSPEC_INSTALLED
 if PYXSPEC_INSTALLED:
     import ixpeobssim.evt.xspec_ as xspec_
 

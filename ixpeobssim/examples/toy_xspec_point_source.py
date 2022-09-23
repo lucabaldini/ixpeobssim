@@ -20,7 +20,7 @@ from __future__ import print_function, division
 
 import ixpeobssim.core.pipeline as pipeline
 import ixpeobssim.config.toy_xspec_point_source as input_model
-from ixpeobssim import PYXSPEC_INSTALLED
+from ixpeobssim.utils.environment import PYXSPEC_INSTALLED
 if PYXSPEC_INSTALLED:
     import ixpeobssim.evt.xspec_ as xspec_
 

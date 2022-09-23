@@ -22,7 +22,7 @@ import ixpeobssim.core.pipeline as pipeline
 import ixpeobssim.config.toy_offaxis as input_model
 from ixpeobssim.binning.exposure import xBinnedLivetimeCube
 from ixpeobssim.binning.misc import xBinnedMap
-from ixpeobssim import PYXSPEC_INSTALLED
+from ixpeobssim.utils.environment import PYXSPEC_INSTALLED
 if PYXSPEC_INSTALLED:
     import ixpeobssim.evt.xspec_ as xspec_
 
