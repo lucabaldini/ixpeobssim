@@ -27,12 +27,12 @@ print(sys.path)
 import ixpeobssim
 from ixpeobssim.__version__ import TAG
 
-# Path to the URL of the bitbucket repository.
-base_repo_url = 'https://bitbucket.org/ixpesw/ixpeobssim/src/master'
+# Path to the URL of the github repository.
+base_repo_url = 'https://github.com/lucabaldini/ixpeobssim/blob/main'
 
 # And here we define some shortcuts.
 extlinks = {
-    'repourl': ('%s/%%s' % base_repo_url, '[bitbucket]/')
+    'repourl': ('%s/%%s' % base_repo_url, '[github]/')
 }
 
 

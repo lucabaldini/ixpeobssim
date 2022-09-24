@@ -6,7 +6,8 @@ Release notes
 
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/633
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/636
-* A few bits of the documentation on RTD fixed.
+* A few bits of the documentation on RTD fixed, and all references to the
+  old, private repository on bitbucket fixed.
 * Versioning infrastructure refactored to allow for installation via pip.
 * Issue(s) closed:
       * https://github.com/lucabaldini/ixpeobssim/issues/620
