@@ -55,12 +55,13 @@ bug reports and feature requests.
 
    ...
 
-   See the :ref:`releasenotes` for a full change log.
+   See the :ref:`release_notes` for a full change log.
 
 
 If you found ``ixpeobssim`` useful, feel free to include an acknowledgment in
-papers and/or presentations---`here <https://arxiv.org/abs/2203.06384>`_  is the
-most up-to-date reference.
+papers and/or presentations---`here
+<https://www.sciencedirect.com/science/article/pii/S2352711022001169>`_
+is the most up-to-date reference.
 
 
 .. toctree::
