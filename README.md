@@ -15,6 +15,7 @@ This is the public repository for the package described at [SoftwareX, Volume 19
 
 ![GitHub pull requests](https://img.shields.io/github/issues-pr/lucabaldini/ixpeobssim)
 ![GitHub issues](https://img.shields.io/github/issues/lucabaldini/ixpeobssim)
+![GitHub closed issues](https://img.shields.io/github/issues-closed/lucabaldini/ixpeobssim)
 
 Please refer to the
 [documentation](https://ixpeobssim.readthedocs.io/en/latest/?badge=latest)
