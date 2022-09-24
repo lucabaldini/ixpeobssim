@@ -4,7 +4,7 @@ Code development
 ================
 
 This page includes some useful information and pointers for people willing
-to develop and contribute changes to ixpeobssim. We assume that you have read
+to contribute changes to ixpeobssim. We assume that you have read
 the :ref:`installation` page before landing here.
 
 
@@ -21,17 +21,10 @@ Up and running with github
 
 `git <http://git-scm.com/>`_ is a distributed version control system and
 `github <https://github.com>`_ is the web hosting service that we use to develop
-the public version of `ixpeobssim <https://github.com/lucabaldini/ixpeobssim>`_,
-while on `bitbucket <https://bitbucket.org/>`_ we maintain the private version of
-`ixpeobssim <https://bitbucket.org/ixpesw/ixpeobssim/>`_, released to the public
-and downloadable for a user-only mode. 
+the public version of `ixpeobssim <https://github.com/lucabaldini/ixpeobssim>`_.
 `Here <http://git-scm.com/doc>`_ is the entry point for the git documentation,
 in case you want to have a feeling of what git is doing and how
 you use it.
-
-.. note::
-   In order to be able to ckeckout and modify the code you will need to register
-   to github and make a fork of the repository. 
 
 Mind that, in order to be able to push back changes to the remote repository
 you will need to tell git on your machine who you are, i.e.:
@@ -84,7 +77,7 @@ Basic git workflow
 ------------------
 
 The ``ixpeobssim`` public repository is intentionally protected,
-meaning that nobody is allowed to push changes directly to it. 
+meaning that nobody is allowed to push changes directly to it.
 
 Everybody can merge changes onto the public repository,
 via pull requests provided that there's a least one approval.
@@ -99,7 +92,7 @@ icon on your fork webpage (i.e. https://github.com/github_username/ixpeobssim),
 (on top of the "code" list), then "open pull request"; fill in the request and open it.
 
 It is recommended to open a pull request from a branch of your fork,
-rather than from the "main", in order to be able to work on more parallel tasks. 
+rather than from the "main", in order to be able to work on more parallel tasks.
 Create a new branch to work into and check it out (if you haven't already done so):
 
 .. code-block:: bash
@@ -135,7 +128,7 @@ error message along the lines of
 Follow the instructions and you should be all set.
 
 Once you are done with your consistent set of modifications, go ahead on the
-repository web interface and create a pull request. 
+repository web interface and create a pull request.
 Click on the menu icon top left of the code list, on your fork webpage,
 in order to select the right branch you want to make a pull request from
 (default in this menu is "main"); then create and open your pull request,
