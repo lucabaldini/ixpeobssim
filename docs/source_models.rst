@@ -248,6 +248,7 @@ be something along the lines of the following snippet. We're almost there.
 
 .. program-output:: export PYTHONPATH=../:$PYTHONPATH; python snippets/point_source_definition.py
    :shell:
+   :ellipsis: 0,1
 
 
 .. note::
@@ -280,6 +281,7 @@ actual simulation. The ``print`` output will look like this.
 
 .. program-output:: export PYTHONPATH=../:$PYTHONPATH;python snippets/roi_definition.py
    :shell:
+   :ellipsis: 0,1
 
 
 .. _chandra-observation:
