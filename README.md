@@ -47,7 +47,7 @@ In the meantime, refer to the [installation instructions](https://ixpeobssim.rea
 The ixpeobssim documentation is hosted on [readthedocs](https://ixpeobssim.readthedocs.io/en/latest/index.html), the most 
 useful pointers being:
 
-* [uverview](https://ixpeobssim.readthedocs.io/en/latest/overview.html)
+* [overview](https://ixpeobssim.readthedocs.io/en/latest/overview.html)
 * [quick start](https://ixpeobssim.readthedocs.io/en/latest/quickstart.html)
 * [showcase](https://ixpeobssim.readthedocs.io/en/latest/showcase.html)
 * [application reference](https://ixpeobssim.readthedocs.io/en/latest/reference.html)
