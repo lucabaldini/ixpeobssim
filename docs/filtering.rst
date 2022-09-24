@@ -7,7 +7,10 @@ Filtering event lists
 selecting in time, phase, energy and position in the sky. Or work-horse
 application in this respect is :ref:`reference-xpselect`.
 
-.. command-output:: xpselect.py --help
+
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpselect.py --help
+   :ellipsis: 0,11
+   :shell:
 
 .. note::
 
