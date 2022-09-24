@@ -1,7 +1,7 @@
 # ixpeobssim
 Simulation and analysis framework for the Imaging X-ray Polarimetry Explorer
 
-This is the public repository for the package described on [SoftwareX, Volume 19, July 2022, 101194](https://www.sciencedirect.com/science/article/pii/S2352711022001169) 
+This is the public repository for the package described at [SoftwareX, Volume 19, July 2022, 101194](https://www.sciencedirect.com/science/article/pii/S2352711022001169) 
 
 ![Tag](https://img.shields.io/github/v/tag/lucabaldini/ixpeobssim)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
@@ -11,6 +11,7 @@ This is the public repository for the package described on [SoftwareX, Volume 19
 ![Lines of code](https://img.shields.io/tokei/lines/github/lucabaldini/ixpeobssim)
 ![GitHub contributors](https://img.shields.io/github/contributors/lucabaldini/ixpeobssim)
 ![GitHub last commit](https://img.shields.io/github/last-commit/lucabaldini/ixpeobssim)
+![Libraries.io dependency status for GitHub repo](https://img.shields.io/librariesio/github/lucabaldini/ixpeobssim)
 
 ![GitHub pull requests](https://img.shields.io/github/issues-pr/lucabaldini/ixpeobssim)
 ![GitHub issues](https://img.shields.io/github/issues/lucabaldini/ixpeobssim)
