@@ -1,8 +1,9 @@
 .. _release_notes:
-
 Release notes
 =============
 
+
+*ixpeobssim (29.1.2) - Sat, 24 Sep 2022 19:09:22 +0200*
 
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/633
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/636
