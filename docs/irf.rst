@@ -54,7 +54,7 @@ tools support weights.
 
    At this point in test the analysis of IXPE data with weights has not been
    thoroughly tested. While weight do allow for a measurable sensitivity
-   improvement, cross-checking you analysis using the plain, old, un-weighted
+   improvement, cross-checking your analysis using the plain, old, un-weighted
    strategy is a sensible way to make sure everything is in order.
 
 
@@ -63,8 +63,8 @@ Effective area
 
 Below is the nominal IXPE on-axis effective area, in both the un-weighted and
 weighted flavors. The latter is roughly 15% smaller at the peak value but, as
-we shall see in a second the increase in the modulation factor drives the
-overall sensitivity slight up.
+we shall see in a second, the increase in the modulation factor drives the
+overall sensitivity slightly up.
 
 .. _figure-ixpe_effective_area:
 .. figure:: figures/irf/ixpe_effective_area_v11.*
@@ -110,7 +110,8 @@ The plots below show the principal ingredients that go into the calculation.
    :width: 80%
 
    Quantum efficiency of the GPD as a function of the energy, broken up in its
-   two main components---the Be window and the gas absorbing gas cell.
+   two main components---the Be window transparency, and the gas cell absorbing
+   efficiency.
 
 
 The vignetting function shown below comes from a preliminary study by MSFC
@@ -224,7 +225,7 @@ detector units.
 .. warning::
    The noticeable edge around 9 keV is due to the K-edge of the copper,
    above which the extraction of photoelectrons from X-rays absorbed in the GEM
-   becomes significantly more likely. This cause an increase of effective area,
+   becomes significantly more likely. This causes an increase of effective area,
    accompanied by a dilution of the modulation. While we provide a tabulation of
    all the IRFs in the standard grid between 1 and 12 keV, significant more
    work is needed to validate the response of the detector above the Cu

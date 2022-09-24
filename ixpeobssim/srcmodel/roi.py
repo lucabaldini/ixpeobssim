@@ -700,7 +700,7 @@ class xPeriodicPointSource(xPointSource):
         # Rotate the polarization angle from the sky reference frame to the
         # GPD reference frame.
         pol_ang = phi_to_detphi(pol_ang, irf_set.du_id, roll_angle)
-        photon_list.fill(energy, ra_pnt, dec_pnt, detx, dety, pol_deg, pol_ang)
+        photon_list.fill(energy, ra, dec, detx, dety, pol_deg, pol_ang)
         # If the vignetting is enabled, apply it.
         if kwargs.get('vignetting'):
             photon_list.apply_vignetting(irf_set.vign, ra_pnt, dec_pnt)
@@ -1197,7 +1197,7 @@ class xChandraObservation(xModelComponentBase):
             return xPhotonList()
         # Compute for each CHANDRA event the relative exposure ratio and from that
         # derive, using Poisson statistics, the repetion of the event in IXPE
-        expect_repeat = irf_set.aeff(mc_energy) * duration / mc_effexp
+        expect_repeat = aeff_spline(mc_energy) * duration / mc_effexp
         # Take care of potential nan or negative values
         expect_repeat[numpy.logical_not(expect_repeat > 0.)] = 0.
         num_repeat = numpy.random.poisson(lam=expect_repeat)
@@ -1230,7 +1230,7 @@ class xChandraObservation(xModelComponentBase):
         # Rotate the polarization angle from the sky reference frame to the
         # GPD reference frame.
         pol_ang = phi_to_detphi(pol_ang, irf_set.du_id, roll_angle)
-        photon_list.fill(mc_energy, ra_pnt, dec_pnt, detx, dety, pol_deg, pol_ang)
+        photon_list.fill(mc_energy, ra, dec, detx, dety, pol_deg, pol_ang)
         # If the vignetting is enabled, apply it.
         if kwargs.get('vignetting'):
             photon_list.apply_vignetting(irf_set.vign, ra_pnt, dec_pnt)
@@ -1521,3 +1521,4 @@ class xChandraROIModel(xROIModel):
         text = 'Chandra FITS file: %s' % self.evt_file_path
         text += '\n    %s' % xROIModel.__str__(self)
         return text
+

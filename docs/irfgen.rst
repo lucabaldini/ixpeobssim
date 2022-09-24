@@ -116,7 +116,7 @@ latter are re-assembled together (in the right proportion) only at the very end,
 before the actual response functions are written to file.
 
 All files are tagged with a sequential version number for tracking purposes,
-and contains all the relevant information about the simulation setup for the
+and contain all the relevant information about the simulation setup for the
 underlying photon lists in the form of suitable header keywords. A concise
 summary of the main features of the various iterations of these auxiliary files
 is included at the end of this section.
@@ -227,7 +227,7 @@ Post-processing
 ---------------
 
 This is where all the processing (e.g., averaging and fitting) takes place.
-This steps turns the pre-baked binned files into fully-processed products that
+This step turns the pre-baked binned files into fully-processed products that
 are then `read` in the final step and assembled into OGIP-compliant response
 files.
 
@@ -332,7 +332,7 @@ Passive absorption
 (i. e., the fractions of events impinging on the detector leaving enough signal
 in the active volume to trigger the readout), disaggregated by absorption
 type---window, DME and GEM. At the nominal pressure of 800 mbar this is enough
-calculate the GPD quantum as the sum of the three components:
+calculate the GPD quantum efficiency as the sum of the three components:
 
 .. math::
    Q_{\text{GPD}}(E, p) = Q_{\text{W}}(E) + Q_{\text{DME}}(E, p) + Q_{\text{GEM}}(E, p)

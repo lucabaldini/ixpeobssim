@@ -16,14 +16,14 @@ concenrned) are definitely welcome.
    `XPEC additional models <https://heasarc.gsfc.nasa.gov/docs/xanadu/xspec/newmodels.html>`_
    at this `github repository <https://github.com/HEASARC/xspec_localmodels/tree/master/polmodels>`_.
 
-   This are essentially the same models that have been shipped with ``ixpeobssim``
+   These are essentially the same models that have been shipped with ``ixpeobssim``
    for a long time, except for the fact that they have been renamed
    (e.g., ``constpol`` is now ``polconst``), and the parameters have been
    renamed, too.
 
    Since these are the models that, presumably, will be used by the
    community, and in the spirit of avoiding confusion, we maintain a local copy
-   of these very same models in ``ixpeobssim/xspec``, with the intentions
+   of these very same models in ``ixpeobssim/xspec``, with the intention
    for them to be inter-operable in a transparent fashion with the files
    shipped in the XSPEC repository.
 
@@ -92,7 +92,7 @@ XSPEC local models
 You will need suitable local models for doing spectro-polarimetric fits in XSPEC.
 ixpeobssim is equipped with a few, purely phenomenological models (largely
 courtesy of Keith Arnaud) that everybody can take inspiration from. They are
-located in the ``ixpeobsim/xspec`` folder along with the necessary library files:
+located in the ``ixpeobssim/xspec`` folder along with the necessary library files:
 
 * ``polconst`` has constant polarization degree and angle;
 * ``pollin`` has polarization degree and angle scaling linearly with energy;
@@ -102,7 +102,7 @@ located in the ``ixpeobsim/xspec`` folder along with the necessary library files
 .. note::
    You will notice that all the models in the table below came in two different
    flavors---multiplicative and additive (with an ``a`` prepended). The former
-   incarnation is meant to be multiplies with an arbitrary spectral model in a
+   incarnation is meant to be multiplied with an arbitrary spectral model in a
    full spectro-polarimetric fit, while the latter can be used standalone to fit
    the normalized Q/I and U/I Stokes parameters.
 
@@ -127,7 +127,7 @@ inspiration for more complex models, reads:
    :language: c++
 
 And, for completeness, the ``calcpol.cxx`` utility, that is shipped with
-ixpeobssim and perform the actual polarimetric correction when necessary,
+ixpeobssim and performs the actual polarimetric correction when necessary,
 reads:
 
 .. literalinclude:: ../ixpeobssim/xspec/calcpol.cxx
@@ -286,7 +286,7 @@ spectro-polarimetric fit through the |xpxspec| application.
 |xpxspec| is wrapped into the ixpeobssim pipeline facilities, and you can look at
 the :repourl:`ixpeobssim/examples/toy_point_source.py` analysis pipeline for a
 usage example---but in a nutshell performing a spectro-polarimetic fit is as
-siple as:
+simple as:
 
 .. code-block:: python
 

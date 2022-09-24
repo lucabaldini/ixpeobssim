@@ -21,7 +21,7 @@ the ultimate capabilities of ``ixpeobssim``, due to the fact that the latter
 only operates on a top-level description of the instrument (the response functions).
 It goes without saying, this does not come at no cost, and generating events with
 ``ixpesim`` is about 1000 times slower than the fast-simulation counterpart---while
-``ixpeobssim`` can throw a million events in a few seconds, it takes a hour or
+``ixpeobssim`` can throw a million events in a few seconds, it takes an hour or
 so to ``ixpesim`` to achieve the same thing.
 
 .. note::
@@ -71,7 +71,7 @@ calibration of the IXPE detector units, and, as such, is limited in scope to
 the simulation of the gas pixel detectors at the focal plane of the
 instrument---the simulation flow starts `right before the Berillium entrance window`.
 
-Interestingly enough, ``ixpesim`` support the use of custom input spectra in the
+Interestingly enough, ``ixpesim`` supports the use of custom input spectra in the
 form of simple, two-column text files (one line per energy, the overall normalization
 being irrelevant). This allows to incorporate the effect of all the elements
 upstream the GPD (i.e., the mirrors and the UV filter) in such custom spectra.
@@ -107,7 +107,7 @@ The output is a text file that can be used directly as a custom spectrum in
 Photon lists
 ------------
 
-Since version 19.0.0 (but you are strongly encourage to upgrade to version
+Since version 19.0.0 (but you are strongly encouraged to upgrade to version
 21.3.0 or later, if you are playing this game) ``ixpeobssim`` provides the
 :ref:`reference-xpphotonlist` application, that allows to generate a list of photon
 definitions (in the form of a FITS file) that can then be fed into ``ixpesim``
@@ -116,14 +116,14 @@ tracks for the events triggering the detector.
 
 .. warning::
 
-   The photon list mechanism is a relatively new features that should be
+   The photon list mechanism is a relatively new feature that should be
    considered in beta testing mode. Since it has the potential for becoming
-   our final weapon when it comes to detail simulations of celestial sources,
+   our final weapon when it comes to detailed simulations of celestial sources,
    it is very important to proceed with all the necessary tests. You are
    welcome to try it and you are kindly encouraged to report as soon as possible
    any issue you might run into.
 
-The photon lists contains all the relevant information about the photons
+The photon lists contain all the relevant information about the photons
 impinging on the Be window of the GPD, i.e., time, energy, position and
 polarization degree and angle. The full format specification is as follows.
 

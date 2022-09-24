@@ -24,23 +24,24 @@ extensions:
 
 The ``EVENTS`` extension comes in the form of a binary table with 10 columns:
 
-* ``TRG_ID``: the trigger identifier. The use of trigger ID, instead of event ID, is to emphasize
+* ``TRG_ID`` (1J): the trigger identifier. The use of trigger ID, instead of event ID, is to emphasize
   that the DAQ can discard triggers based on the ROI size.
-* ``TIME``: sum of ``SEC`` and ``MICROSEC``.
-* ``STATUS``: 16-bits of processing status/error flags.
-* ``STATUS2``: 16-bits of processing status/error flags.
-* ``PI``: pixel-equalization and gain-corrected event signal.
-* ``W_MOM``: statistical weight of this event (from moments analysis).
-* ``X``: calculated position, projected onto the J2000 tangent plane axis parallel
-  to celestial equator using the preliminary aspect correction.
-* ``Y``: calculated position, projected onto the J2000 tangent plane axis parallel
-  to celestial equator using the preliminary aspect correction.
-* ``Q``: value of Stokes parameter q in J2000 tangent plane axis.
-* ``U``: value of Stokes parameter u in J2000 tangent plane axis.
+* ``TIME`` (1D): sum of ``SEC`` and ``MICROSEC`` [s].
+* ``STATUS`` (16X): 16-bits of processing status/error flags.
+* ``STATUS2`` (16X): 16-bits of processing status/error flags.
+* ``PI`` (1J): pixel-equalization and gain-corrected event signal.
+* ``W_MOM`` (1E): statistical weight of this event (from moments analysis).
+* ``X`` (E): calculated position, projected onto the J2000 tangent plane axis parallel
+  to celestial equator using the preliminary aspect correction [pixel].
+* ``Y`` (E): calculated position, projected onto the J2000 tangent plane axis parallel
+  to celestial equator using the preliminary aspect correction [pixel].
+* ``Q`` (D): value of Stokes parameter q in J2000 tangent plane axis.
+* ``U`` (D): value of Stokes parameter u in J2000 tangent plane axis.
 
 Note the primary header does not include the WCS information to
 map ``X`` and ``Y`` in the sky.
-
+Note a few differences remain between 'EVENTS' columns format,
+in data files and in ixpeobssim simulated files.
 
 ``ixpeobssim`` event lists
 --------------------------
@@ -77,7 +78,7 @@ Additional extensions, specific to simulated data, include:
   by the ``--scdata`` command-line switch in :ref:`reference-xpobssim`, while
   the step of the grid is controlled by the ``--scdatainterval`` switch);
 * ``OCTI``: contains the on-orbit calibration time interval for a given DU
-  (the table is only generated if the ``--onbrdcalib`` :ref:`reference-xpobssim`
+  (the table is only generated if the ``--onorbitcalib`` :ref:`reference-xpobssim`
   command-line switch is set);
 * ``CHRG_MAP``: contains the charging map at the end of the observation, in a
   form that can be used as an input for subsequent simulations
@@ -91,11 +92,11 @@ the different states a given observation is traversing, while the latter is a
 mere sampling of a few interesting quantities on a regularly spaced time grid.
 
 We also emphasize that the GTI and OCTI do not necessarily fill the entirety
-of the time intervals that can be in principle allocate for science data taking
+of the time intervals that can be in principle allocated for science data taking
 and calibration, the exact behavior of the observatory being controlled by the
-``--gtiminduration``, ``--gtistartpad``, ``--gtistoppad``, ``--onbrdcalminduration``,
-``--onbrdcalminstartpad`` and ``--onbrdcalminstoppad`` flags of
-:ref:`reference-xpobssim`.
+``--gtiminduration``, ``--gtistartpad``, ``--gtistoppad``, ``--onorbitcaldemult``,
+``--onorbitcalminduration``, ``--onorbitcalstartpad``, ``--onorbitcalstoppad``,
+and ``--onorbitcalrate`` flags of :ref:`reference-xpobssim`.
 
 .. note::
 

@@ -149,7 +149,7 @@ def _update_charging_settings(kwargs):
     _map = lambda du_id: os.path.join(_folder, 'ixpe_vanilla_d%d_chrgmap.fits' % du_id)
     kwargs['chrgmaps'] = _map_charging_file_list(kwargs.get('chrgmaps'), _map, 'CHRG_MAP')
     # Setup the charging param files.
-    _folder = os.path.join(IXPEOBSSIM_CALDB, 'bcf', 'chrgparams')
+    _folder = os.path.join(IXPEOBSSIM_CALDB, 'ixpe', 'gpd', 'bcf', 'chrgparams')
     _map = lambda du_id: os.path.join(_folder, 'ixpe_vanilla_d%d_chrgparams.fits' % du_id)
     kwargs['chrgparams'] = _map_charging_file_list(kwargs.get('chrgparams'), _map, 'CHRG_PAR')
 
