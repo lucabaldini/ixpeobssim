@@ -130,7 +130,7 @@ xpphase
   The deal, here, is to use, e.g., the ``nudot0=-1.e13`` form of the options
   specification, `with the equal sign`.
 
-  See `this issue <https://bitbucket.org/ixpesw/ixpeobssim/issues/440>`_
+  See `this issue <https://github.com/lucabaldini/ixpeobssim/issues/440>`_
   for more details.
 
 
