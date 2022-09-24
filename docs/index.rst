@@ -46,6 +46,9 @@ any issue at all, we encourage you to use our
 `issue tracker <https://github.com/lucabaldini/ixpeobssim/issues>`_ to file for
 bug reports and feature requests.
 
+For convenience, a static version of the latest documentation in pdf format is available
+at `this link <https://ixpeobssim.readthedocs.io/_/downloads/en/latest/pdf/>`_.
+
 
 .. admonition:: Latest changes
 
