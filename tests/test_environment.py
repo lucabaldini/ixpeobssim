@@ -26,9 +26,14 @@ import unittest
 import re
 import importlib
 
-import ixpeobssim
-from ixpeobssim.utils.packaging_ import retrieve_version
+
+from ixpeobssim import IXPEOBSSIM_BASE
 from ixpeobssim.utils.logging_ import logger
+from ixpeobssim.utils.environment import PYTHON_VERSION
+from ixpeobssim.utils.environment import NUMPY_VERSION, SCIPY_VERSION, ASTROPY_VERSION,\
+    MATPLOTLIB_VERSION, SKYFIELD_VERSION, REGIONS_VERSION
+from ixpeobssim.utils.environment import PYXSPEC_INSTALLED
+from ixpeobssim.utils.packaging_ import retrieve_version
 
 
 class TestEnvironment(unittest.TestCase):
@@ -40,14 +45,29 @@ class TestEnvironment(unittest.TestCase):
         """Test the Python version.
         """
         logger.info('Checking Python...')
-        logger.info('%s installed', ixpeobssim.PYTHON_VERSION)
-        self.assertTrue(ixpeobssim.PYTHON_VERSION >= '3.6')
+        logger.info('%s installed', PYTHON_VERSION)
+        self.assertTrue(PYTHON_VERSION >= '3.6')
+
+    def test_third_party(self):
+        """
+        """
+        logger.info('numpy version: %s', NUMPY_VERSION)
+        logger.info('scipy version: %s', SCIPY_VERSION)
+        logger.info('astropy version: %s', ASTROPY_VERSION)
+        logger.info('matrplotlib version: %s', MATPLOTLIB_VERSION)
+        logger.info('skyfield version: %s', SKYFIELD_VERSION)
+        logger.info('regions version: %s', REGIONS_VERSION)
+
+    def test_xspec(self):
+        """
+        """
+        logger.info('PyXspec installed? %s', PYXSPEC_INSTALLED)
 
     def test_deps(self):
         """Test the dependencies.
         """
         logger.info('Checking dependencies...')
-        file_path = os.path.join(ixpeobssim.IXPEOBSSIM_BASE, 'requirements.txt')
+        file_path = os.path.join(IXPEOBSSIM_BASE, 'requirements.txt')
         with open(file_path) as input_file:
             for line in input_file:
                 line = line.strip('\n')

@@ -29,7 +29,8 @@ import sys
 import numpy
 import matplotlib.pyplot as plt
 
-from ixpeobssim import IXPEOBSSIM_SRCMODEL, IXPEOBSSIM_DATA, PYXSPEC_INSTALLED
+from ixpeobssim import IXPEOBSSIM_SRCMODEL, IXPEOBSSIM_DATA
+from ixpeobssim.utils.environment import PYXSPEC_INSTALLED
 from ixpeobssim.srcmodel.spectrum import power_law, cutoff_power_law, xXspecModel
 from ixpeobssim.utils.matplotlib_ import plt, setup_gca
 if sys.flags.interactive:

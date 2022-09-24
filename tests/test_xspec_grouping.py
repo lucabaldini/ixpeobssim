@@ -37,7 +37,7 @@ from ixpeobssim.utils.matplotlib_ import plt, setup_gca
 if sys.flags.interactive:
     plt.ion()
 
-from ixpeobssim import PYXSPEC_INSTALLED
+from ixpeobssim.utils.environment import PYXSPEC_INSTALLED
 if PYXSPEC_INSTALLED:
     from ixpeobssim.evt.xspec_ import compare_fit_data
 

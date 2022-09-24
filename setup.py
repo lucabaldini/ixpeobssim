@@ -29,7 +29,7 @@ author = 'The ixpeobssim team'
 description = 'An X-ray polarimetry simulation framework'
 license = 'GNU General Public License v3 or later'
 packages = find_packages(exclude=('tests',))
-url = 'https://bitbucket.org/ixpesw/ixpeobssim/'
+url = 'https://github.com/lucabaldini/ixpeobssim/'
 classifiers = [
     'Intended Audience :: Science/Research',
     'License :: OSI Approved :: '

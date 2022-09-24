@@ -28,7 +28,7 @@ from ixpeobssim.utils.logging_ import logger
 import ixpeobssim.config.toy_point_source as toy_point_source
 from ixpeobssim.utils.time_ import string_to_met_utc
 import ixpeobssim.core.pipeline as pipeline
-from ixpeobssim import PYXSPEC_INSTALLED
+from ixpeobssim.utils.environment import PYXSPEC_INSTALLED
 if PYXSPEC_INSTALLED:
     import ixpeobssim.evt.xspec_ as xspec_
 

@@ -24,7 +24,8 @@ import unittest
 from astropy.io import fits
 import numpy
 
-from ixpeobssim import IXPEOBSSIM_SRCMODEL, NUMPY_VERSION
+from ixpeobssim import IXPEOBSSIM_SRCMODEL
+from ixpeobssim.utils.environment import NUMPY_VERSION
 from ixpeobssim.utils.logging_ import logger
 
 
