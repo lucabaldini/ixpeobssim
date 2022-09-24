@@ -3,6 +3,8 @@
 Release notes
 =============
 
+* Some cosmetics on the public guthub interface.
+
 
 *ixpeobssim (29.1.2) - Sat, 24 Sep 2022 19:09:22 +0200*
 
