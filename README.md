@@ -11,6 +11,7 @@ This is the public repository for the package described at [SoftwareX, Volume 19
 ![Lines of code](https://img.shields.io/tokei/lines/github/lucabaldini/ixpeobssim)
 ![GitHub contributors](https://img.shields.io/github/contributors/lucabaldini/ixpeobssim)
 ![GitHub last commit](https://img.shields.io/github/last-commit/lucabaldini/ixpeobssim)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/w/lucabaldini/ixpeobssim)
 ![Libraries.io dependency status for GitHub repo](https://img.shields.io/librariesio/github/lucabaldini/ixpeobssim)
 
 ![GitHub pull requests](https://img.shields.io/github/issues-pr/lucabaldini/ixpeobssim)
