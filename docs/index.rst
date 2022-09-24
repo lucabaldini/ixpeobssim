@@ -55,8 +55,8 @@ bug reports and feature requests.
 
    ...
 
-   See the :ref:`release_notes` for a full change log.
 
+See the :ref:`release_notes` for a full change log.
 
 If you found ``ixpeobssim`` useful, feel free to include an acknowledgment in
 papers and/or presentations---`here <https://arxiv.org/abs/2203.06384>`_  is the
