@@ -246,7 +246,9 @@ fully-fledged source) can be defined with only a few lines of code.
 And, for completeness, the output of the last ``print`` function should
 be something along the lines of the following snippet. We're almost there.
 
-.. program-output:: python snippets/point_source_definition.py
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python snippets/point_source_definition.py
+   :shell:
+   :ellipsis: 0,1
 
 
 .. note::
@@ -277,7 +279,9 @@ to the last snippet in the previous section
 make it for a valid ixpeobsim configuration file that can be used to run an
 actual simulation. The ``print`` output will look like this.
 
-.. program-output:: python snippets/roi_definition.py
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH;python snippets/roi_definition.py
+   :shell:
+   :ellipsis: 0,1
 
 
 .. _chandra-observation:

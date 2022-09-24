@@ -183,13 +183,13 @@ Point-spread function
 ~~~~~~~~~~~~~~~~~~~~~
 
 The PSF model is derived from one of the early point-source observations, as
-described in `issue #158 <https://bitbucket.org/ixpesw/ixpeobssim/issues/158>`_.
+described in `issue #158 <https://github.com/lucabaldini/ixpeobssim/issues/158>`_.
 
 .. note::
   Starting with version 6 of the instrument response function each DU comes
   with a different PSF scaling factor to account for the differences
   measured during the mirror calibration. As shown in
-  `issue #387 <https://bitbucket.org/ixpesw/ixpeobssim/issues/387>`_, MMA 1
+  `issue #387 <https://github.com/lucabaldini/ixpeobssim/issues/387>`_, MMA 1
   has a significantly better PSF (less than 20 arcsec HPD) than MMAs 2 and 3
   (running at more than 25 arcsec HPD).
 
@@ -299,9 +299,9 @@ are not yet defined as there are definitely peculiarities on both sides
 than trivial.
 
 The actual FITS files with the response data live (provisionally) in the
-`ixpeobssim/caldb <https://bitbucket.org/ixpesw/ixpeobssim/src/master/ixpeobssim/caldb>`_
+`ixpeobssim/caldb <https://github.com/lucabaldini/ixpeobssim/tree/main/ixpeobssim/caldb/ixpe>`_
 folder and the basic logic determining the naming and the file location is defined
-`here <https://bitbucket.org/ixpesw/ixpeobssim/src/master/ixpeobssim/irf/__init__.py>`_.
+`here <https://github.com/lucabaldini/ixpeobssim/blob/main/ixpeobssim/irf/__init__.py>`_.
 
 .. note::
 
@@ -458,23 +458,23 @@ Historical notes
 The release process and the differences with respect to the previous iterations
 are summarized on our issue tracker at:
 
-* `issue #580 <https://bitbucket.org/ixpesw/ixpeobssim/issues/580>`_
+* `issue #580 <https://github.com/lucabaldini/ixpeobssim/issues/580>`_
   (release of version 11);
-* `issue #496 <https://bitbucket.org/ixpesw/ixpeobssim/issues/496>`_
+* `issue #496 <https://github.com/lucabaldini/ixpeobssim/issues/496>`_
   (release of version 10);
-* `issue #460 <https://bitbucket.org/ixpesw/ixpeobssim/issues/460>`_
+* `issue #460 <https://github.com/lucabaldini/ixpeobssim/issues/460>`_
   (release of version 9);
-* `issue #402 <https://bitbucket.org/ixpesw/ixpeobssim/issues/402>`_
+* `issue #402 <https://github.com/lucabaldini/ixpeobssim/issues/402>`_
   (release of version 7);
-* `issue #333 <https://bitbucket.org/ixpesw/ixpeobssim/issues/333>`_
+* `issue #333 <https://github.com/lucabaldini/ixpeobssim/issues/333>`_
   (release of version 6);
-* `issue #344 <https://bitbucket.org/ixpesw/ixpeobssim/issues/344>`_
+* `issue #344 <https://github.com/lucabaldini/ixpeobssim/issues/344>`_
   (release of version 5);
-* `issue #294 <https://bitbucket.org/ixpesw/ixpeobssim/issues/294>`_
+* `issue #294 <https://github.com/lucabaldini/ixpeobssim/issues/294>`_
   (release of version 4);
-* `issue #258 <https://bitbucket.org/ixpesw/ixpeobssim/issues/258>`_
+* `issue #258 <https://github.com/lucabaldini/ixpeobssim/issues/258>`_
   (release of version 3);
-* `issue #161 <https://bitbucket.org/ixpesw/ixpeobssim/issues/161>`_
+* `issue #161 <https://github.com/lucabaldini/ixpeobssim/issues/161>`_
   (release of version 2 and differences with respect to version 1).
 
 In iterations of the response functions up to v3, ixpeobssim used
