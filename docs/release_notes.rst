@@ -1,6 +1,13 @@
 .. _release_notes:
+
 Release notes
 =============
+
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/633
+* A few bits of the documentation on RTD fixed.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/620
 
 
 *ixpeobssim (29.1.1) - Thu, 22 Sep 2022 20:17:42 +0200*

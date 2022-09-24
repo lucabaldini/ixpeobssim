@@ -26,8 +26,9 @@ command
 
 Which prints out the following MDP table:
 
-.. program-output:: xppimms.py --duration 10000
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xppimms.py --duration 10000
    :ellipsis: 0,-5
+   :shell:
 
 This program calculates the MDP by direct numerical integration of the power-law
 input spectrum. As a consequence, part of the richness of the detector response
