@@ -792,15 +792,15 @@ class xInterpolatedBivariateSpline(RectBivariateSpline):
             logmin = numpy.log10(vmin)
             logmax = numpy.log10(vmax)
             levels = numpy.logspace(logmin, logmax, num_contours)
-            plt.contourf(x, y, self.z, levels=levels, norm=matplotlib.colors.LogNorm())
+            cont_plot = plt.contourf(x, y, self.z, levels=levels,
+                                     norm=matplotlib.colors.LogNorm())
         else:
-            plt.contourf(x, y, self.z, num_contours, **kwargs)
-        mappable = plt.cm.ScalarMappable()
-        mappable.set_array(self.z)
-        mappable.set_clim(vmin, vmax)
+            cont_plot = plt.contourf(x, y, self.z, num_contours, **kwargs)
+        cont_plot.set_array(self.z)
+        cont_plot.set_clim(vmin, vmax)
         if logz:
-            mappable.set_norm(matplotlib.colors.LogNorm(vmin=vmin, vmax=vmax))
-        color_bar = plt.colorbar(mappable)
+            cont_plot.set_norm(matplotlib.colors.LogNorm(vmin=vmin, vmax=vmax))
+        color_bar = plt.colorbar(cont_plot, ax=plt.gca())
         color_bar.ax.zorder = -1
         if self.zlabel is not None:
             color_bar.set_label(self.zlabel)
