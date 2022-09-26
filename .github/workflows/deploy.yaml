@@ -30,7 +30,6 @@ jobs:
             - name: Install dependencies
               run: |
                   python -m pip install --upgrade pip wheel setuptools
-                  pip install numpy scipy astropy "matplotlib<3.6" regions skyfield
             - name: Build package
               run: |
                   python setup.py sdist
@@ -53,7 +52,6 @@ jobs:
             - name: Install dependencies
               run: |
                   python -m pip install --upgrade pip wheel setuptools
-                  pip install numpy scipy astropy "matplotlib<3.6" regions skyfield
             - name: Install twine
               run: |
                   python -m pip install twine
