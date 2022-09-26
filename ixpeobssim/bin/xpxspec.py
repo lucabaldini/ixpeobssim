@@ -41,7 +41,7 @@ import os
 from ixpeobssim.utils.matplotlib_ import plt
 from ixpeobssim.utils.logging_ import logger, abort
 
-from ixpeobssim import PYXSPEC_INSTALLED
+from ixpeobssim.utils.environment import PYXSPEC_INSTALLED
 if PYXSPEC_INSTALLED:
     import ixpeobssim.evt.xspec_ as xspec_
     xspec_stat_methods = xspec_.STAT_METHODS

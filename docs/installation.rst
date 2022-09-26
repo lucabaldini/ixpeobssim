@@ -205,7 +205,7 @@ not readily available through Anaconda.
 
    .. code-block:: python
 
-      >>> from ixpeobssim import PYXSPEC_INSTALLED
+      >>> from ixpeobssim.utils.environment import PYXSPEC_INSTALLED
       >>> if PYXSPEC_INSTALLED:
       >>>     import ixpeobssim.evt.xspec_ as xspec_
 
@@ -286,8 +286,8 @@ Installing ixpeobssim
 
 The easiest (though probably not the best) way to get the code is by directly
 downloading the zip or tar file for the latest tag (or the tag you are
-interested in) from the `bitbucket download page
-<https://bitbucket.org/ixpesw/ixpeobssim/downloads/?tab=tags>`_.
+interested in) from the `github download page
+<https://github.com/lucabaldini/ixpeobssim/tags>`_.
 Unzip the archive in your favorite folder and move to the next section.
 
 If you plan on actively contributing to the software development (as opposed

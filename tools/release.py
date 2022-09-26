@@ -63,7 +63,7 @@ def updateReleaseNotes(tag, dry_run=False):
     """ Write the new tag and build date on top of the release notes
     (which must be kept up to date during the release process).
     """
-    title = '.. _release_notes:\nRelease notes\n=============\n\n'
+    title = '.. _release_notes:\n\nRelease notes\n=============\n\n'
     logger.info('Reading in %s...' % IXPEOBSSIM_RELEASE_NOTES_PATH)
     notes = open(IXPEOBSSIM_RELEASE_NOTES_PATH).read().strip('\n').strip(title)
     logger.info('Writing out %s...' % IXPEOBSSIM_RELEASE_NOTES_PATH)

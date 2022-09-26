@@ -25,3 +25,6 @@ echo "PYTHONPATH set to " $PYTHONPATH
 #
 export PATH=$IXPEOBSSIM_ROOT/ixpeobssim/bin:$PATH
 echo "PATH set to " $PATH
+
+alias xpmdp=xpmdp.py
+alias xpobssim=xpobssim.py

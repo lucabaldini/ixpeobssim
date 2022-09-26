@@ -1,6 +1,24 @@
 .. _release_notes:
+
 Release notes
 =============
+
+
+*ixpeobssim (29.1.3) - Sat, 24 Sep 2022 21:21:14 +0200*
+
+* Some cosmetics on the public guthub interface.
+
+
+*ixpeobssim (29.1.2) - Sat, 24 Sep 2022 19:09:22 +0200*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/633
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/636
+* A few bits of the documentation on RTD fixed, and all references to the
+  old, private repository on bitbucket fixed.
+* Versioning infrastructure refactored to allow for installation via pip.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/620
+      * https://github.com/lucabaldini/ixpeobssim/issues/632
 
 
 *ixpeobssim (29.1.1) - Thu, 22 Sep 2022 20:17:42 +0200*

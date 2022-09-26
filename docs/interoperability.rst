@@ -32,7 +32,7 @@ modern (and Pythonic) interface to the underlying facilities.
 
 The inter-operation between ``ixpeobssim`` and Sherpa has been demonstrated at
 the prototypical level, and the related activity is tracked at
-`issue #291 <https://bitbucket.org/ixpesw/ixpeobssim/issues/291>`_.
+`issue #291 <https://github.com/lucabaldini/ixpeobssim/issues/291>`_.
 
 
 3ML

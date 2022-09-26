@@ -29,7 +29,7 @@ from astropy.coordinates import angle_utilities, SkyCoord
 import numpy
 import regions
 
-from ixpeobssim import REGIONS_VERSION
+from ixpeobssim.utils.environment import REGIONS_VERSION
 from ixpeobssim.utils.logging_ import logger
 
 

@@ -1,0 +1,12 @@
+@article{BALDINI2022101194,
+title = {ixpeobssim: A simulation and analysis framework for the imaging X-ray polarimetry explorer},
+journal = {SoftwareX},
+volume = {19},
+pages = {101194},
+year = {2022},
+issn = {2352-7110},
+doi = {https://doi.org/10.1016/j.softx.2022.101194},
+url = {https://www.sciencedirect.com/science/article/pii/S2352711022001169},
+author = {Luca Baldini and Niccolò Bucciantini and Niccolò Di Lalla and Steven Ehlert and Alberto Manfreda and Michela Negro and Nicola Omodei and Melissa Pesce-Rollins and Carmelo Sgrò and Stefano Silvestri},
+keywords = {X-ray polarimetry}
+}

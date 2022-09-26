@@ -22,7 +22,7 @@ from __future__ import print_function, division
 import numpy
 from scipy.optimize import curve_fit
 
-from ixpeobssim import SCIPY_VERSION
+from ixpeobssim.utils.environment import SCIPY_VERSION
 import ixpeobssim.core.modeling
 from ixpeobssim.utils.logging_ import logger
 

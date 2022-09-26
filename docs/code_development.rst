@@ -4,7 +4,7 @@ Code development
 ================
 
 This page includes some useful information and pointers for people willing
-to develop and contribute changes to ixpeobssim. We assume that you have read
+to contribute changes to ixpeobssim. We assume that you have read
 the :ref:`installation` page before landing here.
 
 
@@ -20,17 +20,11 @@ Up and running with github
 --------------------------
 
 `git <http://git-scm.com/>`_ is a distributed version control system and
-`bitbucket <https://bitbucket.org/>`_ is the web hosting service that we use to
-develop and maintain `ixpeobssim <https://bitbucket.org/ixpesw/ixpeobssim/>`_.
+`github <https://github.com>`_ is the web hosting service that we use to develop
+the public version of `ixpeobssim <https://github.com/lucabaldini/ixpeobssim>`_.
 `Here <http://git-scm.com/doc>`_ is the entry point for the git documentation,
 in case you want to have a feeling of what git is doing and how
 you use it.
-
-.. note::
-   In order to be able to ckeckout and modify the code you will need to register
-   to bitbucket and ask `Luca Baldini <mailto:luca.baldini@pi.infn.it>`_ to be
-   granted access to the repository. Please specify your bitbucket username
-   when you do so.
 
 Mind that, in order to be able to push back changes to the remote repository
 you will need to tell git on your machine who you are, i.e.:
@@ -44,11 +38,14 @@ you will need to tell git on your machine who you are, i.e.:
 Cloning the repository
 ----------------------
 
-Cloning the reprository is as easy as typing
+In order to clone the repository, go to the webpage
+`ixpeobssim <https://github.com/lucabaldini/ixpeobssim>`_, and click on the top
+right "fork" icon. Create your fork, then clone it on your local device, by
+typing:
 
 .. code-block:: bash
 
-    git clone git@bitbucket.org:ixpesw/ixpeobssim.git
+    git clone git@github.com:github_username/ixpeobssim.git
 
 (mind this will create an ixpeobssim folder in the current directory, so cd to
 the appropriate place in your filesystem first).
@@ -61,10 +58,10 @@ If you get an error message along the lines of
    fatal: Could not read from remote repository.
    Please make sure you have the correct access rights and the repository exists.
 
-that simply means that you have to exchange you public SSH key with the server.
-In order to do that, click on your bitbucket profile icon on the bottom-left of
-the bitbucket webpage, select "Bitbucket settings", "SSH keys" (under
-SECURITY), "Add key" and paste in the form the content of the local (i.e. on
+that simply means that you have to exchange your public SSH key with the server.
+In order to do that, click on your github profile icon on the top-right of
+the github webpage, select "settings", "SSH and GPG keys", "New SSH key" (top right)
+and paste in the form the content of the local (i.e. on
 the machine you are cloning the repository into) ~/.ssh/id_rsa.pub file.
 
 If you don’t have a public ssh key, you can generate it by typing
@@ -73,23 +70,30 @@ If you don’t have a public ssh key, you can generate it by typing
 
    ssh-keygen
 
-(press ENTER a couple of times and here is you public key in ~/.ssh/id_rsa.pub)
+(press ENTER a couple of times and here is your public key in ~/.ssh/id_rsa.pub)
 
 
 Basic git workflow
 ------------------
 
-The ``ixpeobsim`` master branch is intentionally protected, meaning that nobody
-is allowed to push changes directly to it. Everybody can still merge changes
-onto the master via pull requests provided that there's a least one approval.
+The ``ixpeobssim`` public repository is intentionally protected,
+meaning that nobody is allowed to push changes directly to it.
+
+Everybody can merge changes onto the public repository,
+via pull requests provided that there's a least one approval.
 This scheme makes it for a fairly horizontal development approach, where
 everybody can contribute changes more or less independently, but forces
 people to do so in a coordinate fashion, and gives eveybody else a chance to
 look at the code before changes are actually merged.
 
 The basic workflow we want to stick to is essentially the following. Whenever
-you are ready to start making a set of modifications, create a new branch
-to work into and check it out (if you haven't already done so):
+you are ready to start making a set of modifications, click on the "contribute"
+icon on your fork webpage (i.e. https://github.com/github_username/ixpeobssim),
+(on top of the "code" list), then "open pull request"; fill in the request and open it.
+
+It is recommended to open a pull request from a branch of your fork,
+rather than from the "main", in order to be able to work on more parallel tasks.
+Create a new branch to work into and check it out (if you haven't already done so):
 
 .. code-block:: bash
 
@@ -124,9 +128,13 @@ error message along the lines of
 Follow the instructions and you should be all set.
 
 Once you are done with your consistent set of modifications, go ahead on the
-repository web interface and create a pull request. You're all set! Wait for
-the comments of the reviewer, and finally merge the branch on the master
-(or, even better, have somebosy else doing it for you).
+repository web interface and create a pull request.
+Click on the menu icon top left of the code list, on your fork webpage,
+in order to select the right branch you want to make a pull request from
+(default in this menu is "main"); then create and open your pull request,
+as described above.
+You're all set! Wait for the comments of the reviewer, and finally merge
+the branch on the master (or, even better, have somebody else doing it for you).
 
 .. _coding-guidelines:
 
@@ -205,6 +213,9 @@ You can compile and view the ixpeobssim documentation locally by doing
 
 which is useful to make sure everything is in order when writing and
 documenting code.
+
+Documentation is available online:
+`<https://ixpeobssim.readthedocs.io/en/latest/overview.html>`
 
 .. warning::
    We should update this section once the documentation is uploaded on the

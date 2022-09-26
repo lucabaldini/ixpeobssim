@@ -44,7 +44,8 @@ from skyfield.nutationlib import iau2000b
 from skyfield.functions import angle_between
 from skyfield.units import Angle
 
-from ixpeobssim import IXPEOBSSIM_INSTRUMENT_DATA, IXPEOBSSIM_DATA, SKYFIELD_VERSION
+from ixpeobssim import IXPEOBSSIM_INSTRUMENT_DATA, IXPEOBSSIM_DATA
+from ixpeobssim.utils.environment import SKYFIELD_VERSION
 from ixpeobssim.utils.logging_ import logger, abort
 from ixpeobssim.utils.profile import timing, xChrono, xMemoryProfiler
 from ixpeobssim.utils.matplotlib_ import plt

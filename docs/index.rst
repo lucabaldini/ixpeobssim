@@ -33,18 +33,21 @@ tools traditionally in use by the X-ray community.
    be any discrepancy between the information included in the ``ixpeobssim`` code
    and documentation and that provided by the HEASARC, the latter should be assumed
    to be correct. (And we kindly ask users to report any such instance on our
-   `issue tracker <https://bitbucket.org/ixpesw/ixpeobssim/issues>`_, so that we
+   `issue tracker <https://github.com/lucabaldini/ixpeobssim/issues>`_, so that we
    can fix it.)
 
 
 The ``ixpeobssim`` development takes place on a
-`git repository <https://bitbucket.org/ixpesw/ixpeobssim/>`_ hosted on on
-bitbucket.
+`git repository <https://github.com/lucabaldini/ixpeobssim>`_ hosted on on
+github.
 The :ref:`installation`, :ref:`overview` and :ref:`quickstart` pages should be
 enough to get you up and running. If that is not the case, or should you encounter
 any issue at all, we encourage you to use our
-`issue tracker <https://bitbucket.org/ixpesw/ixpeobssim/issues>`_ to file for
+`issue tracker <https://github.com/lucabaldini/ixpeobssim/issues>`_ to file for
 bug reports and feature requests.
+
+For convenience, a static version of the latest documentation in pdf format is available
+at `this link <https://ixpeobssim.readthedocs.io/_/downloads/en/latest/pdf/>`_.
 
 
 .. admonition:: Latest changes
@@ -59,8 +62,9 @@ bug reports and feature requests.
 
 
 If you found ``ixpeobssim`` useful, feel free to include an acknowledgment in
-papers and/or presentations---`here <https://arxiv.org/abs/2203.06384>`_  is the
-most up-to-date reference.
+papers and/or presentations---`here
+<https://www.sciencedirect.com/science/article/pii/S2352711022001169>`_
+is the most up-to-date reference.
 
 
 .. toctree::
