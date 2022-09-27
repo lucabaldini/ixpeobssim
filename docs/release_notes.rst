@@ -3,6 +3,12 @@
 Release notes
 =============
 
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/641
+* Github actions added for the upload on PyPI and the CI.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/624
+      * https://github.com/lucabaldini/ixpeobssim/issues/625
+
 
 *ixpeobssim (29.1.4) - Tue, 27 Sep 2022 11:45:36 +0200*
 
