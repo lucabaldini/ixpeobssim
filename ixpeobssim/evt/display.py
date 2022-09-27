@@ -189,13 +189,21 @@ class xL1EventFile:
         logger.info('Done, %d event(s) found.', self.__num_events)
         logger.warning('Mind that indexing the events might take some time...')
 
-    def __getitem__(self, event_number : int):
+    def __getitem__(self, event_number):
         """Overloaded slicing hook.
 
         This returns a fully fledged Event object for a given event number.
         """
         args = [self.value(event_number, col_name) for col_name in self.EVT_COL_NAMES]
         return xL1Event(*args)
+
+    def bisect_met(self, met):
+        """Retrieve a specific event by its mission elapsed time.
+
+        Internally this is using a binary search on the time column, and in
+        general it can be assumed that this O(log(N)) in complexity.
+        """
+        pass
 
     def __iter__(self):
         """Iterator protocol implementation.
@@ -407,6 +415,7 @@ if __name__ == '__main__':
     file_path = '/data/work/ixpe/obs/crab/ixpe01001001_det1_evt1_v04.fits'
     event_file = xL1EventFile(file_path)
     grid = xXpolGrid()
+    #met = 162293205.800523
     for event in event_file:
         print(event)
         grid.draw_event(event, zero_sup_threshold=20, padding=False, values=True)
