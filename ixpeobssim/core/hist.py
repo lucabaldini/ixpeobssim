@@ -31,7 +31,7 @@ import scipy.signal
 
 from ixpeobssim.core.fitting import fit_histogram, USE_ABSOLUTE_SIGMA
 from ixpeobssim.instrument.gpd import FIDUCIAL_HALF_SIZE
-from ixpeobssim.utils.matplotlib_ import plt, setup_gca
+from ixpeobssim.utils.matplotlib_ import plt, setup_gca, draggable_colorbar
 from ixpeobssim.utils.logging_ import logger
 
 
@@ -467,7 +467,7 @@ class xHistogram2d(xHistogramBase):
             vmax = kwargs.pop('vmax', None)
             kwargs.setdefault('norm', matplotlib.colors.LogNorm(vmin, vmax))
         plt.hist2d(x, y, bins, weights=w, **kwargs)
-        colorbar = plt.colorbar()
+        colorbar = draggable_colorbar()
         if self.labels[2] is not None:
             colorbar.set_label(self.labels[2])
 
