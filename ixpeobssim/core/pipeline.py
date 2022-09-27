@@ -66,7 +66,7 @@ from xpstokesrandom import xpstokesrandom as _xpstokesrandom, PARSER as XPSTOKES
 from xpstokesshuffle import xpstokesshuffle as _xpstokesshuffle, PARSER as XPSTOKESSHUFFLE_PARSER
 from xpvisibility import xpvisibility as _xpvisibility, PARSER as XPVISIBILITY_PARSER
 from xpxspec import xpxspec as _xpxspec, PARSER as XPXSPEC_PARSER
-
+from astropy.io import fits
 
 """Global setup parameters.
 
@@ -612,3 +612,28 @@ def post_process_ensamble_pcubes(seed, label='pcube'):
     file_list = glob_ensamble(seed, label)
     cube = xBinnedPolarizationCube.from_file_list(file_list)
     return cube.polarization()
+
+def post_process_ensamble_pcubes_eflux(seed, label='pcube'):
+    """Post-process the polarization cubes for a given ensamble run,
+    return the energy flux in erg/cm^2/s, and its error.
+    """
+    file_list = glob_ensamble(seed, label)
+    cube = xBinnedPolarizationCube.from_file_list(file_list)
+    return cube.eflux()
+
+def post_process_ensamble_pcubes_i(seed, label='pcube'):
+    """Post-process the polarization cubes for a given ensamble run,
+    return I(Stokes) normalized to livetime, and its error.
+    """
+    file_list = glob_ensamble(seed, label)
+    livetime_sum = 0
+    for file in file_list:
+        with fits.open(file) as hdu:
+            hdr = hdu[0].header
+            livetime = hdr['LIVETIME']            
+            livetime_sum += livetime
+    cube = xBinnedPolarizationCube.from_file_list(file_list)
+    norm_i, norm_ierr = cube.i_ierr()
+    norm_i /= livetime_sum
+    norm_ierr /= livetime_sum
+    return norm_i, norm_ierr

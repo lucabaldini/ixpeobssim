@@ -30,10 +30,10 @@ import scipy
 from ixpeobssim.irf.ebounds import PI_ENERGY_MIN, PI_ENERGY_MAX
 from ixpeobssim.utils.misc import pairwise
 from ixpeobssim.utils.logging_ import logger, abort
-
+from ixpeobssim.utils.units_ import keV_to_erg
 
 # pylint: disable=invalid-name, too-many-arguments, too-many-locals, too-few-public-methods
-
+# pylint: disable=too-many-instance-attributes
 
 class xModulationAnalysis:
 
@@ -289,6 +289,49 @@ class xStokesAnalysis:
         """Return the average energy over a given energy range.
         """
         return self._average_energy(self._energy_mask(emin, emax))
+
+    def _energy_flux_array(self, mask=None, erg=True):
+        """Return the basic array that is necessary to calculate the energy flux
+        and the associated error.
+
+        This is used in the _energy_flux() class method, as well as in
+        polarization_map_cube(), when we pack the necessary data to create
+        binned polarization maps.
+
+        Note that, by default, the values are converted in erg / cm^2 / s.
+
+        Arguments
+        ---------
+        mask : array_like
+            The event mask
+
+        erg : bool
+            If True, convert the results in from keV to erg.
+        """
+        if mask is None:
+            array_ = self._energy / self._aeff / self._livetime
+        else:
+            array_ = self._energy[mask] / self._aeff[mask] / self._livetime
+        if erg:
+            array_ = keV_to_erg(array_)
+        return array_
+
+    def _energy_flux(self, mask, erg=True):
+        """Return the integral energy flux (by deafult in erg / cm^2 / s) and the
+        associated uncertainty over a given event mask.
+
+        Arguments
+        ---------
+        mask : array_like
+            The event mask
+
+        erg : bool
+            If True, convert the results in from keV to erg.
+        """
+        array_ = self._energy_flux_array(mask, erg)
+        flux = numpy.sum(array_)
+        err = numpy.sqrt(numpy.sum(array_**2.))
+        return flux, err
 
     def _effective_mu(self, mask):
         """Return the effective modulation factor weighted over the input events.
@@ -640,7 +683,7 @@ class xStokesAnalysis:
         col_names = \
             ['ENERG_LO', 'ENERG_HI', 'E_MEAN', 'COUNTS', 'MU', 'W2', 'N_EFF', 'FRAC_W', 'MDP_99',
             'I', 'I_ERR', 'Q', 'Q_ERR', 'U', 'U_ERR', 'QN', 'QN_ERR', 'UN', 'UN_ERR', 'QUN_COV',
-            'PD', 'PD_ERR', 'PA', 'PA_ERR', 'P_VALUE', 'CONFID', 'SIGNIF']
+            'PD', 'PD_ERR', 'PA', 'PA_ERR', 'P_VALUE', 'CONFID', 'SIGNIF', 'EFLUX', 'EFLUXERR']
         table = astropy.table.Table(names=col_names)
         for emin, emax in pairwise(ebinning):
             mask = self._energy_mask(emin, emax)
@@ -658,9 +701,12 @@ class xStokesAnalysis:
             mdp = self.calculate_mdp99(mu, I, W2)
             # Polarization analysis.
             pd, pd_err, pa, pa_err = self.calculate_polarization(I, Q, U, mu, W2, degrees)
+            # Energy flux
+            eflux, eflux_err = self._energy_flux(mask)
             # And now assemble each row in the correct order.
             row = (emin, emax, emean, counts, mu, W2, n_eff, frac_w, mdp, I, dI,\
-                Q, dQ, U, dU, QN, dQN, UN, dUN, cov, pd, pd_err, pa, pa_err, pval, conf, sig)
+                Q, dQ, U, dU, QN, dQN, UN, dUN, cov, pd, pd_err, pa, pa_err,\
+                pval, conf, sig, eflux, eflux_err)
             table.add_row(row)
         return table
 
@@ -730,9 +776,13 @@ class xStokesAnalysis:
         """Return the necessary cube to create a PMAPCUBE binned object.
         """
         data = self.mdp_map_cube(x, y, binning)
-        keys = ('Q', 'U')
-        values = (self._q, self._u)
+        keys = ('Q', 'U', 'EFLUX', 'EFLUXERR')
+        eflux_array_ = self._energy_flux_array()
+        values = (self._q, self._u, eflux_array_, eflux_array_**2.)
         data.update(self._binned_cube(x, y, binning, keys, values))
+        # For the errors on the energy flux, we still need to extract the square
+        # root of the sum of the squares.
+        data['EFLUXERR'] = numpy.sqrt(data['EFLUXERR'])
         args = [data[key] for key in ('I', 'Q', 'U', 'MU', 'W2')]
         data['QN'], data['UN'], data['I_ERR'], data['Q_ERR'], data['U_ERR'], data['QN_ERR'], \
             data['UN_ERR'], data['QUN_COV'], data['P_VALUE'], data['CONFID'], data['SIGNIF'] = \
