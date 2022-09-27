@@ -514,7 +514,7 @@ class xStatBox:
         plt.text(self.x0, self.y0, self.text.strip('\n'), **kwargs)
 
 
-class xDraggableColorbar(object):
+class xDraggableColorbar:
     """Interactive colorbar than can be dragged and zoomed.
     Most of the code is taken from:
     http://www.ster.kuleuven.be/~pieterd/python/html/plotting/interactive_colorbar.html
@@ -539,6 +539,10 @@ class xDraggableColorbar(object):
         self.initial_vmax = self.cbar.norm.vmax
         self.initial_cmap_index = self.index
 
+    @property
+    def ax(self):
+        return self.cbar.ax
+
     def set_label(self, zlabel):
         """Set the colorbar label.
         """
@@ -557,13 +561,13 @@ class xDraggableColorbar(object):
     def show_cmap_name(self):
         """ Show the color map name on top of the color bar
         """
-        self.cbar.ax.set_title(self.cmap_name())
+        self.ax.set_title(self.cmap_name())
 
     def redraw(self):
         """Redraw the colorbar and the related mappable object
         """
         self.cbar.draw_all()
-        self.cbar.patch.figure.canvas.draw()
+        self.ax.figure.canvas.draw()
 
     def update_cmap(self, index):
         """Set the color map to the one at the given index
@@ -601,20 +605,20 @@ class xDraggableColorbar(object):
     def connect(self):
         """Connect all the events we need
         """
-        self.cidpress = self.cbar.patch.figure.canvas.mpl_connect(
+        self.cidpress = self.ax.figure.canvas.mpl_connect(
             'button_press_event', self.on_press)
-        self.cidrelease = self.cbar.patch.figure.canvas.mpl_connect(
+        self.cidrelease = self.ax.figure.canvas.mpl_connect(
             'button_release_event', self.on_release)
-        self.cidmotion = self.cbar.patch.figure.canvas.mpl_connect(
+        self.cidmotion = self.ax.figure.canvas.mpl_connect(
             'motion_notify_event', self.on_motion)
-        self.keypress = self.cbar.patch.figure.canvas.mpl_connect(
+        self.keypress = self.ax.figure.canvas.mpl_connect(
             'key_press_event', self.key_press)
 
     def on_press(self, event):
         """On button press we will see if the mouse is over the colorbar and
         store the coordinates of the click
         """
-        if event.inaxes != self.cbar.ax:
+        if event.inaxes != self.ax:
             return
         self.press = event.x, event.y
 
@@ -638,7 +642,7 @@ class xDraggableColorbar(object):
         """
         if self.press is None:
             return
-        if event.inaxes != self.cbar.ax:
+        if event.inaxes != self.ax:
             return
         xprev, yprev = self.press
         dx = event.x - xprev
@@ -669,20 +673,19 @@ class xDraggableColorbar(object):
     def disconnect(self):
         """Disconnect all the stored connection ids
         """
-        self.cbar.patch.figure.canvas.mpl_disconnect(self.cidpress)
-        self.cbar.patch.figure.canvas.mpl_disconnect(self.cidrelease)
-        self.cbar.patch.figure.canvas.mpl_disconnect(self.cidmotion)
-        self.cbar.patch.figure.canvas.mpl_disconnect(self.keypress)
+        self.ax.figure.canvas.mpl_disconnect(self.cidpress)
+        self.ax.figure.canvas.mpl_disconnect(self.cidrelease)
+        self.ax.figure.canvas.mpl_disconnect(self.cidmotion)
+        self.ax.figure.canvas.mpl_disconnect(self.keypress)
 
 
-def draggable_colorbar(mappable=None, **kwargs):
+def draggable_colorbar(mappable=None, cax=None, ax=None, **kwargs):
     """Create a draggable colorbar
     """
-    if mappable is not None:
-        cbar = plt.colorbar(mappable, **kwargs)
-    else:
-        cbar = plt.colorbar(**kwargs)
-    cbar = xDraggableColorbar(cbar, cbar.mappable)
+    if cax is None and ax is None:
+        ax = plt.gca()
+    _cbar = plt.colorbar(mappable=mappable, cax=cax, ax=ax, **kwargs)
+    cbar = xDraggableColorbar(_cbar, _cbar.mappable)
     cbar.connect()
     # we need to store a reference to the draggable colorbar,
     # otherwise the connection will be destroyed by the garbage collector
