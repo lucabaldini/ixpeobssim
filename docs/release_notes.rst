@@ -3,6 +3,9 @@
 Release notes
 =============
 
+
+*ixpeobssim (29.1.4) - Tue, 27 Sep 2022 11:45:36 +0200*
+
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/641
 * Small fix for a matplotlib 3.6.0 incompatibility.
 * Switching to draggable colorbars for two-dimensional histograms.
