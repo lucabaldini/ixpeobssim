@@ -3,6 +3,33 @@
 Installation
 ============
 
+If you are in a rush, and to make a long story short, as of version
+29.2.0 ixpeobbsim is hosted on `PyPI <https://pypi.org/project/ixpeobssim/>`_
+and you can install it via pip
+
+.. code-block:: shell
+
+   pip install ixpeobssim --user
+
+This should install all the necessary dependences and work out of the box
+(we recommend using the ``--user`` option not to pollute everybody else's
+environment on the host machine, but you're definitely free to opt for
+a system-wide installation by simply omitting this specific option).
+
+.. warning::
+
+   ixpeobssim includes `NumPy <http://www.numpy.org/>`_ as a binary dependence,
+   and it is generally not recommended to install Numpy from pip. Should you
+   encounter problems with the Numpy installation, you might consider to use a
+   `science-ready version of Python <https://scipy.org/install/#scientific-python-distributions>`_
+   that comes with NumPy (and the associated Python scientific ecosystem) built-in,
+   like the `Anaconda <https://www.anaconda.com/products/distribution>`_ distribution.
+
+That said, most of the remaining of this section is left to the reader for
+historical reasons, and in the hope it will be useful to debug installation
+problems, should any arise.
+
+
 Prerequisites
 -------------
 
@@ -95,10 +122,7 @@ Installing Python through Anaconda
    feel free to do so, but we do recommend Anaconda as a decent,
    platform-independent Python experience.
 
-At this point in time all the ixpeobssim development happens in
-the Python 3.6 environment provided by the Anaconda 5x series, and that is
-a good starting point if you are new to ixpeobssim. You can download the
-installer for your os from the `download <https://www.anaconda.com/download/>`_
+You can download the installer for your os from the `download <https://www.anaconda.com/download/>`_
 page (make sure you pick the Python 3 branch) and follow the
 `installation instructions <https://docs.anaconda.com/anaconda/install/>`_.
 
@@ -146,15 +170,10 @@ installation you will typically need to do
 
 .. code-block:: bash
 
-    python -m pip install regions --user
-    python -m pip install skyfield --user
+    pip install regions --user
+    pip install skyfield --user
 
 and you should be all set.
-
-(Note that calling pip through Python, with the -m command-line switch will
-guarantee that you are installing the packages for whatever version of
-Python you are using at the moment, in case you have more than one installed
-on your machine.)
 
 .. warning::
 
@@ -280,37 +299,29 @@ have to source the proper setup file, e.g.
    . $HEADAS/headas-init.sh
 
 
+See the section about :ref:`xspec` for a more in-depth discussion about
+the interactions between ixpeobssim and XSPEC.
+
 
 Installing ixpeobssim
 ---------------------
 
-The easiest (though probably not the best) way to get the code is by directly
-downloading the zip or tar file for the latest tag (or the tag you are
-interested in) from the `github download page
-<https://github.com/lucabaldini/ixpeobssim/tags>`_.
-Unzip the archive in your favorite folder and move to the next section.
-
+As mentioned at the beginning, the easiest way to install ixpeobssim is via pip.
 If you plan on actively contributing to the software development (as opposed
 to just using it) you will need to clone the github repository, as explained
-in the :ref:`code-development` page. And even if you just want to be a
-developer, cloning the git repository will make your life easier when you
-want to upgrade, so consider doing it!
+in the :ref:`code-development` page.
 
 
 Installing ixpeobssim as a user
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-As most Python packages these days, ixpeobssim is distutils-ready. Once you
-have the source code downloaded on your machine, getting it ready for you
-should be as simple as typing
+Installing ixpeobbsim as a user should be as simple as doing
 
-.. code-block:: bash
+.. code-block:: shell
 
-   python setup.py install
+   pip install ixpeobssim --user
 
-This should copy all the necessary files in the right locations and create
-the entry points for the executable scripts. Loosely speaking, if at this point
-you can open a Python prompt and do
+Loosely speaking, if at this point you can open a Python prompt and do
 
 >>> import ixpeobssim
 
