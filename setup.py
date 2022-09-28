@@ -26,7 +26,7 @@ from ixpeobssim.__version__ import TAG
 
 
 author = 'The ixpeobssim team'
-description = 'An X-ray polarimetry simulation framework'
+description = 'Simulation and analysis framework for the Imaging X-ray Polarimetry Explorer'
 license = 'GNU General Public License v3 or later'
 packages = find_packages(exclude=('tests',))
 url = 'https://github.com/lucabaldini/ixpeobssim/'
@@ -39,7 +39,7 @@ classifiers = [
     'Intended Audience :: Science/Research',
     'Programming Language :: Python :: Implementation :: CPython',
     'Topic :: Scientific/Engineering :: Astronomy',
-    'Development Status :: 4 - Beta'
+    'Development Status :: 5 - Production/Stable'
 ]
 dependencies =[
     'numpy',
@@ -62,6 +62,8 @@ _KWARGS = dict(name=PACKAGE_NAME,
                version=TAG,
                author=author,
                description=description,
+               long_description = open('README.md', 'rb').read().decode('utf-8'),
+               long_description_content_type = 'text/markdown',
                license=license,
                packages=packages,
                include_package_data=True,
@@ -70,6 +72,5 @@ _KWARGS = dict(name=PACKAGE_NAME,
                scripts=[],
                install_requires=dependencies,
                entry_points=entry_points)
-
 
 setup(**_KWARGS)
