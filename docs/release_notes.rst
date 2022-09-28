@@ -3,6 +3,9 @@
 Release notes
 =============
 
+
+*ixpeobssim (29.2.1) - Wed, 28 Sep 2022 09:31:59 +0200*
+
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/644
 * REAMDE.md revamped.
 * setup.py updated to include the package description on PyPI.
