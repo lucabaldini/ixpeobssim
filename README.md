@@ -10,7 +10,6 @@ This is the public repository for the package described at [SoftwareX, Volume 19
 [![Documentation Status](https://readthedocs.org/projects/ixpeobssim/badge/?version=latest)](https://ixpeobssim.readthedocs.io/en/latest/?badge=latest)
 
 ![GitHub repo size](https://img.shields.io/github/repo-size/lucabaldini/ixpeobssim)
-![Lines of code](https://img.shields.io/tokei/lines/github/lucabaldini/ixpeobssim)
 ![GitHub contributors](https://img.shields.io/github/contributors/lucabaldini/ixpeobssim)
 ![GitHub last commit](https://img.shields.io/github/last-commit/lucabaldini/ixpeobssim)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/w/lucabaldini/ixpeobssim)
@@ -50,7 +49,7 @@ different missions with polarization capabilities.
 In a nutshell, you should be able to install `ixpeobssim` via pip
 
 ```
-pip install --user ixpeobssim
+pip install ixpeobssim
 ```
 
 Refer to the [installation instructions](https://ixpeobssim.readthedocs.io/en/latest/installation.html) for more in-depth information.
