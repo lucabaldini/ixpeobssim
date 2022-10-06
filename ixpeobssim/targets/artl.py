@@ -1,5 +1,3 @@
-#!/urs/bin/env python
-#
 # Copyright (C) 2022, the ixpeobssim team.
 #
 # This program is free software; you can redistribute it and/or modify
@@ -20,188 +18,255 @@
 """
 
 import datetime
-import os
 
+import astropy.coordinates as coord
+import astropy.units as u
 import numpy
 
-from ixpeobssim import IXPEOBSSIM_TARGETS_DATA, IXPEOBSSIM_DATA
-from ixpeobssim.targets.ltp import xObservationSegment, TARGET_DICT, COLOR_DICT,\
-    SOURCE_LEGEND_HANDLES
-from ixpeobssim.utils.logging_ import logger
-from ixpeobssim.utils.matplotlib_ import plt, save_all_figures
-
-from matplotlib.dates import date2num, DateFormatter, DayLocator, WeekdayLocator
-
-
-#
-# Name	Exposure [d]	Start	Stop
-#
-_ARTL_DATA = (
-    ('Cas A', 11.57, '2022-01-11T11:45', '2022-01-29T12:34', ''),
-    ('Cen X-3',	1.16, '2022-01-29T13:10', '2022-01-31T07:10', ''),
-    ('4U 0142+61',	6.94, '2022-01-31T07:36', '2022-02-14T23:48', '1 of 2'),
-    ('Cen A', 1.16, '2022-02-15T00:38', '2022-02-17T13:33', ''),
-    ('Her X-1', 2.31, '2022-02-17T14:11', '2022-02-21T15:50', '1 of 2'),
-    ('Crab', 0.58, '2022-02-21T16:34', '2022-02-22T18:23', '1 of 2'),
-    ('Her X-1', 1.16, '2022-02-22T19:07', '2022-02-24T19:24', '2 of 2'),
-    ('4U 0142+61',	1.97, '2022-02-24T19:47', '2022-02-27T18:51', '2 of 2'),
-    ('Sgr A complex', 4.05, '2022-02-27T19:37', '2022-03-06T23:47', '1 of 2'),
-    ('Crab', 0.58, '2022-03-07T00:38', '2022-03-08T02:17', '2 of 2'),
-    ('Mrk 501', 1.16, '2022-03-08T02:59', '2022-03-10T08:30', ''),
-    ('Sgr A complex', 7.52, '2022-03-10T08:30', '2022-03-23T01:42', '2 of 2'),
-    ('4U 1626-67', 2.31, '2022-03-24T01:59', '2022-03-27T05:19', ''),
-    ('Mrk 501', 1.16, '2022-03-27T05:59', '2022-03-29T07:03', ''),
-    ('GS 1826-238',	1.16, '2022-03-29T07:25', '2022-03-31T08:57', ''),
-    ('S5 0716+714',	4.63, '2022-03-31T09:42', '2022-04-05T19:29', ''),
-    ('Vela Pulsar', 5.79, '2022-04-05T20:11', '2022-04-15T18:02', '1 of 2'),
-    ('Vela X-1', 3.47, '2022-04-15T18:11', '2022-04-21T12:17', ''),
-    ('Vela Pulsar', 5.24, '2022-04-21T12:24', '2022-04-30T10:02', '2 of 2'),
-    ('Cyg X-2',	1.16, '2022-04-30T11:04', '2022-05-02T11:07', ''),
-    ('Cyg X-2', 0.57, '2022-05-02T11:11', '2022-05-03T11:13', 'off-set'),
-    ('1ES 1959+650', 0.58,	'2022-05-03T11:29', '2022-05-04T09:49', ''),
-    ('Mrk 421',	1.16, '2022-05-04T10:11', '2022-05-06T10:50', ''),
-    ('BL Lac', 4.63, '2022-05-06T11:30', '2022-05-14T12:27', ''),
-    ('MCG-5-23-16', 0.58, '2022-05-14T13:17', '2022-05-15T14:55', '1 of 2'),
-    ('Cyg X-1',	3.47, '2022-05-15T15:45', '2022-05-21T17:52', ''),
-    ('MCG-5-23-16', 5.21, '2022-05-21T18:42', '2022-05-31T03:47', '2 of 2'),
-    ('3C 454.3', 1.16, '2022-05-31T04:36', '2022-06-02T08:40', ''),
-    ('3C 273', 1.16, '2022-06-02T08:53', '2022-06-04T10:48', ''),
-    ('Mrk 421',	1.16, '2022-06-04T11:05', '2022-06-06T10:57', ''),
-    ('1ES 1959+650', 0.58, '2022-06-06T11:20', '2022-06-07T08:38', 'adjust'),
-    ('Mrk 421',	1.16, '2022-06-07T09:01', '2022-06-09T09:39', ''),
-    ('1ES 1959+650', 2.46, '2022-06-09T10:02', '2022-06-12T20:25', ''),
-    ('3C 279', 3.24, '2022-06-12T21:05', '2022-06-18T20:21', ''),
-    ('Cyg X-1', 1.16, '2022-06-18T21:03', '2022-06-21T21:03', 'ToO'),
-    ('Tycho', 11.57, '2022-06-21T21:22', '2022-07-07T00:00', ''),
-    ('Cen X-3', 2.31, '2022-07-04T06:22', '2022-07-07T12:44', 'ToO'),
-    ('BL Lac', 1.44, '2022-07-07T13:35', '2022-07-09T23:12', ''),
-    ('Mrk 501', 1.16, '2022-07-09T23:33', '2022-07-12T00:40', ''),
-    ('Circinus galaxy', 9.26, '2022-07-12T01:23', '2022-07-25T02:05', ''),
-    ('SN 1006', 2.31, '2022-07-25T02:20', '2022-07-29T02:19', 'Seg 1/2 Wrong coordinates'),
-    ('GX 301-2', 3.47, '2022-07-29T02:35', '2022-08-03T06:01', ''),
-    ('SN 1006', 1.27, '2022-08-03T06:16', '2022-08-05T14:18', 'Seg 2/2: Obs UID=1001599 Wrong coordinates'),
-    ('SN 1006', 7.99, '2022-08-05T14:21', '2022-08-19T12:32', ''),
-    ('X Persei', 1.61, '2022-08-19T13:22', '2022-08-22T05:39', 'Seg 1/2 interrupted by ToO'),
-    ('4U 1630-472', 6.80, '2022-08-22T06:28', '2022-08-23T22:37', 'ToO')
-    )
+from ixpeobssim.targets.__artl__ import TWG_LIST, COLOR_DICT, _TARGET_DATA,\
+    _Y1_ARTL_DATA, SOURCE_LEGEND_HANDLES
+from ixpeobssim.utils.matplotlib_ import plt
 
 
 
+class xTarget:
 
+    """Small container class representing a celestial target.
 
-class xTargetList(dict):
+    Arguments
+    ---------
+    name : str
+        The source name
 
-    """Small container class representing the as-run target list as
-    distributed through https://ixpe.msfc.nasa.gov/for_scientists/asrun.html
+    ra : float
+        The right ascention of the source in decimal degrees
+
+    dec : float
+        The declination of the source in decimal degrees
+
+    twg : TWG entry
+        The reference TWG
     """
 
-    _DATETIME_FMT = '%Y-%m-%dT%H:%M'
-
-    def __init__(self):
+    def __init__(self, name, ra, dec, twg):
+        """Constructor.
         """
+        assert twg in TWG_LIST
+        self.name = name
+        self.ra = ra
+        self.dec = dec
+        self.twg = twg
+
+    def galactic_coordinates(self):
+        """Return the galactic coordinates of the source.
+        """
+        return coord.SkyCoord(ra=self.ra * u.degree, dec=self.dec * u.degree).galactic
+
+    def _plot(self, x, y, **kwargs):
+        """Basic plotting function.
+        """
+        label = kwargs.pop('label', True)
+        ha = kwargs.get('ha', 'center')
+        va = kwargs.get('va', 'bottom')
+        voff = kwargs.get('voff', 0.02)
+        color = COLOR_DICT.get(self.twg)
+        rotation = kwargs.get('rotation', 0.)
+        plt.scatter(x, y, color=color)
+        if label:
+            if va == 'bottom':
+                y += voff
+            else:
+                y -= 2. * voff
+            plt.text(x, y, self.name, color=color, ha=ha, va=va, rotation=rotation, size='small')
+
+    def plot_equatorial_pos(self, **kwargs):
+        """Plot the celestial position.
+        """
+        ra = coord.Angle(self.ra * u.degree).wrap_at(180. * u.degree).radian
+        dec = coord.Angle(self.dec * u.degree).radian
+        self._plot(ra, dec, **kwargs)
+
+    def plot_galactic_pos(self, **kwargs):
+        """Plot the galactic position.
+        """
+        coords = self.galactic_coordinates()
+        l = -coords.l.wrap_at(180. * u.degree).radian
+        b = coords.b.radian
+        self._plot(l, b, **kwargs)
+
+    def __str__(self):
+        """String formatting.
+        """
+        return '%s (%s) at (%.5f., %.5f) deg' % (self.name, self.twg, self.ra, self.dec)
+
+
+
+class xObservation:
+
+    """Small container representing an IXPE observation.
+    """
+
+    _DATETIME_FMT_FULL = '%Y-%m-%dT%H:%M'
+    _DATETIME_FMT_TRIM = '%Y-%m-%dT'
+
+    def __init__(self, target_name, exposure, uid, start, stop, note):
+        """
+        """
+        self.target_name = target_name
+        self.exposure = self.days_to_ks(exposure)
+        self.uid = uid
+        self.start_datetime = self._fmt_datetime(start)
+        self.end_datetime = self._fmt_datetime(stop)
+        self.note = note
+
+    @staticmethod
+    def _fmt_datetime(date_str):
+        """Format the datetime string into a datetime object.
+        """
+        try:
+            return datetime.datetime.strptime(date_str, xObservation._DATETIME_FMT_FULL)
+        except ValueError:
+            return datetime.datetime.strptime(date_str, xObservation._DATETIME_FMT_TRIM)
+
+    @staticmethod
+    def days_to_ks(days):
+        """Convert days to ks.
+        """
+        return days * 86.400
+
+    def span(self):
+        """Return the observation span segment in ks.
+
+        Note this is generally 1.5--2 times longer than the actual exposure, as
+        it includes the perdiods in which the target is occulted and or the
+        observatory is in the SAA.
+        """
+        return 1.e-3 * (self.end_datetime - self.start_datetime).total_seconds()
+
+    def __str__(self):
+        """String formatting.
+        """
+        return '%s [%d] %s--%s (%.1f ks)' % (self.target_name, self.uid,
+            self.start_datetime, self.end_datetime, self.exposure)
+
+
+
+# Static TARGET_DICT object---this can be imported from outside.
+TARGET_DICT = {name: xTarget(name, *args) for name, args in _TARGET_DATA.items()}
+
+
+
+class xARTL(dict):
+
+    """Small container class representing the as-run target list.
+    """
+
+    MAP_FIGSIZE = (14., 9.)
+
+    def __init__(self, data=_Y1_ARTL_DATA):
+        """Constructor.
         """
         dict.__init__(self)
-        for i, (target_name, _, start_date, end_date, _) in enumerate(_ARTL_DATA):
-            start_date = datetime.datetime.strptime(start_date, self._DATETIME_FMT)
-            end_date = datetime.datetime.strptime(end_date, self._DATETIME_FMT)
-            obs = xObservationSegment(target_name, start_date, end_date, 0)
+        for i, (target_name, *args) in enumerate(data):
+            if target_name not in TARGET_DICT:
+                msg = 'Target %s not found in _TARGET_DATA, update __artl__.py'
+                raise RuntimeError(msg % target_name)
+            obs = xObservation(target_name, *args)
             if target_name in self:
                 self[target_name].append(obs)
             else:
                 self[target_name] = [obs]
 
-    def total_observing_time(self, target_name):
+    @staticmethod
+    def target(target_name):
+        """Return the actual target for a given target name.
         """
-        """
-        return sum(obs.duration() for obs in self.get(target_name))
+        return TARGET_DICT[target_name]
 
-    def plot(self, y0=0., pad=0., ax=None, label=False, xmin=-numpy.inf, xmax=numpy.inf):
+    def total_exposure(self, target_name):
+        """Return the total exposure for a given target name.
         """
-        """
-        if ax is None:
-            ax = plt.gca()
-        for target_name, obs_list in self.items():
-            target = TARGET_DICT[target_name]
-            color = COLOR_DICT[target.twg]
-            for obs in obs_list:
-                start = date2num(obs.start_date)
-                if start < xmin or start > xmax:
-                    continue
-                end = date2num(obs.end_date)
-                if end < xmin or end > xmax:
-                    continue
-                ax.hlines(y0, start + pad, end - pad, color=color, lw=25)
-                if label:
-                    x0 = 0.5 * (start + end)
-                    label = '%s' % target_name
-                    if obs.segment_number > 0:
-                        label += ' (s%d)' % obs.segment_number
-                    ax.text(x0, y0 - 0.0275, label, color='black', ha='left', va='bottom', size='small',
-                        rotation=45.)
-                elif obs.duration() > 1300:
-                    x0 = 0.5 * (start + end)
-                    ax.text(x0, y0, '%s' % target_name, color='white', ha='center', va='center', size='small')
+        return sum(obs.exposure for obs in self.get(target_name))
 
+    def plot_equatorial_coodinates(self, projection='aitoff'):
+        """Plot the ARTL in equatorial coordinates.
+        """
+        plot_kwargs = {
+            '4U 0142+61': dict(va='top'),
+            '4U 1630-472': dict(va='top'),
+            '4U 1820-303': dict(ha='left'),
+            'Cen X-3': dict(va='top', ha='right'),
+            'Cyg X-1': dict(va='top'),
+            'Cyg X-2': dict(va='top'),
+            'Circinus galaxy': dict(va='top', ha='left'),
+            'GS 1826-238': dict(ha='left'),
+            'Her X-1': dict(va='top'),
+            'NGC 4151': dict(va='top', ha='left'),
+            'Sgr A complex': dict(ha='right'),
+            'Vela Pulsar': dict(va='top'),
+            'XTE J1701-462': dict(ha='left'),
+            }
+        fig = plt.figure('IXPE LTP equatorial', figsize=self.MAP_FIGSIZE)
+        ax = fig.add_subplot(111, projection=projection)
+        for target_name in self:
+            kwargs = plot_kwargs.get(target_name, {})
+            self.target(target_name).plot_equatorial_pos(**kwargs)
+        ax.grid(True)
+        plt.gca().legend(handles=SOURCE_LEGEND_HANDLES, loc=(-0.15, 0.91))
+
+    def plot_galactic_coodinates(self, projection='aitoff'):
+        """Plot the ARTL in galactic coordinates.
+        """
+        plot_kwargs = {
+            '1RXS J170849.0': dict(va='top', ha='right', rotation=25),
+            '4U 0142+61': dict(va='top', ha='right'),
+            '4U 1626-67': dict(va='top'),
+            '4U 1630-472': dict(ha='left', rotation=25),
+            '4U 1820-303': dict(ha='right'),
+            'Cas A': dict(va='top'),
+            'Circinus galaxy': dict(va='top'),
+            'Cen X-3': dict(ha='left'),
+            'Cyg X-2': dict(va='top', ha='left'),
+            'Cyg X-3': dict(va='top'),
+            'GX 301-2': dict(ha='left', rotation=25),
+            'GRO J1008-57': dict(va='top'),
+            'GRS 1915+105': dict(va='top'),
+            'GS 1826-238': dict(va='top', ha='right'),
+            'Her X-1': dict(va='top'),
+            'Mrk 421': dict(va='top', ha='left'),
+            'MSH 15-52': dict(ha='left', rotation=25),
+            'NGC 4151': dict(va='top', ha='left'),
+            'Vela Pulsar': dict(va='top', ha='left'),
+            'Vela X-1': dict(ha='left'),
+            'XTE J1701-462': dict(va='top', ha='right', rotation=25),
+        }
+        fig = plt.figure('IXPE LTP galactic', figsize=self.MAP_FIGSIZE)
+        ax = fig.add_subplot(111, projection=projection)
+        for target_name in self:
+            kwargs = plot_kwargs.get(target_name, {})
+            self.target(target_name).plot_galactic_pos(**kwargs)
+        ax.grid(True)
+        plt.xticks(numpy.linspace(-numpy.pi, numpy.pi, 10), labels=[])
+        plt.gca().legend(handles=SOURCE_LEGEND_HANDLES, loc=(-0.15, 0.91))
 
     def __str__(self):
         """String formatting.
         """
         text = ''
         for target_name, obs_list in self.items():
-            text += '* %s: %.1f ks total\n' % (target_name, self.total_observing_time(target_name))
+            text += '* %s: %.1f ks total\n' % (target_name, self.total_exposure(target_name))
             for obs in obs_list:
                 text += '  - %s\n' % obs
         return text
 
 
 
-ARTL = xTargetList()
-
-
-def _plot_timeline_inset(start_date, end_date, x, y, dy=0.15, target_list=ARTL):
-    """
-    """
-    _start = date2num(numpy.datetime64(start_date))
-    _end = date2num(numpy.datetime64(end_date))
-    dx = (_end - _start) * 0.010
-    axins = plt.gca().inset_axes([x, y, dx, dy])
-    axins.set_xlim(_start, _end)
-    axins.set_ylim(0.1, -0.1)
-    axins.spines['top'].set_visible(False)
-    if x > 0.8:
-        axins.spines['left'].set_visible(False)
-    elif y > 0.5:
-        axins.spines['right'].set_visible(False)
-        axins.spines['left'].set_visible(False)
-    axins.patch.set_facecolor('none')
-    axins.xaxis_date()
-    axins.yaxis.set_ticks([])
-    axins.xaxis.set_minor_locator(DayLocator())
-    axins.xaxis.set_major_locator(WeekdayLocator())
-    axins.xaxis.set_major_formatter(DateFormatter('%b %d'))
-    plt.gca().indicate_inset_zoom(axins, edgecolor='black')
-    target_list.plot(y0=0.06, pad=0.05, ax=axins, label=True, xmin=_start, xmax=_end)
-
-
-def plot_timeline():
-    """
-    """
-    plt.figure('IXPE as-run target list', figsize=(18., 10.))
-    ARTL.plot()
-    plt.gca().xaxis_date()
-    plt.gca().yaxis.set_ticks([])
-    plt.axis([None, None, -1., 1.])
-    plt.tight_layout()
-    _plot_timeline_inset('2022-01-29 12:35', '2022-03-23 01:43', 0.0075, 0.82)
-    _plot_timeline_inset('2022-03-24 01:58', '2022-05-14 12:27', 0.0075, 0.25)
-    _plot_timeline_inset('2022-05-14 12:28', '2022-06-21 21:04', 0.55, 0.65)
-    _plot_timeline_inset('2022-07-07 00:00', '2022-08-24 00:00', 0.50, 0.05)
-    plt.gca().legend(handles=SOURCE_LEGEND_HANDLES, loc=(0.05, 0.025))
 
 
 
 if __name__ == '__main__':
-    print(ARTL)
-    plot_timeline()
-    save_all_figures(IXPEOBSSIM_DATA)
+    artl = xARTL()
+    print(artl)
+    artl.plot_equatorial_coodinates()
+    artl.plot_galactic_coodinates()
     plt.show()
