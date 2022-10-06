@@ -277,20 +277,19 @@ class xARTL(dict):
                     x0 = 0.5 * (start + end)
                     ax.text(x0, y0, '%s' % target_name, color='white', ha='center', va='center', size='small')
 
-    def plot_inset(self, start_date, end_date, x, y, dy=0.15):
-        """
+    def plot_inset(self, start_date, end_date, x, y, dy=0.15, xscale=0.0075):
+        """Plot a timeline inset.
         """
         _start = date2num(numpy.datetime64(start_date))
         _end = date2num(numpy.datetime64(end_date))
-        dx = (_end - _start) * 0.010
+        dx = (_end - _start) * xscale
         axins = plt.gca().inset_axes([x, y, dx, dy])
         axins.set_xlim(_start, _end)
         axins.set_ylim(0.1, -0.1)
         axins.spines['top'].set_visible(False)
-        if x > 0.8:
-            axins.spines['left'].set_visible(False)
-        elif y > 0.5:
+        if y > 0.5:
             axins.spines['right'].set_visible(False)
+        if y > 0.75:
             axins.spines['left'].set_visible(False)
         axins.patch.set_facecolor('none')
         axins.xaxis_date()
@@ -310,10 +309,11 @@ class xARTL(dict):
         plt.gca().yaxis.set_ticks([])
         plt.axis([None, None, -1., 1.])
         plt.tight_layout()
-        self.plot_inset('2022-01-29 12:35', '2022-03-23 01:43', 0.0075, 0.82)
+        self.plot_inset('2022-01-29 12:35', '2022-03-23 01:43', 0.0075, 0.85)
         self.plot_inset('2022-03-24 01:58', '2022-05-14 12:27', 0.0075, 0.25)
-        self.plot_inset('2022-05-14 12:28', '2022-06-21 21:04', 0.55, 0.65)
-        self.plot_inset('2022-07-07 00:00', '2022-08-24 00:00', 0.50, 0.05)
+        self.plot_inset('2022-05-14 12:28', '2022-06-21 21:04', 0.38, 0.65)
+        self.plot_inset('2022-07-07 00:00', '2022-09-19 05:00', 0.40, 0.05)
+        self.plot_inset('2022-09-19 05:00', '2022-10-11 13:13', 0.68, 0.85)
         plt.gca().legend(handles=SOURCE_LEGEND_HANDLES, loc=(0.05, 0.025))
 
     def __str__(self):
