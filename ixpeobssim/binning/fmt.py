@@ -131,10 +131,11 @@ class xBinTableHDULC(xBinTableHDUBase):
     NAME = 'RATE'
     HEADER_KEYWORDS = []
     DATA_SPECS = [
-        ('TIME'   , 'D', 's'     , 'time at the bin center'),
-        ('TIMEDEL', 'D', 's'     , 'bin size'),
-        ('COUNTS' , 'J', 'counts', 'photon counts'),
-        ('ERROR'  , 'E', 'counts', 'statistical errors')
+        ('TIME'    , 'D', 's'     , 'time at the bin center'),
+        ('TIMEDEL' , 'D', 's'     , 'bin size'),
+        ('EXPOSURE', 'D', 's'     , 'exposure in bin'),
+        ('COUNTS'  , 'D', 'counts', 'photon counts'),
+        ('ERROR'   , 'E', 'counts', 'statistical errors')
         ]
 
 

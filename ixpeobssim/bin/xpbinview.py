@@ -64,6 +64,8 @@ def xpbinview(**kwargs):
             _kwargs['vmin'] = vmin
         if vmax is not None:
             _kwargs['vmax'] = vmax
+    elif bin_alg in ('LC',):
+        _kwargs['mjd'] = kwargs['mjd']
     viewer.plot(**_kwargs)
     if outfile is not None:
         if os.path.exists(outfile) and not kwargs.get('overwrite'):
@@ -86,7 +88,8 @@ PARSER.add_argument('--zlabel', type=str, default=None,
     help='the color map laber for count maps')
 PARSER.add_argument('--dpi', type=int, default=100,
     help='resolution of the output image in dot per inches')
-
+PARSER.add_boolean('--mjd', default=False,
+                  help='Show light curves in MJD time (as opposed to MET)')
 
 
 def main():
