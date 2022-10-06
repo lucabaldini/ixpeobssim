@@ -4,6 +4,8 @@ Release notes
 =============
 
 
+*ixpeobssim (29.3.1) - Thu, 06 Oct 2022 22:12:32 +0200*
+
 * Minor changes to the README file.
 
 
