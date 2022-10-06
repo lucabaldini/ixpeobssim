@@ -21,6 +21,7 @@ import datetime
 
 import astropy.coordinates as coord
 import astropy.units as u
+from matplotlib.dates import date2num, DateFormatter, DayLocator, WeekdayLocator
 import numpy
 
 from ixpeobssim.targets.__artl__ import TWG_LIST, COLOR_DICT, _TARGET_DATA,\
@@ -188,10 +189,23 @@ class xARTL(dict):
         """
         return sum(obs.exposure for obs in self.get(target_name))
 
+    def _plot_coordinates(self, figname, func, projection='aitoff', **pos_kwargs):
+        """
+        """
+        fig = plt.figure(figname, figsize=self.MAP_FIGSIZE)
+        ax = fig.add_subplot(111, projection=projection)
+        for target_name in self:
+            target = self.target(target_name)
+            func(target, **pos_kwargs.get(target_name, {}))
+        ax.grid(True)
+        plt.xticks(numpy.linspace(-numpy.pi, numpy.pi, 13), labels=[])
+        plt.yticks(numpy.linspace(-0.5 * numpy.pi, 0.5 * numpy.pi, 13), labels=[])
+        plt.gca().legend(handles=SOURCE_LEGEND_HANDLES, loc=(-0.15, 0.91))
+
     def plot_equatorial_coodinates(self, projection='aitoff'):
         """Plot the ARTL in equatorial coordinates.
         """
-        plot_kwargs = {
+        pos_kwargs = {
             '4U 0142+61': dict(va='top'),
             '4U 1630-472': dict(va='top'),
             '4U 1820-303': dict(ha='left'),
@@ -206,18 +220,12 @@ class xARTL(dict):
             'Vela Pulsar': dict(va='top'),
             'XTE J1701-462': dict(ha='left'),
             }
-        fig = plt.figure('IXPE LTP equatorial', figsize=self.MAP_FIGSIZE)
-        ax = fig.add_subplot(111, projection=projection)
-        for target_name in self:
-            kwargs = plot_kwargs.get(target_name, {})
-            self.target(target_name).plot_equatorial_pos(**kwargs)
-        ax.grid(True)
-        plt.gca().legend(handles=SOURCE_LEGEND_HANDLES, loc=(-0.15, 0.91))
+        self._plot_coordinates('IXPE ARTL equatorial', xTarget.plot_equatorial_pos, **pos_kwargs)
 
     def plot_galactic_coodinates(self, projection='aitoff'):
         """Plot the ARTL in galactic coordinates.
         """
-        plot_kwargs = {
+        pos_kwargs = {
             '1RXS J170849.0': dict(va='top', ha='right', rotation=25),
             '4U 0142+61': dict(va='top', ha='right'),
             '4U 1626-67': dict(va='top'),
@@ -240,14 +248,73 @@ class xARTL(dict):
             'Vela X-1': dict(ha='left'),
             'XTE J1701-462': dict(va='top', ha='right', rotation=25),
         }
-        fig = plt.figure('IXPE LTP galactic', figsize=self.MAP_FIGSIZE)
-        ax = fig.add_subplot(111, projection=projection)
-        for target_name in self:
-            kwargs = plot_kwargs.get(target_name, {})
-            self.target(target_name).plot_galactic_pos(**kwargs)
-        ax.grid(True)
-        plt.xticks(numpy.linspace(-numpy.pi, numpy.pi, 10), labels=[])
-        plt.gca().legend(handles=SOURCE_LEGEND_HANDLES, loc=(-0.15, 0.91))
+        self._plot_coordinates('IXPE ARTL galactic', xTarget.plot_galactic_pos, **pos_kwargs)
+
+    def plot(self, y0=0., pad=0., ax=None, label=False, xmin=-numpy.inf, xmax=numpy.inf):
+        """Plot the observation timeline.
+        """
+        if ax is None:
+            ax = plt.gca()
+        for target_name, obs_list in self.items():
+            target = self.target(target_name)
+            color = COLOR_DICT[target.twg]
+            for obs in obs_list:
+                start = date2num(obs.start_datetime)
+                if start < xmin or start > xmax:
+                    continue
+                end = date2num(obs.end_datetime)
+                if end < xmin or end > xmax:
+                    continue
+                ax.hlines(y0, start + pad, end - pad, color=color, lw=25)
+                if label:
+                    x0 = 0.5 * (start + end)
+                    label = '%s' % target_name
+                    #if obs.segment_number > 0:
+                    #    label += ' (s%d)' % obs.segment_number
+                    ax.text(x0, y0 - 0.0275, label, color='black', ha='left', va='bottom', size='small',
+                        rotation=45.)
+                elif obs.span() > 1300:
+                    x0 = 0.5 * (start + end)
+                    ax.text(x0, y0, '%s' % target_name, color='white', ha='center', va='center', size='small')
+
+    def plot_inset(self, start_date, end_date, x, y, dy=0.15):
+        """
+        """
+        _start = date2num(numpy.datetime64(start_date))
+        _end = date2num(numpy.datetime64(end_date))
+        dx = (_end - _start) * 0.010
+        axins = plt.gca().inset_axes([x, y, dx, dy])
+        axins.set_xlim(_start, _end)
+        axins.set_ylim(0.1, -0.1)
+        axins.spines['top'].set_visible(False)
+        if x > 0.8:
+            axins.spines['left'].set_visible(False)
+        elif y > 0.5:
+            axins.spines['right'].set_visible(False)
+            axins.spines['left'].set_visible(False)
+        axins.patch.set_facecolor('none')
+        axins.xaxis_date()
+        axins.yaxis.set_ticks([])
+        axins.xaxis.set_minor_locator(DayLocator())
+        axins.xaxis.set_major_locator(WeekdayLocator())
+        axins.xaxis.set_major_formatter(DateFormatter('%b %d'))
+        plt.gca().indicate_inset_zoom(axins, edgecolor='black')
+        self.plot(y0=0.06, pad=0.05, ax=axins, label=True, xmin=_start, xmax=_end)
+
+    def plot_timeline(self):
+        """
+        """
+        plt.figure('IXPE as-run target list', figsize=(18., 10.))
+        self.plot()
+        plt.gca().xaxis_date()
+        plt.gca().yaxis.set_ticks([])
+        plt.axis([None, None, -1., 1.])
+        plt.tight_layout()
+        self.plot_inset('2022-01-29 12:35', '2022-03-23 01:43', 0.0075, 0.82)
+        self.plot_inset('2022-03-24 01:58', '2022-05-14 12:27', 0.0075, 0.25)
+        self.plot_inset('2022-05-14 12:28', '2022-06-21 21:04', 0.55, 0.65)
+        self.plot_inset('2022-07-07 00:00', '2022-08-24 00:00', 0.50, 0.05)
+        plt.gca().legend(handles=SOURCE_LEGEND_HANDLES, loc=(0.05, 0.025))
 
     def __str__(self):
         """String formatting.
@@ -261,12 +328,10 @@ class xARTL(dict):
 
 
 
-
-
-
 if __name__ == '__main__':
     artl = xARTL()
     print(artl)
     artl.plot_equatorial_coodinates()
     artl.plot_galactic_coodinates()
+    artl.plot_timeline()
     plt.show()
