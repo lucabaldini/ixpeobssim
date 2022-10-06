@@ -3,8 +3,10 @@
 Release notes
 =============
 
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/645
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/648
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/649
+* Fix for GTI in light curves.
 * Fix grids behavior when setup_gca() is called multiple times on the same figure.
 * Facilities for the display of the as-run target list largely refactored.
 * Issue(s) closed:
