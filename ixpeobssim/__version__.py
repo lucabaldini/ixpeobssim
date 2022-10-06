@@ -1,2 +1,2 @@
-TAG = '29.2.1'
-BUILD_DATE = 'Wed, 28 Sep 2022 09:31:59 +0200'
+TAG = '29.3.0'
+BUILD_DATE = 'Thu, 06 Oct 2022 22:08:22 +0200'
