@@ -3,7 +3,7 @@
 Release notes
 =============
 
-
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/
 * Facilities for the display of the as-run target list largely refactored.
 
 
