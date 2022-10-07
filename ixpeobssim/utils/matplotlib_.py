@@ -320,7 +320,7 @@ def setup_gca(xlabel=None, ylabel=None, xmin=None, xmax=None, ymin=None,
     else:
         plt.axis([xmin, xmax, ymin, ymax])
     if grids:
-        plt.grid(which='both')
+        plt.grid(True, which='both')
     if legend:
         plt.legend()
 

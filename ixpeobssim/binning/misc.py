@@ -27,6 +27,7 @@ from ixpeobssim.binning.fmt import xBinTableHDULC, xBinTableHDUPP
 from ixpeobssim.core.fitsio import xFITSImageBase
 from ixpeobssim.core.hist import xScatterPlot
 from ixpeobssim.utils.logging_ import logger, abort
+from ixpeobssim.utils.time_ import met_to_mjd
 
 
 ### pylint: disable=invalid-name, attribute-defined-outside-init, too-few-public-methods
@@ -126,13 +127,57 @@ class xEventBinningLC(xEventBinningBase):
                       num_bins=self.get('tbins'), bin_file=self.get('tbinfile'))
         return xEventBinningBase.make_binning(self.get('tbinalg'), **kwargs)
 
+    def _bin_gti(self, edge_min, edge_max, gti_starts, gti_stops):
+        """ Loop on the GTIs and compute the actual observation time in a given
+        time bin.
+        """
+        dt = 0.
+        for start, stop in zip(gti_starts, gti_stops):
+            if start >= edge_min and stop <= edge_max:
+                # The entire GTI is inside the bin
+                dt += (stop - start)
+            elif start >= edge_min and stop > edge_max:
+                if start >= edge_max:
+                    # The GTI is entirely after the bin, we can stop the loop
+                    break
+                # The GTI starts inside the bin and ends after: we add the time
+                # from the GTI start to the end of the bin, then stop the loop
+                dt += (edge_max - start)
+                break
+            elif start < edge_min and stop > edge_max:
+                # The bin is entirely inside the GTI
+                dt += (edge_max - edge_min)
+                break
+            elif start < edge_min and stop <= edge_max:
+                if stop <= edge_min:
+                    # The GTI is entirely before the bin, keep running
+                    continue
+                # The GTI starts before the bin and ends inside it: we add the
+                # time from bin start to the GTI end
+                dt += (stop - edge_min)
+        return dt
+
     def bin_(self):
         """Overloaded method.
         """
         counts, edges = numpy.histogram(self.event_file.time_data(),
                                         bins=self.make_binning())
+        gti = self.event_file.hdu_list['GTI']
+        starts = gti.data['START']
+        stops = gti.data['STOP']
+        exposure = []
+        # In LV2 data we do not have the LIVETIME information on a event by
+        # event basis, so we can only appply an average correction. This is
+        # a very good approximation if the rate is low and/or it does not
+        # vary too widely.
+        deadc = self.event_file.primary_header['DEADC']
+        for tmin, tmax in zip(edges[:-1], edges[1:]):
+            dt = self._bin_gti(tmin, tmax, starts, stops)
+            exposure.append(dt * deadc)
+        exposure = numpy.array(exposure)
         primary_hdu = self.build_primary_hdu()
-        data = [self.bin_centers(edges), self.bin_widths(edges), counts, numpy.sqrt(counts)]
+        data = [self.bin_centers(edges), self.bin_widths(edges), exposure,
+                counts, numpy.sqrt(counts)]
         rate_hdu = xBinTableHDULC(data)
         rate_hdu.setup_header(self.event_file.primary_keywords())
         gti_hdu = self.event_file.hdu_list['GTI']
@@ -153,18 +198,50 @@ class xBinnedLightCurve(xBinnedFileBase):
 
     def __iadd__(self, other):
         """ Overloaded method for LC binned file addition.
+        Here we have to handle the case of unequal exposures between DUs.
+        The goal is that the final rate should be exactly the sum of the rates
+        of the individual DUs. Since the rate is computed as the ratio between
+        COUNTS and EXPOSURE, we propagate these two quantities in such a way
+        that their ratio is the sum of the two initial ratios.
+        Note that our formula reduces to just summing the counts in the case
+        of equal exposures.
         """
-        self._check_iadd(other, ('COUNTS', 'ERROR'), ('TIME', 'TIMEDEL'))
-        self.COUNTS += other.COUNTS
-        self.ERROR = numpy.sqrt(self.ERROR**2. + other.ERROR**2.)
+        self._check_iadd(other, ('COUNTS', 'ERROR', 'EXPOSURE'),
+                        ('TIME', 'TIMEDEL'))
+        with numpy.errstate(divide='ignore', invalid='ignore'):
+            w1 = 0.5 * (1. + other.EXPOSURE / self.EXPOSURE)
+            w2 = 0.5 * (1. + self.EXPOSURE / other.EXPOSURE)
+            w1[self.EXPOSURE == 0.] = 0.
+            w2[other.EXPOSURE == 0.] = 0.
+            self.COUNTS = self.COUNTS * w1 + other.COUNTS * w2
+            self.EXPOSURE = 0.5 * (self.EXPOSURE + other.EXPOSURE)
+            self.ERROR = numpy.sqrt(self.ERROR**2. * w1**2 + \
+                                    other.ERROR**2. * w2**2)
         return self
 
-    def plot(self):
+    def rate(self):
+        """
+        """
+        with numpy.errstate(divide='ignore', invalid='ignore'):
+            return self.COUNTS / self.EXPOSURE
+
+    def rate_error(self):
+        """
+        """
+        with numpy.errstate(divide='ignore', invalid='ignore'):
+            return self.ERROR / self.EXPOSURE
+
+    def plot(self, mjd=False, **plot_opts):
         """Overloaded plot method.
         """
-        rate = self.COUNTS / self.TIMEDEL
-        rate_err = self.ERROR / self.TIMEDEL
-        xScatterPlot(self.TIME, rate, rate_err, xlabel='MET [s]', ylabel='Rate [Hz]').plot()
+        if mjd is True:
+            t = met_to_mjd(self.TIME)
+            xlabel = 'MJD'
+        else:
+            t = self.TIME
+            xlabel = 'MET [s]'
+        xScatterPlot(t, self.rate(), self.rate_error(), xlabel=xlabel,
+                     ylabel='Rate [Hz]').plot(**plot_opts)
 
 
 

@@ -4,6 +4,23 @@ Release notes
 =============
 
 
+*ixpeobssim (29.3.1) - Thu, 06 Oct 2022 22:12:32 +0200*
+
+* Minor changes to the README file.
+
+
+*ixpeobssim (29.3.0) - Thu, 06 Oct 2022 22:08:22 +0200*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/645
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/648
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/649
+* Fix for GTI in light curves.
+* Fix grids behavior when setup_gca() is called multiple times on the same figure.
+* Facilities for the display of the as-run target list largely refactored.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/647
+
+
 *ixpeobssim (29.2.1) - Wed, 28 Sep 2022 09:31:59 +0200*
 
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/644
