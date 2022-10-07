@@ -115,7 +115,7 @@ def xpphase(**kwargs):
 
 
         logger.info('Calculating pulsar phase...')
-        phase = eph.fold(time_, evt_header['TSTART'], kwargs.get('phi0'))
+        phase = eph.fold(time_, kwargs.get('met0'), kwargs.get('phi0'))
         logger.info('Creating phase column...')
         col_ = fits.Column(name='PHASE', array=phase, format='E')
         new_hdu = fits.BinTableHDU.from_columns(evt_hdu.data.columns + col_, header=evt_header)
