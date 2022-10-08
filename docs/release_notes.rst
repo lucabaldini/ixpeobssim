@@ -3,6 +3,12 @@
 Release notes
 =============
 
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/650
+* Bug fix in how xpphase deals with the --met0 command-line argument.
+* xpphase generalized to use a time column different than TIME (e.g., BARYTIME).
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/651
+
 
 *ixpeobssim (29.3.1) - Thu, 06 Oct 2022 22:12:32 +0200*
 
