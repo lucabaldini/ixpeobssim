@@ -18,6 +18,15 @@
 
 from __future__ import print_function, division
 
+import os
+
+from astropy.io import fits
+
+from ixpeobssim import IXPEOBSSIM_DATA
+from ixpeobssim.srcmodel.ephemeris import xEphemeris
+from ixpeobssim.utils.argparse_ import xArgumentParser
+from ixpeobssim.utils.logging_ import logger
+
 
 __description__ = \
 """Utility to build phase column into event file.
@@ -26,13 +35,23 @@ The program generates a phase array using pulsar time and ephemeris
 and builds a new event FITS file with the new PHASE column.
 """
 
-import os
+PARSER = xArgumentParser(description=__description__)
+PARSER.add_filelist()
+PARSER.add_suffix('phase')
+PARSER.add_argument('--parfile', type=str, default=None,
+                    help='path to the input parameter file')
+PARSER.add_argument('--met0', type=float, default=None,
+                    help='reference MET of the ephemeris in s')
+PARSER.add_argument('--nu0', type=float, default=None,
+                    help='frequency at t0 in Hz')
+PARSER.add_argument('--nudot0', type=float, default=None,
+                    help='time first derivative of frequency at t0 in 1/(s^2)')
+PARSER.add_argument('--nuddot', type=float, default=None,
+                    help='time second derivative of frequency in 1/(s^3)')
+PARSER.add_phi0()
+PARSER.add_overwrite()
 
-from astropy.io import fits
 
-from ixpeobssim import IXPEOBSSIM_DATA
-from ixpeobssim.utils.logging_ import logger
-from ixpeobssim.srcmodel.ephemeris import xEphemeris
 
 
 def _get_ephemeris(**kwargs):
@@ -113,7 +132,6 @@ def xpphase(**kwargs):
             logger.info('BARYTIME not found, defaulting to TIME column')
         evt_header = evt_hdu.header
 
-
         logger.info('Calculating pulsar phase...')
         phase = eph.fold(time_, kwargs.get('met0'), kwargs.get('phi0'))
         logger.info('Creating phase column...')
@@ -135,29 +153,6 @@ def xpphase(**kwargs):
         hdulist.close()
     logger.info('Done!')
     return outlist
-
-
-
-"""Command-line switches.
-"""
-from ixpeobssim.utils.argparse_ import xArgumentParser
-
-PARSER = xArgumentParser(description=__description__)
-PARSER.add_filelist()
-PARSER.add_suffix('phase')
-PARSER.add_argument('--parfile', type=str, default=None,
-                    help='path to the input parameter file')
-PARSER.add_argument('--met0', type=float, default=None,
-                    help='reference MET of the ephemeris in s')
-PARSER.add_argument('--nu0', type=float, default=None,
-                    help='frequency at t0 in Hz')
-PARSER.add_argument('--nudot0', type=float, default=None,
-                    help='time first derivative of frequency at t0 in 1/(s^2)')
-PARSER.add_argument('--nuddot', type=float, default=None,
-                    help='time second derivative of frequency in 1/(s^3)')
-PARSER.add_phi0()
-PARSER.add_overwrite()
-
 
 
 def main():
