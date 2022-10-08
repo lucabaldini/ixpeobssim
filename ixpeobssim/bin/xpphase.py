@@ -53,7 +53,6 @@ PARSER.add_overwrite()
 
 
 
-
 def _get_ephemeris(**kwargs):
     """Select the chosen ephemeris setup.
 
