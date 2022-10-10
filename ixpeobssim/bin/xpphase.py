@@ -134,6 +134,7 @@ def xpphase(**kwargs):
         logger.info('Calculating pulsar phase...')
         if kwargs.get('met0') is None:
             met0 = evt_header['TSTART']
+            logger.warning('Using TSTART as epoch since no met0 was input')
         else:
             met0 = kwargs.get('met0')
         phase = eph.fold(time_, met0, kwargs.get('phi0'))
