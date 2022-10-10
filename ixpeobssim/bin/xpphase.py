@@ -35,6 +35,7 @@ from ixpeobssim.utils.logging_ import logger
 from ixpeobssim.srcmodel.ephemeris import xEphemeris
 
 
+
 def _get_ephemeris(**kwargs):
     """Select the chosen ephemeris setup.
 
