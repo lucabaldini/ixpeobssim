@@ -130,14 +130,8 @@ def xpphase(**kwargs):
             time_ = evt_hdu.data['TIME']
             logger.info('BARYTIME not found, defaulting to TIME column')
         evt_header = evt_hdu.header
-
         logger.info('Calculating pulsar phase...')
-        if kwargs.get('met0') is None:
-            met0 = evt_header['TSTART']
-            logger.warning('Using TSTART as epoch since no met0 was input')
-        else:
-            met0 = kwargs.get('met0')
-        phase = eph.fold(time_, met0, kwargs.get('phi0'))
+        phase = eph.pulse_phase(time_, kwargs.get('phi0'))
         logger.info('Creating phase column...')
         col_ = fits.Column(name='PHASE', array=phase, format='E')
         new_hdu = fits.BinTableHDU.from_columns(evt_hdu.data.columns + col_, header=evt_header)
