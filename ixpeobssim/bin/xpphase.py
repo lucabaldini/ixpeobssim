@@ -25,7 +25,7 @@ from astropy.io import fits
 from ixpeobssim import IXPEOBSSIM_DATA
 from ixpeobssim.srcmodel.ephemeris import xEphemeris
 from ixpeobssim.utils.argparse_ import xArgumentParser
-from ixpeobssim.utils.logging_ import logger
+from ixpeobssim.utils.logging_ import logger, abort
 
 
 __description__ = \
@@ -49,6 +49,8 @@ PARSER.add_argument('--nudot0', type=float, default=None,
 PARSER.add_argument('--nuddot', type=float, default=None,
                     help='time second derivative of frequency in 1/(s^3)')
 PARSER.add_phi0()
+PARSER.add_argument('--timecol', type=str, default='TIME',
+                    help='the name of the column containing the event times (e.g., TIME, BARYTIME)')
 PARSER.add_overwrite()
 
 
@@ -122,13 +124,10 @@ def xpphase(**kwargs):
         logger.info('Opening "%s"...', file_path)
         hdu = fits.open(file_path)
         evt_hdu = hdu['EVENTS']
-        # Load time from BARYTIME columns if exists, else default to TIME
-        if 'BARYTIME' in evt_hdu.data.names:
-            time_ = evt_hdu.data['BARYTIME']
-            logger.info('Loading time column from BARYTIME...')
-        else:
-            time_ = evt_hdu.data['TIME']
-            logger.info('BARYTIME not found, defaulting to TIME column')
+        try:
+            time_ = evt_hdu.data[kwargs['timecol']]
+        except KeyError:
+            abort('Could not find %s column in the input file.' % kwargs['timecol'])
         evt_header = evt_hdu.header
         logger.info('Calculating pulsar phase...')
         phase = eph.pulse_phase(time_, kwargs.get('phi0'))
