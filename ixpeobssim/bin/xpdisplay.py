@@ -24,6 +24,7 @@ from __future__ import print_function, division
 from astropy.io import fits
 import numpy
 
+from ixpeobssim.core.hist import xHistogram1d
 from ixpeobssim.evt.display import xL1EventFile, xXpolGrid
 from ixpeobssim.evt.event import xEventFile
 from ixpeobssim.utils.argparse_ import xArgumentParser
@@ -42,10 +43,46 @@ PARSER = xArgumentParser(description=__description__)
 PARSER.add_file()
 PARSER.add_argument('--evtlist', type=str,
     help='path to the auxiliary (Level-2 file) event list')
+PARSER.add_argument('--resample', type=float, default=None,
+    help='the power-law index for resampling events in energy')
 
 
 
-def _run_display(file_path, **kwargs):
+def event_box(met, energy, ra, dec, q, u):
+    """Draw a text box with the event information.
+    """
+    box = xStatBox()
+    box.add_entry('MET = %.6f s' % met)
+    box.add_entry('Energy = %.3f keV' % energy)
+    box.add_entry('(R.A., Dec) = (%.3f, %.3f) degrees' % (ra, dec))
+    box.add_entry('(Q, U) = (%.3f, %.3f)' % (q, u))
+    box.x0 = 0.025
+    box.y0 = 0.975
+    box.plot(transform=plt.gcf().transFigure)
+
+
+def load_level_2_data(file_path, resample_index=None, pivot_energy=8., interactive=False):
+    """Load the event data from the Level-2 event list.
+    """
+    event_list = xEventFile(file_path)
+    met = event_list.time_data()
+    energy = event_list.energy_data()
+    ra, dec = event_list.sky_position_data()
+    q, u = event_list.stokes_data()
+    if resample_index is not None:
+        logger.info('Resampling input level-2 data with index %.3f', resample_index)
+        mask = numpy.random.uniform(size=len(energy)) <= (energy /  pivot_energy)**resample_index
+        logger.info('%d event(s) out of %s remaining.', mask.sum(), len(mask))
+        met, energy, ra, dec, q, u = [item[mask] for item in (met, energy, ra, dec, q, u)]
+    if interactive:
+        # Debug plot for the input energy spectrum.
+        plt.figure('Input energy spectrum')
+        h = xHistogram1d(numpy.linspace(2., 8., 20)).fill(energy)
+        h.plot()
+    return met, energy, ra, dec, q, u
+
+
+def run_display(file_path, **kwargs):
     """Run the event display.
     """
     grid = xXpolGrid()
@@ -53,31 +90,20 @@ def _run_display(file_path, **kwargs):
     threshold = event_file.zero_sup_threshold()
     logger.info('Zero suppression threshold: %d', threshold)
     if kwargs.get('evtlist'):
-        event_list = xEventFile(kwargs.get('evtlist'))
-        event_data = event_list.time_data(), event_list.energy_data(),\
-            *event_list.sky_position_data(), *event_list.stokes_data()
-        for met, energy, ra, dec, q, u in zip(*event_data):
+        l2_data = load_level_2_data(kwargs.get('evtlist'), kwargs.get('resample'))
+        for met, energy, ra, dec, q, u in zip(*l2_data):
             event = event_file.bisect_met(met)
-            plt.figure('IXPE single event display', figsize=(10, 10))
+            plt.figure('IXPE single event display', figsize=(9., 10.))
             grid.draw_event(event, zero_sup_threshold=threshold, padding=False, values=True)
             if abs(event.timestamp - met) <= 1.e-6:
-                box = xStatBox()
-                box.add_entry('MET = %.6f s' % met)
-                box.add_entry('Energy = %.3f keV' % energy)
-                box.add_entry('(R.A., Dec) = (%.3f, %.3f) degrees' % (ra, dec))
-                box.add_entry('(Q, U) = (%.3f, %.3f)' % (q, u))
-                #box.x0 = 0.025
-                #box.y0 = 0.975
-                #box.halign = 'left'
-                #box.valign = 'top'
-                box.plot(transform=plt.gcf().transFigure)
+                event_box(met, energy, ra, dec, q, u)
             grid.show_display()
 
 
 def xpdisplay(**kwargs):
     """Application entry point.
     """
-    return _run_display(kwargs.get('file'), **kwargs)
+    return run_display(kwargs.get('file'), **kwargs)
 
 
 def main():
