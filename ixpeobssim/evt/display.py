@@ -186,8 +186,15 @@ class xL1EventFile:
         self.hdu_list = fits.open(file_path)
         self.__index = -1
         self.__num_events = len(self.hdu_list[self.EVT_EXT_NAME].data)
+        # Cache the event MET values, since we typically need to bisect downstream.
+        self.__met_values = self.hdu_list[self.EVT_EXT_NAME].data['TIME']
         logger.info('Done, %d event(s) found.', self.__num_events)
         logger.warning('Mind that indexing the events might take some time...')
+
+    def zero_sup_threshold(self):
+        """Return the zero-suppression threshold, determined from the file header.
+        """
+        return self.hdu_list[self.EVT_EXT_NAME].header['ZSUPTHR']
 
     def __getitem__(self, event_number):
         """Overloaded slicing hook.
@@ -195,6 +202,7 @@ class xL1EventFile:
         This returns a fully fledged Event object for a given event number.
         """
         args = [self.value(event_number, col_name) for col_name in self.EVT_COL_NAMES]
+        self.__index = event_number
         return xL1Event(*args)
 
     def bisect_met(self, met):
@@ -203,7 +211,14 @@ class xL1EventFile:
         Internally this is using a binary search on the time column, and in
         general it can be assumed that this O(log(N)) in complexity.
         """
-        pass
+        event_number = numpy.searchsorted(self.__met_values, met)
+        event = self[event_number]
+        delta_time = event.timestamp - met
+        if abs(delta_time) > 1.e-6:
+            logger.warning('Bisected MET is %.6f s (target: %.6f s, difference %.6f s)',
+                event.timestamp, met, delta_time)
+        self.__index = event_number
+        return event
 
     def __iter__(self):
         """Iterator protocol implementation.
@@ -408,35 +423,3 @@ class xXpolGrid(xHexagonalGrid):
         """Constructor.
         """
         super().__init__(*XPOL_SIZE, XPOL_PITCH, **kwargs)
-
-
-
-if __name__ == '__main__':
-
-    event_list = [
-    97744,  97745,  97749,  97753,  97830,  97832,  97834,  97838,  97841,  97842,
-    97845,  97846,  97848,  97856,  97867,  97876,  97877,  97879,  97880,  97884,
-    97887,  97896,  97898,  97899,  97901,  97902,  97905,  97915,  97917,  97918,
-    97921,  97922,  97923,  97925,  97929,  97930,  97931,  97936,  97938,  97944,
-    97945,  97948,  97949,  97950,  97958,  97961,  97969,  97970,  97971,  97973,
-    97975,  97979,  97981,  97982,  97984,  97990,  97991,  97993,  97994,  98003,
-    98005,  98007,  98008,  98024,  98027,  98038,  98039,  98041,  98043,  98048,
-    98054,  98055,  98062,  98064,  98071,  98072,  98074,  98076,  98077,  98082,
-    98083,  98085,  98093,  98096,  98097,  98104,  98106,  98110,  98112,  98113
-    ]
-
-    tmin = 162232464
-    tmax = 162232751
-
-    file_path = '/data/work/ixpe/obs/crab/ixpe01001001_det1_evt1_v04_select.fits'
-    with fits.open(file_path) as hdu_list:
-        print(hdu_list['EVENTS'].data[0])
-
-
-    event_file = xL1EventFile(file_path)
-    grid = xXpolGrid()
-    #met = 162293205.800523
-    for event in event_file:
-        print(event)
-        grid.draw_event(event, zero_sup_threshold=20, padding=False, values=True)
-        grid.show_display()
