@@ -216,7 +216,7 @@ class xHistogramBase:
         hist = self.empty_copy()
         hist.set_content(self.content + other.content,
                          self.entries + other.entries,
-                         self.sumw2 + other.sumw2)
+                         numpy.sqrt(self.sumw2 + other.sumw2))
         return hist
 
     def __sub__(self, other):
@@ -225,7 +225,7 @@ class xHistogramBase:
         hist = self.empty_copy()
         hist.set_content(self.content - other.content,
                          self.entries + other.entries,
-                         self.sumw2 + other.sumw2)
+                         numpy.sqrt(self.sumw2 + other.sumw2))
         return hist
 
     def __mul__(self, value):
