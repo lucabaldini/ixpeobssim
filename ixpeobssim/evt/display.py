@@ -201,8 +201,8 @@ class xL1EventFile:
 
         This returns a fully fledged Event object for a given event number.
         """
-        args = [self.value(event_number, col_name) for col_name in self.EVT_COL_NAMES]
         self.__index = event_number
+        args = [self.value(col_name) for col_name in self.EVT_COL_NAMES]
         return xL1Event(*args)
 
     def bisect_met(self, met):
@@ -233,10 +233,20 @@ class xL1EventFile:
             raise StopIteration
         return self[self.__index]
 
-    def value(self, event_number, col_name):
-        """Return the value of a given column for a given extension for a given event.
+    def value(self, col_name):
+        """Return the value of a given column for a given extension for the current event.
         """
-        return self.hdu_list[self.EVT_EXT_NAME].data[col_name][event_number]
+        return self.hdu_list[self.EVT_EXT_NAME].data[col_name][self.__index]
+
+    def absorption_point(self):
+        """Return the reconstructed absorption point for the current event.
+        """
+        return self.value('ABSX'), self.value('ABSY')
+
+    def track_direction(self, col_name='DETPHI2'):
+        """Return the reconstructed track direction for the current event.
+        """
+        return self.value(col_name)
 
 
 
