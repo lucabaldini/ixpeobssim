@@ -113,6 +113,40 @@ class xRegionOfInterest:
 
 
 @dataclass
+class Recon:
+
+    """Container class encapsulating the event reconstruction.
+    """
+
+    absorption_point : tuple[float, float]
+    barycenter : tuple[float, float]
+    track_direction : float
+
+    @staticmethod
+    def _annotate_point(x, y, text, xoffset=125, yoffset=100):
+        """Small convenience function to annotate a point.
+        """
+        plt.plot(x, y, 'o', color='black')
+        arrowprops=dict(arrowstyle="->", connectionstyle="angle3")
+        kwargs = dict(xycoords='data', textcoords='offset points', arrowprops=arrowprops,
+            backgroundcolor='white')
+        plt.gca().annotate(text, xy=(x, y), xytext=(xoffset, yoffset), **kwargs)
+
+    def draw_absorption_point(self):
+        """Draw the reconstructed absorption point and track direction.
+        """
+        xoffset = 125 if self.absorption_point[0] >= self.barycenter[0] else -125
+        self._annotate_point(*self.absorption_point, 'Absorption point', xoffset)
+
+    def draw_barycenter(self):
+        """Draw the reconstructed absorption point and track direction.
+        """
+        xoffset = 125 if self.absorption_point[0] < self.barycenter[0] else -125
+        self._annotate_point(*self.barycenter, 'Barycenter', xoffset)
+
+
+
+@dataclass
 class xL1Event(xRegionOfInterest):
 
     """A fully fledged event.
@@ -133,6 +167,7 @@ class xL1Event(xRegionOfInterest):
     livetime : int = 0
     error_summary : int = 0
     du_status : int = 0
+    recon : Recon = None
 
     def __post_init__(self):
         """Post-init hook implementation.
@@ -196,6 +231,19 @@ class xL1EventFile:
         """
         return self.hdu_list[self.EVT_EXT_NAME].header['ZSUPTHR']
 
+    def value(self, col_name):
+        """Return the value of a given column for a given extension for the current event.
+        """
+        return self.hdu_list[self.EVT_EXT_NAME].data[col_name][self.__index]
+
+    def _recon(self):
+        """Retrieve the reconstructed quantities.
+        """
+        absorption_point = self.value('ABSX'), self.value('ABSY')
+        barycenter = self.value('BARX'), self.value('BARY')
+        track_direction = self.value('DETPHI2')
+        return Recon(absorption_point, barycenter, track_direction)
+
     def __getitem__(self, event_number):
         """Overloaded slicing hook.
 
@@ -203,7 +251,7 @@ class xL1EventFile:
         """
         self.__index = event_number
         args = [self.value(col_name) for col_name in self.EVT_COL_NAMES]
-        return xL1Event(*args)
+        return xL1Event(*args, self._recon())
 
     def bisect_met(self, met):
         """Retrieve a specific event by its mission elapsed time.
@@ -232,22 +280,6 @@ class xL1EventFile:
         if self.__index >= self.__num_events:
             raise StopIteration
         return self[self.__index]
-
-    def value(self, col_name):
-        """Return the value of a given column for a given extension for the current event.
-        """
-        return self.hdu_list[self.EVT_EXT_NAME].data[col_name][self.__index]
-
-    def absorption_point(self):
-        """Return the reconstructed absorption point for the current event.
-        """
-        return self.value('ABSX'), self.value('ABSY')
-
-    def track_direction(self, col_name='DETPHI2'):
-        """Return the reconstructed track direction for the current event.
-        """
-        return self.value(col_name)
-
 
 
 

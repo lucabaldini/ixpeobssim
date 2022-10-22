@@ -82,16 +82,6 @@ def load_level_2_data(file_path, resample_index=None, pivot_energy=8., interacti
     return met, energy, ra, dec, q, u
 
 
-def draw_recon(x0, y0, phi, offset=(125, 100)):
-    """Draw the reconstructed absorption point and track direction.
-    """
-    plt.plot(x0, y0, 'o', color='black')
-    arrowprops=dict(arrowstyle="->", connectionstyle="angle3")
-    kwargs = dict(xycoords='data', textcoords='offset points', arrowprops=arrowprops,
-        backgroundcolor='white')
-    plt.gca().annotate('Absorption point', xy=(x0, y0), xytext=offset, **kwargs)
-
-
 def run_display(file_path, **kwargs):
     """Run the event display.
     """
@@ -107,9 +97,8 @@ def run_display(file_path, **kwargs):
             grid.draw_event(event, zero_sup_threshold=threshold, padding=False, values=True)
             if abs(event.timestamp - met) <= 1.e-6:
                 event_box(met, energy, ra, dec, q, u)
-            x0, y0 = event_file.absorption_point()
-            phi = event_file.track_direction()
-            draw_recon(x0, y0, phi)
+            event.recon.draw_absorption_point()
+            event.recon.draw_barycenter()
             grid.show_display()
 
 
