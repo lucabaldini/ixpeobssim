@@ -4,6 +4,12 @@ Release notes
 =============
 
 
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/657
+* New interface to level-1 files and single-event display.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/639
+
+
 *ixpeobssim (29.1.4) - Tue, 27 Sep 2022 11:45:36 +0200*
 
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/641
