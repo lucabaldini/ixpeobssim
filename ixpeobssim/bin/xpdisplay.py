@@ -45,6 +45,21 @@ PARSER.add_argument('--evtlist', type=str,
     help='path to the auxiliary (Level-2 file) event list')
 PARSER.add_argument('--resample', type=float, default=None,
     help='the power-law index for resampling events in energy')
+PARSER.add_boolean('--absorption', True,
+    help='draw the reconstructed absorption_point')
+PARSER.add_boolean('--barycenter', True,
+    help='draw the reconstructed barycenter')
+PARSER.add_boolean('--direction', True,
+    help='draw the reconstructed track direction')
+PARSER.add_boolean('--pixpha', False,
+    help='indicate the pixel PHA values')
+PARSER.add_boolean('--indices', False,
+    help='draw the row and column indices of the readout matrix')
+PARSER.add_argument('--cmap', type=str, default='Reds',
+    help='the color map for the pixel values')
+PARSER.add_argument('--cmapoffset', type=int, default=10,
+    help='the PHA offset for the color map')
+
 
 
 
@@ -82,23 +97,46 @@ def load_level_2_data(file_path, resample_index=None, pivot_energy=8., interacti
     return met, energy, ra, dec, q, u
 
 
+def draw_event(event, grid, **kwargs):
+    """Draw an event.
+    """
+    plt.figure('IXPE single event display', figsize=(9., 10.))
+    grid.draw_event(event, **kwargs)
+
+
+def draw_recon(event, **kwargs):
+    """Draw the event recon.
+    """
+    if kwargs.get('absorption'):
+        event.recon.draw_absorption_point()
+    if kwargs.get('barycenter'):
+        event.recon.draw_barycenter()
+    if kwargs.get('direction'):
+        event.recon.draw_track_direction()
+
+
 def run_display(file_path, **kwargs):
     """Run the event display.
     """
-    grid = xXpolGrid()
+    grid = xXpolGrid(cmap_name=kwargs.get('cmap'), cmap_offset=kwargs.get('cmapoffset'))
     event_file = xL1EventFile(file_path)
     threshold = event_file.zero_sup_threshold()
     logger.info('Zero suppression threshold: %d', threshold)
+    draw_kwargs = dict(values=kwargs.get('pixpha'), indices=kwargs.get('indices'),
+        zero_sup_threshold=threshold, padding=False)
     if kwargs.get('evtlist'):
         l2_data = load_level_2_data(kwargs.get('evtlist'), kwargs.get('resample'))
         for met, energy, ra, dec, q, u in zip(*l2_data):
             event = event_file.bisect_met(met)
-            plt.figure('IXPE single event display', figsize=(9., 10.))
-            grid.draw_event(event, zero_sup_threshold=threshold, padding=False, values=True)
+            draw_event(event, grid, **draw_kwargs)
             if abs(event.timestamp - met) <= 1.e-6:
                 event_box(met, energy, ra, dec, q, u)
-            event.recon.draw_absorption_point()
-            event.recon.draw_barycenter()
+            draw_recon(event, **kwargs)
+            grid.show_display()
+    else:
+        for event in event_file:
+            draw_event(event, grid, **draw_kwargs)
+            draw_recon(event, **kwargs)
             grid.show_display()
 
 

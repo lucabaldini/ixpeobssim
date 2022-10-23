@@ -121,15 +121,17 @@ class Recon:
     absorption_point : tuple[float, float]
     barycenter : tuple[float, float]
     track_direction : float
+    length : float
+    width : float
 
     @staticmethod
-    def _annotate_point(x, y, text, xoffset=125, yoffset=100):
+    def _annotate_point(x, y, text, xoffset=125, yoffset=75, color='black'):
         """Small convenience function to annotate a point.
         """
-        plt.plot(x, y, 'o', color='black')
-        arrowprops=dict(arrowstyle="->", connectionstyle="angle3")
+        plt.plot(x, y, 'o', color=color)
+        arrowprops=dict(arrowstyle='-', connectionstyle='angle3', color=color)
         kwargs = dict(xycoords='data', textcoords='offset points', arrowprops=arrowprops,
-            backgroundcolor='white')
+            backgroundcolor='white', color=color, ha='center')
         plt.gca().annotate(text, xy=(x, y), xytext=(xoffset, yoffset), **kwargs)
 
     def draw_absorption_point(self):
@@ -142,8 +144,21 @@ class Recon:
         """Draw the reconstructed absorption point and track direction.
         """
         xoffset = 125 if self.absorption_point[0] < self.barycenter[0] else -125
-        self._annotate_point(*self.barycenter, 'Barycenter', xoffset)
+        self._annotate_point(*self.barycenter, 'Barycenter', xoffset, color='#777')
 
+    def draw_track_direction(self, line_width=1.75, length_ratio=0.5):
+        """Draw the track direction.
+        """
+        x0, y0 = self.absorption_point
+        dist = max(0.5, self.length)
+        dx = dist * numpy.cos(self.track_direction)
+        dy = dist * numpy.sin(self.track_direction)
+        if dist > 1:
+            length_ratio /= dist
+        plt.plot([x0, x0 - length_ratio * dx], [y0, y0 - length_ratio * dy],
+            lw=line_width, color='black', ls='dashed')
+        plt.gca().annotate('', xy=(x0 + dx, y0 + dy), xytext=(x0, y0),
+            arrowprops=dict(arrowstyle='->, head_width=0.25, head_length=0.5', lw=line_width))
 
 
 @dataclass
@@ -242,7 +257,9 @@ class xL1EventFile:
         absorption_point = self.value('ABSX'), self.value('ABSY')
         barycenter = self.value('BARX'), self.value('BARY')
         track_direction = self.value('DETPHI2')
-        return Recon(absorption_point, barycenter, track_direction)
+        length = 4. * numpy.sqrt(self.value('TRK_M2L'))
+        width = 4. * numpy.sqrt(self.value('TRK_M2T'))
+        return Recon(absorption_point, barycenter, track_direction, length, width)
 
     def __getitem__(self, event_number):
         """Overloaded slicing hook.
@@ -311,7 +328,7 @@ class xHexagonCollection(PatchCollection):
         # pylint: disable = invalid-name
         self.x = x
         self.y = y
-        kwargs.setdefault('edgecolor', 'gray')
+        kwargs.setdefault('edgecolor', '#BBB')
         kwargs.setdefault('facecolor', 'none')
         kwargs.setdefault('linewidth', 1.2)
         patches = [RegularPolygon(xy, 6, radius, orientation) for xy in zip(x, y)]
@@ -452,6 +469,7 @@ class xHexagonalGrid:
         plt.gca().set_aspect('equal')
         plt.gca().autoscale()
         plt.axis('off')
+        logger.info('Showing event display, close the window to move to the next one...')
         plt.show()
 
 
