@@ -146,7 +146,7 @@ class Recon:
         xoffset = 125 if self.absorption_point[0] < self.barycenter[0] else -125
         self._annotate_point(*self.barycenter, 'Barycenter', xoffset, color='#777')
 
-    def draw_track_direction(self, line_width=1.75, length_ratio=0.5):
+    def draw_track_direction(self, line_width=1., length_ratio=0.5):
         """Draw the track direction.
         """
         x0, y0 = self.absorption_point
@@ -462,10 +462,11 @@ class xHexagonalGrid:
                 text_color):
                 if value > zero_sup_threshold:
                     plt.text(x, y, f'{value}', color=color, **fmt)
-        x0, y0 = event.recon.barycenter
-        pad = 0.5 * canvas_side
-        plt.gca().set_xlim(x0 - pad, x0 + pad)
-        plt.gca().set_ylim(y0 - pad, y0 + pad)
+        if canvas_side is not None:
+            x0, y0 = event.recon.barycenter
+            pad = 0.5 * canvas_side
+            plt.gca().set_xlim(x0 - pad, x0 + pad)
+            plt.gca().set_ylim(y0 - pad, y0 + pad)
         return collection
 
     @staticmethod

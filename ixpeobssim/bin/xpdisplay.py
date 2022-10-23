@@ -59,6 +59,8 @@ PARSER.add_argument('--cmap', type=str, default='Reds',
     help='the color map for the pixel values')
 PARSER.add_argument('--cmapoffset', type=int, default=10,
     help='the PHA offset for the color map')
+PARSER.add_argument('--axside', type=float, default=None,
+    help='the axis side for the event display')
 
 
 
@@ -123,7 +125,7 @@ def run_display(file_path, **kwargs):
     threshold = event_file.zero_sup_threshold()
     logger.info('Zero suppression threshold: %d', threshold)
     draw_kwargs = dict(values=kwargs.get('pixpha'), indices=kwargs.get('indices'),
-        zero_sup_threshold=threshold, padding=False)
+        zero_sup_threshold=threshold, padding=False, canvas_side=kwargs.get('axside'))
     if kwargs.get('evtlist'):
         l2_data = load_level_2_data(kwargs.get('evtlist'), kwargs.get('resample'))
         for met, energy, ra, dec, q, u in zip(*l2_data):
