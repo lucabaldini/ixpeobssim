@@ -322,13 +322,15 @@ class xHexagonCollection(PatchCollection):
         The keyword arguments to be passed to the PatchCollection constructor.
     """
 
+    DEFAULT_EDGE_COLOR = '#CCC'
+
     def __init__(self, x, y, radius=XPOL_PITCH, orientation=0., **kwargs):
         """Constructor.
         """
         # pylint: disable = invalid-name
         self.x = x
         self.y = y
-        kwargs.setdefault('edgecolor', '#BBB')
+        kwargs.setdefault('edgecolor', self.DEFAULT_EDGE_COLOR)
         kwargs.setdefault('facecolor', 'none')
         kwargs.setdefault('linewidth', 1.2)
         patches = [RegularPolygon(xy, 6, radius, orientation) for xy in zip(x, y)]
@@ -407,7 +409,7 @@ class xHexagonalGrid:
         # by the pixel edge color.
         if padding:
             color = numpy.full(col.shape, '#555')
-            color[~roi.coordinates_in_rot(col, row)] = '#CCC'
+            color[~roi.coordinates_in_rot(col, row)] = xHexagonCollection.DEFAULT_EDGE_COLOR
             collection.set_edgecolor(color)
         plt.gca().add_collection(collection)
         # And if we want the indices, we add appropriate text patches.
@@ -437,8 +439,8 @@ class xHexagonalGrid:
         r, g, b, _ = color.T
         return (299 * r + 587 * g + 114 * b) / 1000
 
-    def draw_event(self, event, offset=(0., 0.), indices=True, padding=True,
-                   zero_sup_threshold=None, values=False, **kwargs):
+    def draw_event(self, event, offset=(0., 0.), canvas_side=2.0, indices=True,
+                   padding=True, zero_sup_threshold=None, values=False, **kwargs):
         """Draw an actual event int the parent hexagonal grid.
 
         This is taking over where the draw_roi() hook left, and adding the
@@ -460,6 +462,10 @@ class xHexagonalGrid:
                 text_color):
                 if value > zero_sup_threshold:
                     plt.text(x, y, f'{value}', color=color, **fmt)
+        x0, y0 = event.recon.barycenter
+        pad = 0.5 * canvas_side
+        plt.gca().set_xlim(x0 - pad, x0 + pad)
+        plt.gca().set_ylim(y0 - pad, y0 + pad)
         return collection
 
     @staticmethod
@@ -467,7 +473,6 @@ class xHexagonalGrid:
         """Convenience function to setup the matplotlib canvas for an event display.
         """
         plt.gca().set_aspect('equal')
-        plt.gca().autoscale()
         plt.axis('off')
         logger.info('Showing event display, close the window to move to the next one...')
         plt.show()
