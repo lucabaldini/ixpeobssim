@@ -84,7 +84,7 @@ class xFitModelBase:
 
     PARAMETER_NAMES = ()
     PARAMETER_DEFAULT_VALUES = ()
-    PARAMETER_DEFAULT_BOUNDS = ([-numpy.inf], [numpy.inf])
+    PARAMETER_DEFAULT_BOUNDS = (-numpy.inf, numpy.inf)
     DEFAULT_PLOTTING_RANGE = (0., 1.)
     DEFAULT_STAT_BOX_POSITION = 'upper right'
 
@@ -321,6 +321,15 @@ class xFitModelBase:
         xmin = min(m1.DEFAULT_PLOTTING_RANGE[0], m2.DEFAULT_PLOTTING_RANGE[0])
         xmax = max(m1.DEFAULT_PLOTTING_RANGE[1], m2.DEFAULT_PLOTTING_RANGE[1])
         name = '%s + %s' % (m1.__class__.__name__, m2.__class__.__name__)
+        lower_bounds = []
+        upper_bounds = []
+        for m in (m1, m2):
+            if m.bounds == xFitModelBase.PARAMETER_DEFAULT_BOUNDS:
+                lower_bounds += (len(m.parameters) * [m.bounds[0]])
+                upper_bounds += (len(m.parameters) * [m.bounds[1]])
+            else:
+                lower_bounds += m.bounds[0]
+                upper_bounds += m.bounds[1]
 
         class _model(xFitModelBase):
 
@@ -328,10 +337,7 @@ class xFitModelBase:
             PARAMETER_DEFAULT_VALUES = m1.PARAMETER_DEFAULT_VALUES + \
                                        m2.PARAMETER_DEFAULT_VALUES
             DEFAULT_PLOTTING_RANGE = (xmin, xmax)
-            PARAMETER_DEFAULT_BOUNDS = (m1.PARAMETER_DEFAULT_BOUNDS[0] +
-                                        m2.PARAMETER_DEFAULT_BOUNDS[0],
-                                        m1.PARAMETER_DEFAULT_BOUNDS[1] +
-                                        m2.PARAMETER_DEFAULT_BOUNDS[1])
+            PARAMETER_DEFAULT_BOUNDS = (lower_bounds, upper_bounds)
 
             def __init__(self):
                 self.__class__.__name__ = name
