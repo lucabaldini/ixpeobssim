@@ -4,6 +4,12 @@ Release notes
 =============
 
 
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/659
+* Fix in the error propagation in the histogram sum
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/656
+
+
 *ixpeobssim (29.3.1) - Thu, 06 Oct 2022 22:12:32 +0200*
 
 * Minor changes to the README file.
