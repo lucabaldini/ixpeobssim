@@ -5,9 +5,49 @@ Release notes
 
 
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/657
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/659
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/660
+* Fix in the error propagation in the histogram sum
+* Better handling of the parameter bounds when summing fitting models.
 * New interface to level-1 files and single-event display.
 * Issue(s) closed:
       * https://github.com/lucabaldini/ixpeobssim/issues/639
+      * https://github.com/lucabaldini/ixpeobssim/issues/656
+      * https://github.com/lucabaldini/ixpeobssim/issues/658
+
+
+*ixpeobssim (29.3.1) - Thu, 06 Oct 2022 22:12:32 +0200*
+
+* Minor changes to the README file.
+
+
+*ixpeobssim (29.3.0) - Thu, 06 Oct 2022 22:08:22 +0200*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/645
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/648
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/649
+* Fix for GTI in light curves.
+* Fix grids behavior when setup_gca() is called multiple times on the same figure.
+* Facilities for the display of the as-run target list largely refactored.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/647
+
+
+*ixpeobssim (29.2.1) - Wed, 28 Sep 2022 09:31:59 +0200*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/644
+* REAMDE.md revamped.
+* setup.py updated to include the package description on PyPI.
+* Installation instructions largely revised.
+
+
+*ixpeobssim (29.2.0) - Tue, 27 Sep 2022 19:25:48 +0200*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/641
+* Github actions added for the upload on PyPI and the CI.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/624
+      * https://github.com/lucabaldini/ixpeobssim/issues/625
 
 
 *ixpeobssim (29.1.4) - Tue, 27 Sep 2022 11:45:36 +0200*
