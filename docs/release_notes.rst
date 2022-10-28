@@ -5,9 +5,12 @@ Release notes
 
 
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/659
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/660
 * Fix in the error propagation in the histogram sum
+* Better handling of the parameter bounds when summing fitting models.
 * Issue(s) closed:
       * https://github.com/lucabaldini/ixpeobssim/issues/656
+      * https://github.com/lucabaldini/ixpeobssim/issues/658
 
 
 *ixpeobssim (29.3.1) - Thu, 06 Oct 2022 22:12:32 +0200*
