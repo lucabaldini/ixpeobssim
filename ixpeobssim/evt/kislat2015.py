@@ -117,7 +117,7 @@ class xStokesAnalysis:
         If True, the Stokes parameters are weighted by the inverse of the acceptance.
     """
 
-    def __init__(self, q, u, energy, modf, aeff, livetime, weights=None, acceptcorr=True):
+    def __init__(self, q, u, energy, modf, aeff, livetime, weights=None, acceptcorr=True, time=None):
         """Constructor.
         """
         # After https://bitbucket.org/ixpesw/ixpeobssim/issues/539 we need to
@@ -161,6 +161,9 @@ class xStokesAnalysis:
         self._mu = modf(self._energy)
         self._aeff = aeff(self._energy)
         self._livetime = livetime
+        self._time = None
+        if time is not None:
+            self._time = time[self._filter_mask]
         # Initialize the weights to one, if no weights are passed.
         if weights is None:
             weights = numpy.full(self._energy.shape, 1.)
@@ -273,6 +276,28 @@ class xStokesAnalysis:
         second [2, 3). The last bin, however, is [3, 4], which includes 4.
         """
         return numpy.logical_and(self._energy > emin, self._energy <= emax)
+
+    def _time_mask(self, tmin, tmax):
+        """Return the proper mask to select events in a given time range.
+
+        Warning
+        -------
+        I am not quite sure about the binary operands, here. The numpy
+        documentation seems to suggest that we should use >= emin and
+        < emax, but in that case the unit tests are failing due to numerical
+        roundings.
+
+        https://numpy.org/devdocs/reference/generated/numpy.histogram.html
+        All but the last (righthand-most) bin is half-open. In other words,
+        if bins is:
+
+        [1, 2, 3, 4]
+
+        then the first bin is [1, 2) (including 1, but excluding 2) and the
+        second [2, 3). The last bin, however, is [3, 4], which includes 4.
+        """
+        assert self._time is not None, "No time defined for this xStokesAnalysis."
+        return numpy.logical_and(self._time > tmin, self._time <= tmax)
 
     def _weighted_average(self, values, mask):
         """Calculate the weighted average of a given quantity over the input
@@ -660,6 +685,48 @@ class xStokesAnalysis:
             pd, pd_err, pa, pa_err = self.calculate_polarization(I, Q, U, mu, W2, degrees)
             # And now assemble each row in the correct order.
             row = (emin, emax, emean, counts, mu, W2, n_eff, frac_w, mdp, I, dI,\
+                Q, dQ, U, dU, QN, dQN, UN, dUN, cov, pd, pd_err, pa, pa_err, pval, conf, sig)
+            table.add_row(row)
+        return table
+
+    def polarization_table_time(self, tbinning, degrees=True):
+        """Return a table with all the relevant polarization parameters.
+
+        Note the column names, here, are taken from the definition of the
+        FITS file holding the data structure, and we have to be careful in passing
+        out the actual values in the right order.
+
+        .. warning::
+
+           It would be nice to be able to grab the column definition from the
+           proper file (binning.fmt) but for some reason I do get a circular
+           import error, when I try and do that. It might be a sensible thing to
+           understand why and do the proper refactoring.
+        """
+        col_names = \
+            ['TIME_LO', 'TIME_HI', 'T_MEAN', 'E_MEAN', 'COUNTS', 'MU', 'W2', 'N_EFF', 'FRAC_W', 'MDP_99',
+            'I', 'I_ERR', 'Q', 'Q_ERR', 'U', 'U_ERR', 'QN', 'QN_ERR', 'UN', 'UN_ERR', 'QUN_COV',
+            'PD', 'PD_ERR', 'PA', 'PA_ERR', 'P_VALUE', 'CONFID', 'SIGNIF']
+        table = astropy.table.Table(names=col_names)
+        for tmin, tmax in pairwise(tbinning):
+            mask = self._time_mask(tmin, tmax)
+            # Average energy, effective modulation factor and sum of weights squared.
+            tmean = (tmin + tmax) / 2
+            emean = self._average_energy(mask)
+            mu = self._effective_mu(mask)
+            counts = numpy.count_nonzero(mask)
+            W2 = self.W2(mask)
+            # Stokes parameters and associated uncertainties.
+            I, Q, U = self._sum_stokes_parameters(mask)
+            QN, UN, dI, dQ, dU, dQN, dUN, cov, pval, conf, sig = \
+                self.calculate_stokes_errors(I, Q, U, mu, W2)
+            # Effective number of counts, and MDP.
+            n_eff, frac_w = self.calculate_n_eff(counts, I, W2)
+            mdp = self.calculate_mdp99(mu, I, W2)
+            # Polarization analysis.
+            pd, pd_err, pa, pa_err = self.calculate_polarization(I, Q, U, mu, W2, degrees)
+            # And now assemble each row in the correct order.
+            row = (tmin, tmax, tmean, emean, counts, mu, W2, n_eff, frac_w, mdp, I, dI,\
                 Q, dQ, U, dU, QN, dQN, UN, dUN, cov, pd, pd_err, pa, pa_err, pval, conf, sig)
             table.add_row(row)
         return table
