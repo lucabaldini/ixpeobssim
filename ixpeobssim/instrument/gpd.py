@@ -24,6 +24,11 @@ from ixpeobssim.instrument.du import du_rotation_angle
 from ixpeobssim.utils.math_ import modulo_2pi
 
 
+# Physical size of the readout chip on the two orthogonal directions.
+PHYSICAL_HALF_SIZE_X = 7.4875
+PHYSICAL_HALF_SIZE_Y = 7.599
+PHYSICAL_MAX_RADIUS = numpy.sqrt(PHYSICAL_HALF_SIZE_X**2. + PHYSICAL_HALF_SIZE_Y**2.)
+# And this is an "effective" half size that we keep for historical reasons.
 PHYSICAL_HALF_SIZE = 7.500
 FIDUCIAL_HALF_SIZE = 7.350
 LASER_ETCHING_PITCH = 1.800
