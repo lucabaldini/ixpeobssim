@@ -70,11 +70,11 @@ class xRadialBackgroundGenerator(xUnivariateGenerator):
         """
         self.half_size_x = half_size_x
         self.half_size_y = half_size_y
+        self.radial_slope = radial_slope
         self.radius = numpy.sqrt(self.half_size_x**2. + self.half_size_y**2.)
         x = numpy.linspace(0., self.radius, num_points)
         half_size = 0.5 * (self.half_size_x + self.half_size_y)
-        xs = x / half_size
-        y =  (1. - 0.5 * radial_slope) * xs + radial_slope * xs**2.
+        y =  (1. - 0.5 * radial_slope) * x / half_size + radial_slope * (x / half_size)**2.
         xUnivariateGenerator.__init__(self, x, y)
 
     @staticmethod
@@ -94,14 +94,48 @@ class xRadialBackgroundGenerator(xUnivariateGenerator):
         y = y[mask]
         return x, y
 
+    @staticmethod
+    def average_oversample_fraction(radial_slope):
+        """Return an heuristic for the average oversample fraction for a given
+        radial slope of the profile.
+
+        This is a purely geometric factor that is easy to calculate for a flat
+        profile (slope = 0), in which case it reads pi/2 but not trivial in the
+        general case. Our approach is to generate events within the smallest circle
+        ciscumscribed to the fiducial rectangle on a grid of radial slope values
+        and measure the fraction that ends up in the fiducial rectangle itself.
+        For completeness, this is calculated in tests/test_radial_bkg.py.
+
+        Note that this is accurate within a few % in the limit of infinite statistics.
+        """
+        return 1.56258183 + 0.29704984 * radial_slope - 0.05847132 * radial_slope**2.
+
+    def oversampled_size(self, size, radial_slope, safety_factor=1.2, min_size=1000):
+        """Return the oversampled size for a given target size and radial slope.
+
+        This is essentially the function that determines how many random numbers
+        we need to throw to be sure that, after trimming to the fiducial region,
+        we end up to enough events. This is purely heuristic and is based on the
+        average_oversample_fraction() function when the statistics is large enough,
+        with a minimum bound to be sure we are not killed by statistical fluctuation
+        in the small number regime.
+        """
+        size = safety_factor * size * self.average_oversample_fraction(radial_slope)
+        size = round(size)
+        return max(size, min_size)
+
     def rvs_xy(self, size):
         """Extract a set of arrays of coordinate detectors.
         """
-        oversample = 2
-        r = self.rvs(size * oversample)
-        phi = 2. * numpy.pi * numpy.random.random(size * oversample)
+        oversize = self.oversampled_size(size, self.radial_slope)
+        logger.info('Sampling the background radial profile...')
+        logger.info('Initial counts: %d, target counts %d', oversize, size)
+        r = self.rvs(oversize)
+        phi = 2. * numpy.pi * numpy.random.random(oversize)
         x, y = self.polar_to_cartesian(r, phi)
         x, y = self.trim(x, y)
+        if len(x) < size:
+            raise RuntimeError('Not enough background counts after trimming.')
         x = x[:size]
         y = y[:size]
         return x, y
