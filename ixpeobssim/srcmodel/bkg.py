@@ -63,19 +63,68 @@ class xRadialBackgroundGenerator(xUnivariateGenerator):
     detector coordinates stems from the analysis of a number of observations.
     Interestingly enough, the radial slope of the background counts per unit
     area seems to be different for different observation.
+
+    .. warning::
+
+       While initially I was hoping to code this by sampling two independent
+       random variables, within the proper bounds, on the x and y coordinates,
+       it turned out that an azimuthally symmetric bivariate pdf cannot be
+       expressed as the product of two independent variables on a square, and
+       we had to resort to sampling r over a circle and trimming in the fiducial
+       rectangle after the fact. This is hugly, as we need to guess in advance
+       how much random numbers we have to throw so that we end up with enough
+       counts after the trimming, but so life goes.
+
+    This is essentially an univariate generator whose pdf is a slight generalization
+    of the function f(r) = 2r (for r = 1) that one would use to throw random
+    numbers uniformly distributed in a circle:
+
+    .. math::
+
+       p(r) = \\left( 1 - \\frac{\\alpha}{2}\\right) \\frac{r}{h} +
+       \\alpha \\left(\\frac{r}{h}\\right)^2
+
+    The radial slope alpha repesents the fractional half-excursion of the variation
+    across the size h of the fiducial rectangle. For alpha = 0 the detector
+    position are distributed uniformly over the fiducial rectangle. For alpha = 2
+    the radial dependence is maximal, and the density of events is zero at the
+    center of the detector. For alpha = -1 (and assuming a square fiducial region)
+    the pdf approaches zero at the boundary of the circle.
+
+    Arguments
+    ---------
+    half_size_x : float
+        The half size of the fiducial rectangle in the x coordinate.
+
+    half_size_y : float
+        The half size of the fiducial rectangle in the y coordinate.
+
+    radial_slope : float
+        The slope of the radial profile, that is, the fractional half-excursion
+        of the variation across the size of the fiducial rectangle.
     """
 
     def __init__(self, half_size_x, half_size_y, radial_slope, num_points=100):
         """Constructor.
         """
+        if radial_slope > 2. or radial_slope < -1.:
+            raise RuntimeError('Invalid background radial slope (%.3f)' % radial_slope)
         self.half_size_x = half_size_x
         self.half_size_y = half_size_y
         self.radial_slope = radial_slope
-        self.radius = numpy.sqrt(self.half_size_x**2. + self.half_size_y**2.)
-        x = numpy.linspace(0., self.radius, num_points)
+        # Calculate the effective radius and average half-size.
+        radius = numpy.sqrt(half_size_x**2. + half_size_y**2.)
         half_size = 0.5 * (self.half_size_x + self.half_size_y)
-        y =  (1. - 0.5 * radial_slope) * x / half_size + radial_slope * (x / half_size)**2.
-        xUnivariateGenerator.__init__(self, x, y)
+        # Create the underlying radial grid and initialize the spline.
+        r = numpy.linspace(0., radius, num_points)
+        xUnivariateGenerator.__init__(self, r, self.pdf(r, half_size, radial_slope))
+
+    @staticmethod
+    def pdf(r, half_size, radial_slope):
+        """Small function encapsulating the underlying pdf for the random generator.
+        """
+        r = r / half_size
+        return (1. - radial_slope / 2.) * r  + radial_slope * r**2.
 
     @staticmethod
     def polar_to_cartesian(r, phi):

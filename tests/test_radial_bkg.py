@@ -27,7 +27,7 @@ import numpy
 from scipy.optimize import curve_fit
 
 from ixpeobssim.core.hist import xHistogram1d, xHistogram2d
-from ixpeobssim.core.modeling import xLine
+from ixpeobssim.core.modeling import xLine, xConstant
 from ixpeobssim.core.fitting import fit_histogram, fit
 from ixpeobssim.core.rand import xUnivariateGenerator
 from ixpeobssim.srcmodel.bkg import xRadialBackgroundGenerator
@@ -46,7 +46,7 @@ class TestRadialBackground(unittest.TestCase):
     """
 
     def test_oversample(self, half_size=7., num_events=500000):
-        """
+        """Small snippet to gauge the heuristic for the necessary oversample factor.
         """
         slope, oversample = [], []
         for s in numpy.linspace(-1., 2., 11):
@@ -70,7 +70,7 @@ class TestRadialBackground(unittest.TestCase):
         plt.plot(xgrid, pol2(xgrid, *popt))
         setup_gca(xlabel='Radial slope', ylabel='Oversampling factor', grids=True)
 
-    def test_direct(self, half_size=7., num_events=10000000, alpha=0.2):
+    def test_sample(self, half_size=7., num_events=1000000, alpha=0.2):
         """Convenience function for the direct transform (radial -> xy).
         """
         radius = numpy.sqrt(2.) * half_size
@@ -88,9 +88,29 @@ class TestRadialBackground(unittest.TestCase):
         alpha_hat = model.Slope * half_size / model(0.5 * half_size)
         logger.info('Best-fit slope: %.3f (target %.3f)', alpha_hat, alpha)
         plt.figure('Radial background xy')
-        binning = numpy.linspace(-half_size, half_size, 100)
+        binning = numpy.linspace(-half_size, half_size, 25)
         hist = xHistogram2d(binning, binning, xlabel='x', ylabel='y').fill(x, y)
         hist.plot()
+
+    def test_sample_constant(self, half_size=7., num_events=1000000, num_bins=100):
+        """Test the radial generator with zero slope.
+        """
+        x, y = xRadialBackgroundGenerator(half_size, half_size, 0.).rvs_xy(num_events)
+        binning = numpy.linspace(-half_size, half_size, num_bins)
+        plt.figure('Constant radial background x')
+        hist = xHistogram1d(binning, xlabel='x').fill(x)
+        model = fit_histogram(xConstant(), hist)
+        hist.plot()
+        model.plot()
+        model.stat_box()
+        self.assertTrue(model.chisq < model.ndof + 5. * numpy.sqrt(2. * model.ndof))
+        plt.figure('Constant radial background y')
+        hist = xHistogram1d(binning, xlabel='y').fill(y)
+        model = fit_histogram(xConstant(), hist)
+        hist.plot()
+        model.plot()
+        model.stat_box()
+        self.assertTrue(model.chisq < model.ndof + 5. * numpy.sqrt(2. * model.ndof))
 
 
 
