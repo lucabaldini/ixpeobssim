@@ -110,6 +110,7 @@ is the most up-to-date reference.
    magnetar_models
    extended_sources
    binary_systems
+   event_display
    sonification
 
 .. toctree::
