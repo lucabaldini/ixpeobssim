@@ -28,12 +28,22 @@ from ixpeobssim.utils.math_ import modulo_2pi
 PHYSICAL_HALF_SIZE_X = 7.4875
 PHYSICAL_HALF_SIZE_Y = 7.599
 PHYSICAL_MAX_RADIUS = numpy.sqrt(PHYSICAL_HALF_SIZE_X**2. + PHYSICAL_HALF_SIZE_Y**2.)
-# And this is an "effective" half size that we keep for historical reasons.
+# And not the default values for the fiducial half size in detector coordinates.
+# Note the fiducial rectangle has changed along the way due to a small bug in the
+# processing code and, unlike the physical dimensions of the readout chip, is not
+# guaranteed to be the same for all observations.
+DEFAULT_FIDUCIAL_HALF_SIZE_X = 6.600
+DEFAULT_FIDUCIAL_HALF_SIZE_Y = 6.800
+DEFAULT_FIDUCIAL_AREA = 4. * DEFAULT_FIDUCIAL_HALF_SIZE_X * DEFAULT_FIDUCIAL_HALF_SIZE_Y
+# And the following are "effective" values that we keep for historical reasons
+# (and we might actually consider removing or changing).
 PHYSICAL_HALF_SIZE = 7.500
 FIDUCIAL_HALF_SIZE = 7.350
+FIDUCIAL_AREA = (2. * FIDUCIAL_HALF_SIZE)**2.
+
+# GEM manufacturing parametes
 LASER_ETCHING_PITCH = 1.800
 NUM_LASER_SWEEPS = 8
-FIDUCIAL_AREA = (2. * FIDUCIAL_HALF_SIZE)**2.
 
 
 def gpd_map_binning(num_bins):

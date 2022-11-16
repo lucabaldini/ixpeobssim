@@ -334,8 +334,8 @@ class xInstrumentalBkg(xModelComponentBase):
         # Extract the event positions---note this was changed in response to
         # https://github.com/lucabaldini/ixpeobssim/issues/663
         # And we still need to handle the fiducial rectangle properly.
-        half_size_x = gpd.FIDUCIAL_HALF_SIZE
-        half_size_y = gpd.FIDUCIAL_HALF_SIZE
+        half_size_x = gpd.DEFAULT_FIDUCIAL_HALF_SIZE_X
+        half_size_y = gpd.DEFAULT_FIDUCIAL_HALF_SIZE_Y
         rnd = xRadialBackgroundGenerator(half_size_x, half_size_y, self.radial_slope)
         detx, dety = rnd.rvs_xy(len(time_))
         return time_, mc_energy, detx, dety
