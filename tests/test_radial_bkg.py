@@ -48,43 +48,28 @@ class TestRadialBackground(unittest.TestCase):
     """Unit test for radial background.
     """
 
-    def __test_basic(self, alpha=0.2, half_size=7., num_events=6000000):
+    def test_oversample(self, half_size=7., num_events=500000):
         """
         """
-        radius = numpy.sqrt(2.) * half_size
-        x = xRadialBackgroundGenerator(half_size, alpha).rvs(num_events)
-        y = xRadialBackgroundGenerator(half_size, alpha).rvs(num_events)
-        r = numpy.sqrt(x**2. + y**2.)
-        plt.figure('Radial background r')
-        binning = numpy.linspace(0., radius , 100)
-        rmin = half_size / 10.
-        mask = r > rmin
-        hist = xHistogram1d(binning, xlabel='r').fill(r[mask], weights=1. / r[mask])
-        hist.plot()
-        model = fit_histogram(xLine(), hist, xmax=half_size)
-        model.plot()
-        model.stat_box()
-        alpha_hat = model.Slope * half_size / model(0.5 * half_size)
-        logger.info('Best-fit slope: %.3f (target %.3f)', alpha_hat, alpha)
+        slope, oversample = [], []
+        for s in numpy.linspace(-1., 2., 11):
+            gen = xRadialBackgroundGenerator(half_size, half_size, s)
+            r = gen.rvs(num_events)
+            phi = 2. * numpy.pi * numpy.random.random(num_events)
+            x, y = gen.trim(*gen.polar_to_cartesian(r, phi))
+            ovrsmpl = len(r) / len(x)
+            logger.info('Oversampling for %.3f radial slope: %.5f', s, ovrsmpl)
+            slope.append(s)
+            oversample.append(ovrsmpl)
+        plt.figure('Radial background oversampling')
+        plt.plot(slope, oversample, 'o')
+        setup_gca(xlabel='Radial slope', ylabel='Oversampling factor', grids=True)
 
-    def test_direct(self, half_size=7., num_events=10000000, alpha=0.2):
+    def _test_direct(self, half_size=7., num_events=10000000, alpha=0.2):
         """Convenience function for the direct transform (radial -> xy).
         """
         radius = numpy.sqrt(2.) * half_size
-        #_x = numpy.linspace(0., radius, 100)
-        #_xr = _x / half_size
-        #_y =  ((1. - 0.5 * alpha) * _xr + alpha * _xr**2.)
-        #gen = xUnivariateGenerator(_x, _y)
-        #r = gen.rvs(size=num_events)
-
-        x, y = xRadialBackgroundGenerator(half_size, half_size, alpha).rvs(num_events)
-        #phi = 2. * numpy.pi * numpy.random.random(size=num_events)
-        #x = r * numpy.cos(phi)
-        #y = r * numpy.sin(phi)
-        #mask = numpy.logical_and(abs(x) <= half_size, abs(y) <= half_size)
-        #r = r[mask]
-        #x = x[mask]
-        #y = y[mask]
+        x, y = xRadialBackgroundGenerator(half_size, half_size, alpha).rvs_xy(num_events)
         r = numpy.sqrt(x**2. + y**2.)
         plt.figure('Radial background r')
         binning = numpy.linspace(0., radius, 100)

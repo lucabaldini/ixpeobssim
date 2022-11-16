@@ -77,17 +77,33 @@ class xRadialBackgroundGenerator(xUnivariateGenerator):
         y =  (1. - 0.5 * radial_slope) * xs + radial_slope * xs**2.
         xUnivariateGenerator.__init__(self, x, y)
 
-    def rvs(self, size):
+    @staticmethod
+    def polar_to_cartesian(r, phi):
+        """Convert an array of polar coordinates in the plane into the corresponding
+        cartesian coordinates.
         """
-        """
-        oversample = 2
-        r = xUnivariateGenerator.rvs(self, size * oversample)
-        phi = 2. * numpy.pi * numpy.random.random(size * oversample)
         x = r * numpy.cos(phi)
         y = r * numpy.sin(phi)
+        return x, y
+
+    def trim(self, x, y):
+        """Trim an array of r values to the rectangular fiducial region.
+        """
         mask = numpy.logical_and(abs(x) <= self.half_size_x, abs(y) <= self.half_size_y)
-        x = x[mask][:size]
-        y = y[mask][:size]
+        x = x[mask]
+        y = y[mask]
+        return x, y
+
+    def rvs_xy(self, size):
+        """Extract a set of arrays of coordinate detectors.
+        """
+        oversample = 2
+        r = self.rvs(size * oversample)
+        phi = 2. * numpy.pi * numpy.random.random(size * oversample)
+        x, y = self.polar_to_cartesian(r, phi)
+        x, y = self.trim(x, y)
+        x = x[:size]
+        y = y[:size]
         return x, y
 
 
