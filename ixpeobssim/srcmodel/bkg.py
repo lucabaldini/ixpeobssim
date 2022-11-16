@@ -25,6 +25,7 @@ from astropy.io import fits
 import numpy
 
 from ixpeobssim import IXPEOBSSIM_SRCMODEL
+from ixpeobssim.core.rand import xUnivariateGenerator
 from ixpeobssim.core.spline import xInterpolatedUnivariateSpline
 from ixpeobssim.evt.event import xEventList
 from ixpeobssim.evt.fmt import standard_radec_to_xy
@@ -34,7 +35,7 @@ from ixpeobssim.irfgen.gpd import GPD_FILL_TEMPERATURE, GPD_TYPICAL_ASYMTPTOTIC_
 from ixpeobssim.irfgen.gpd import xQeffDataInterface
 from ixpeobssim.instrument.gpd import phi_to_detphi
 from ixpeobssim.instrument import gpd
-from ixpeobssim.instrument.gpd import phi_to_detphi
+from ixpeobssim.instrument.gpd import phi_to_detphi, PHYSICAL_MAX_RADIUS
 from ixpeobssim.instrument.mma import gpd_to_sky, parse_dithering_kwargs, apply_dithering
 from ixpeobssim.srcmodel.polarization import constant
 from ixpeobssim.srcmodel.roi import xModelComponentBase
@@ -47,6 +48,48 @@ from ixpeobssim.utils.units_ import arcmin_to_degrees
 
 
 # pylint: disable=invalid-name, too-many-locals
+
+
+
+class xRadialBackgroundGenerator(xUnivariateGenerator):
+
+    """Univariate generator sampling the radial coordinate on the detector surface
+    for a background component whose radial distribution, normalized by the area,
+    depends linearly on the radius.
+
+    This was introduced in https://github.com/lucabaldini/ixpeobssim/issues/663
+
+    The need for an instrumental background component that is not uniform in
+    detector coordinates stems from the analysis of a number of observations.
+    Interestingly enough, the radial slope of the background counts per unit
+    area seems to be different for different observation.
+    """
+
+    def __init__(self, half_size_x, half_size_y, radial_slope, num_points=100):
+        """Constructor.
+        """
+        self.half_size_x = half_size_x
+        self.half_size_y = half_size_y
+        self.radius = numpy.sqrt(self.half_size_x**2. + self.half_size_y**2.)
+        x = numpy.linspace(0., self.radius, num_points)
+        half_size = 0.5 * (self.half_size_x + self.half_size_y)
+        xs = x / half_size
+        y =  (1. - 0.5 * radial_slope) * xs + radial_slope * xs**2.
+        xUnivariateGenerator.__init__(self, x, y)
+
+    def rvs(self, size):
+        """
+        """
+        oversample = 2
+        r = xUnivariateGenerator.rvs(self, size * oversample)
+        phi = 2. * numpy.pi * numpy.random.random(size * oversample)
+        x = r * numpy.cos(phi)
+        y = r * numpy.sin(phi)
+        mask = numpy.logical_and(abs(x) <= self.half_size_x, abs(y) <= self.half_size_y)
+        x = x[mask][:size]
+        y = y[mask][:size]
+        return x, y
+
 
 
 class xInstrumentalBkg(xModelComponentBase):
