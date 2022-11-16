@@ -211,6 +211,9 @@ class xInstrumentalBkg(xModelComponentBase):
     photon_spectrum : callable
         The photon spectrum in photons cm-2/s-1/keV-1 for the bkg source.
 
+    radial_slope : float
+        The radial slope for the distribution in detector coordinates.
+
     identifier : int, optional
         The source identifier.
 
@@ -218,11 +221,13 @@ class xInstrumentalBkg(xModelComponentBase):
         Convolve the source spectrum with the energy dispersion (default is False).
     """
 
-    def __init__(self, name, photon_spectrum, identifier=None, convolve_energy=False):
+    def __init__(self, name, photon_spectrum, radial_slope=0., identifier=None,
+                 convolve_energy=False):
         """Constructor.
         """
         xModelComponentBase.__init__(self, name, identifier)
         self.photon_spectrum = photon_spectrum
+        self.radial_slope = radial_slope
         self._convolve_energy = convolve_energy
 
     def _energy_grid(self, irf_set, num_points=250, **kwargs):
@@ -326,8 +331,13 @@ class xInstrumentalBkg(xModelComponentBase):
         time_, _ = kwargs.get('gti_list').filter_event_times(time_)
         # Extract the event energies.
         mc_energy = source_spectrum.rvs(time_)
-        # Extract the event positions
-        detx, dety = self.uniform_square(len(time_), gpd.FIDUCIAL_HALF_SIZE)
+        # Extract the event positions---note this was changed in response to
+        # https://github.com/lucabaldini/ixpeobssim/issues/663
+        # And we still need to handle the fiducial rectangle properly.
+        half_size_x = gpd.FIDUCIAL_HALF_SIZE
+        half_size_y = gpd.FIDUCIAL_HALF_SIZE
+        rnd = xRadialBackgroundGenerator(half_size_x, half_size_y, self.radial_slope)
+        detx, dety = rnd.rvs_xy(len(time_))
         return time_, mc_energy, detx, dety
 
     def rvs_event_list(self, parent_roi, irf_set, **kwargs):
@@ -400,10 +410,11 @@ class xPowerLawInstrumentalBkg(xInstrumentalBkg):
     respectively.
     """
 
-    def __init__(self, norm=4.e-4, index=1.0):
+    def __init__(self, norm=4.e-4, index=1.0, radial_slope=0.):
         """Constructor.
         """
-        xInstrumentalBkg.__init__(self, 'Instrumental background', power_law(norm, index))
+        xInstrumentalBkg.__init__(self, 'Instrumental background', power_law(norm, index),
+            radial_slope)
         self.norm = norm
         self.index = index
 
@@ -416,12 +427,12 @@ class xTemplateInstrumentalBkg(xInstrumentalBkg):
 
     DEFAULT_PATH = os.path.join(IXPEOBSSIM_SRCMODEL, 'ascii', 'bkg_smcx1_01903701.txt')
 
-    def __init__(self, file_path=DEFAULT_PATH, emin=0.1, emax=15., k=1):
+    def __init__(self, file_path=DEFAULT_PATH, emin=0.1, emax=15., k=1, radial_slope=0.):
         """Constructor.
         """
         self.spline = load_spectral_spline(file_path, emin, emax, k=k)
         spec = lambda E, t=None: self.spline(E)
-        xInstrumentalBkg.__init__(self, 'Instrumental background', spec)
+        xInstrumentalBkg.__init__(self, 'Instrumental background', spec, radial_slope)
 
 
 

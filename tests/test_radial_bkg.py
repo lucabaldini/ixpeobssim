@@ -70,11 +70,11 @@ class TestRadialBackground(unittest.TestCase):
         plt.plot(xgrid, pol2(xgrid, *popt))
         setup_gca(xlabel='Radial slope', ylabel='Oversampling factor', grids=True)
 
-    def test_sample(self, half_size=7., num_events=1000000, alpha=0.2):
+    def test_sample(self, half_size=7., num_events=1000000, slope=0.2):
         """Convenience function for the direct transform (radial -> xy).
         """
         radius = numpy.sqrt(2.) * half_size
-        x, y = xRadialBackgroundGenerator(half_size, half_size, alpha).rvs_xy(num_events)
+        x, y = xRadialBackgroundGenerator(half_size, half_size, slope).rvs_xy(num_events)
         r = numpy.sqrt(x**2. + y**2.)
         plt.figure('Radial background r')
         binning = numpy.linspace(0., radius, 100)
@@ -85,8 +85,8 @@ class TestRadialBackground(unittest.TestCase):
         model.plot()
         model.stat_box()
         hist.plot()
-        alpha_hat = model.Slope * half_size / model(0.5 * half_size)
-        logger.info('Best-fit slope: %.3f (target %.3f)', alpha_hat, alpha)
+        slope_hat = model.Slope * half_size / model(0.5 * half_size)
+        logger.info('Best-fit slope: %.3f (target %.3f)', slope_hat, slope)
         plt.figure('Radial background xy')
         binning = numpy.linspace(-half_size, half_size, 25)
         hist = xHistogram2d(binning, binning, xlabel='x', ylabel='y').fill(x, y)
