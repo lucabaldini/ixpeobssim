@@ -52,7 +52,7 @@ class TestXpphase(unittest.TestCase):
         """
         start_met = MISSION_START_UNIX_TIME
         t = numpy.linspace(0, self.obs_length, 100)
-        ph_array = self.ephem.fold(t, start_met)
+        ph_array = self.ephem.pulse_phase(t)
         plt.figure()
         plt.plot(t, ph_array)
 
