@@ -29,7 +29,7 @@ from ixpeobssim.core.stokes import xModelStokesParameters
 from ixpeobssim.core.modeling import xGaussian
 from ixpeobssim.core.fitting import fit_histogram
 from ixpeobssim.evt.spurmrot import correct_phi_stokes
-from ixpeobssim.instrument.gpd import PHYSICAL_HALF_SIZE, NUM_LASER_SWEEPS,\
+from ixpeobssim.instrument.gpd import PHYSICAL_HALF_SIZE_X, NUM_LASER_SWEEPS,\
     LASER_ETCHING_PITCH
 from ixpeobssim.irf.base import xResponseBase
 from ixpeobssim.irf.modf import xAzimuthalResponseGenerator
@@ -62,13 +62,6 @@ class xSyntheticSpuriousModulation:
         return numpy.linspace(-delta, delta, NUM_LASER_SWEEPS) + offset
 
     @staticmethod
-    def profile_grid(grid_size=200):
-        """Return a 1-dimensional, constant-spacing spatial grid spanning the entire
-        detector side (in either x or y).
-        """
-        return numpy.linspace(-PHYSICAL_HALF_SIZE, PHYSICAL_HALF_SIZE, grid_size)
-
-    @staticmethod
     def amplitude_profile(peak_sigma=0.25, min_value=0., max_value=0.1, grid_size=200, offset=0.):
         """Poor man's attempt at building a one-dimensional profile of the
         spurious modulation.
@@ -76,7 +69,7 @@ class xSyntheticSpuriousModulation:
         This is achieved by the sum of a constant and a number of gaussians
         centered on the spurious modulation peaks.
         """
-        x = xSpuriousModulation.profile_grid(grid_size)
+        x = numpy.linspace(-PHYSICAL_HALF_SIZE_X, PHYSICAL_HALF_SIZE_X, grid_size)
         delta = max_value - min_value
         y = numpy.full(x.shape, min_value)
         amplitude = delta * numpy.sqrt(2. * numpy.pi) * peak_sigma

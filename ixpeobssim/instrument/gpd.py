@@ -35,9 +35,9 @@ PHYSICAL_MAX_RADIUS = numpy.sqrt(PHYSICAL_HALF_SIZE_X**2. + PHYSICAL_HALF_SIZE_Y
 DEFAULT_FIDUCIAL_HALF_SIZE_X = 6.600
 DEFAULT_FIDUCIAL_HALF_SIZE_Y = 6.800
 DEFAULT_FIDUCIAL_AREA = 4. * DEFAULT_FIDUCIAL_HALF_SIZE_X * DEFAULT_FIDUCIAL_HALF_SIZE_Y
+
 # And the following are "effective" values that we keep for historical reasons
 # (and we might actually consider removing or changing).
-PHYSICAL_HALF_SIZE = 7.500
 FIDUCIAL_HALF_SIZE = 7.350
 FIDUCIAL_AREA = (2. * FIDUCIAL_HALF_SIZE)**2.
 
