@@ -1,6 +1,6 @@
 #!/urs/bin/env python
 #
-# Copyright (C) 2018--2019, the ixpeobssim team.
+# Copyright (C) 2018--2022, the ixpeobssim team.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,6 +16,9 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+"""Basic GPD-related constants.
+"""
+
 from __future__ import print_function, division
 
 import numpy
@@ -23,6 +26,7 @@ import numpy
 from ixpeobssim.instrument.du import du_rotation_angle
 from ixpeobssim.utils.math_ import modulo_2pi
 
+# pylint: disable=invalid-name
 
 # Physical size of the readout chip on the two orthogonal directions.
 PHYSICAL_HALF_SIZE_X = 7.4875
@@ -35,12 +39,11 @@ PHYSICAL_MAX_RADIUS = numpy.sqrt(PHYSICAL_HALF_SIZE_X**2. + PHYSICAL_HALF_SIZE_Y
 DEFAULT_FIDUCIAL_HALF_SIZE_X = 6.600
 DEFAULT_FIDUCIAL_HALF_SIZE_Y = 6.800
 
-
-def fiducial_area(half_size_x=DEFAULT_FIDUCIAL_HALF_SIZE_X, half_size_y=DEFAULT_FIDUCIAL_HALF_SIZE_Y):
+def fiducial_area(half_size_x=DEFAULT_FIDUCIAL_HALF_SIZE_X,
+    half_size_y=DEFAULT_FIDUCIAL_HALF_SIZE_Y):
     """Return the area of the fiducial rectangle.
     """
-    return 4. * half_size_x *half_size_y
-
+    return 4. * half_size_x * half_size_y
 
 DEFAULT_FIDUCIAL_AREA = fiducial_area(DEFAULT_FIDUCIAL_HALF_SIZE_X, DEFAULT_FIDUCIAL_HALF_SIZE_Y)
 
@@ -61,7 +64,8 @@ def gpd_map_binning(num_bins):
     return numpy.linspace(-FIDUCIAL_HALF_SIZE, FIDUCIAL_HALF_SIZE, num_bins + 1)
 
 
-def within_fiducial_area(x, y):
+def within_fiducial_area(x, y, half_size_x=DEFAULT_FIDUCIAL_HALF_SIZE_X,
+    half_size_y=DEFAULT_FIDUCIAL_HALF_SIZE_Y):
     """Return wheter an (x, y) position in mm is within the fiducial active
     area of the GPD readout ASIC.
 
@@ -73,7 +77,7 @@ def within_fiducial_area(x, y):
     y : float or array
         The y position or array of y positions in mm
     """
-    return (abs(x) <= FIDUCIAL_HALF_SIZE) * (abs(y) <= FIDUCIAL_HALF_SIZE)
+    return (abs(x) <= half_size_x) * (abs(y) <= half_size_y)
 
 
 def rotate_detxy(x, y, du_id, roll_angle=0., inverse=False):
