@@ -34,7 +34,15 @@ PHYSICAL_MAX_RADIUS = numpy.sqrt(PHYSICAL_HALF_SIZE_X**2. + PHYSICAL_HALF_SIZE_Y
 # guaranteed to be the same for all observations.
 DEFAULT_FIDUCIAL_HALF_SIZE_X = 6.600
 DEFAULT_FIDUCIAL_HALF_SIZE_Y = 6.800
-DEFAULT_FIDUCIAL_AREA = 4. * DEFAULT_FIDUCIAL_HALF_SIZE_X * DEFAULT_FIDUCIAL_HALF_SIZE_Y
+
+
+def fiducial_area(half_size_x=DEFAULT_FIDUCIAL_HALF_SIZE_X, half_size_y=DEFAULT_FIDUCIAL_HALF_SIZE_Y):
+    """Return the area of the fiducial rectangle.
+    """
+    return 4. * half_size_x *half_size_y
+
+
+DEFAULT_FIDUCIAL_AREA = fiducial_area(DEFAULT_FIDUCIAL_HALF_SIZE_X, DEFAULT_FIDUCIAL_HALF_SIZE_Y)
 
 # And the following are "effective" values that we keep for historical reasons
 # (and we might actually consider removing or changing).
