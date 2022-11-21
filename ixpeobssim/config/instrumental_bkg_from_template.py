@@ -14,8 +14,8 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-"""First instrumental background parametrization based on actual data---a short
-observation of SMC X-1.
+"""Instrumental parametrization of the background file. Read from the default
+file path defined in xInstrumentalBkg class.
 """
 
 from __future__ import print_function, division

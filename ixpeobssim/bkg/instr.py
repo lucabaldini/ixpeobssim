@@ -63,6 +63,24 @@ parser.add_argument('--ssmooth', type=float, default=5.e-4,
 parser.add_outfile(default=os.path.join(IXPEOBSSIM_SRCMODEL, 'ascii',
         'instrumental_bkg_template.txt'))
 
+def smooth_PDF(PDF):
+    ''' Replaces the initial range (E<1keV) of the array with a monothonic
+    function fixing also the zeros. In this way, we are guaranteed that the
+    spline of the resulting PDF has no negative values 
+    '''
+    # E< keV
+    PDF[0:17] = numpy.sort(PDF[0:17])
+    #We don't want to approach zero with a large derivative
+    is_zero_idx = numpy.where (PDF[0:17]==0)
+    max_zero = numpy.max(is_zero_idx)
+    artificial_grad = 1.e-08
+
+    for j in reversed(range(max_zero+1)):
+        input (j)
+        PDF[j] = PDF[j+1]-artificial_grad
+    return(PDF)
+
+
 def create_backgound_template(emin=0.01, **kwargs):
     '''The core function: takes a list of pha1 files and creates the background \
         template. The parameters are taken from input.
@@ -125,6 +143,9 @@ def create_backgound_template(emin=0.01, **kwargs):
     logger.info('Writing output file to %s...', outfile)
     x = numpy.linspace(emin, energy.max(), 250)
     y = spline(x).clip(0.)
+    input (y)
+    y = smooth_PDF(y)
+    input (y)
     with open(outfile, 'w') as output_file:
         for _x, _y in zip(x, y):
             output_file.write('%.5e   %.5e\n' % (_x, _y))
@@ -133,7 +154,7 @@ def create_backgound_template(emin=0.01, **kwargs):
     # Plotting stuff.
     ax1, ax2 = residual_plot('background template')
     plt.errorbar(energy, flux, flux_err, fmt='o', label='Background data (all DUs)')
-    spline.plot(zorder=3, label='Spline approximation')
+    spline.plot(zorder=1, label='Spline approximation')
     setup_gca(ylabel='Background rate [cm$^{-2}$ s$^{-1}$ keV$^{-1}$]', logy=True,
         grids=True, xmax=energy.max(), legend=True)
     plt.sca(ax2)
