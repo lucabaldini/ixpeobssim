@@ -24,66 +24,63 @@ import os
 
 import numpy
 
-from ixpeobssim import IXPEOBSSIM_BKG_DATA, IXPEOBSSIM_SRCMODEL
+from ixpeobssim import IXPEOBSSIM_SRCMODEL
 from ixpeobssim.binning.polarization import xBinnedCountSpectrum
 from ixpeobssim.core.spline import xUnivariateSpline
-from ixpeobssim.instrument import DU_IDS
 from ixpeobssim.instrument.gpd import FIDUCIAL_AREA
-from ixpeobssim.instrument.mma import FOCAL_LENGTH
 from ixpeobssim.instrument.mma import FIDUCIAL_BACKSCAL
 from ixpeobssim.irf.ebounds import channel_to_energy, ENERGY_STEP
+from ixpeobssim.utils.argparse_ import xArgumentParser
 from ixpeobssim.utils.logging_ import logger
 from ixpeobssim.utils.matplotlib_ import plt, setup_gca, residual_plot
-from ixpeobssim.utils.units_ import arcmin_to_degrees
-from glob import glob
-from astropy.io import fits
 
 
+__description__ = \
+'''
+Create a background template model starting from a series of PHA1
+background files.
 
-def create_backgound_template(spline_smoothing=5.e-4, emin=0.01):
-    """Create a background template model starting from a series of PHA1
-    background files.
+The PHA1 files are intented to be prepared starting from a field with a
+point sources, that has been preliminary been removed via a circular cut
+with a specified radius---the latter is used internally to reascale the
+rate to the full detector surface.
 
-    The PHA1 files are intented to be prepared starting from a field with a
-    point sources, that has been preliminary been removed via a circular cut
-    with a specified radius---the latter is used internally to reascale the
-    rate to the full detector surface.
+The count spectrum, normalized by the backscal, the fiducial area of the
+detector and by the bin width, is then parametrized with a non interpolated
+spline and written to file to be used later.
 
-    The count spectrum, normalized by the backscal, the fiducial area of the 
-    detector and by the bin width, is then parametrized with a non interpolated
-    spline and written to file to be used later.
+The output file is written on a regular energy grid as a simple text file
+with two columns---energy and background rate.
+'''
 
-    The output file is written on a regular energy grid as a simple text file
-    with two columns---energy and background rate.
+parser = xArgumentParser(description=__description__)
+parser.add_argument('phalist', nargs='+', help='path(s) to the pha1 \
+                    spectrum file(s) upon which to build the template')
+parser.add_argument('--ssmooth', type=float, default=5.e-4,
+    help='The smoothing coefficient ("s" argument in the scipy documentation) \
+        used for the non interpolating spline. Note this is very important, as \
+        it controls the level at which the spline is capturing the fluctuations \
+        of the input data points. (s=0 is effectively an interpolating spline, \
+        but the actual value depends on the scale of the input data and it is \
+        not trivial to establish a priori.)')
+parser.add_outfile(default=os.path.join(IXPEOBSSIM_SRCMODEL, 'ascii',
+        'instrumental_bkg_template.txt'))
 
-    Args
-    ----
-    spline_smoothing : float
-        The smoothing coefficient ("s" argument in the scipy documentation) used
-        for the non interpolating spline. Note this is very important, as it
-        controls the level at which the spline is capturing the fluctuations of
-        the input data points. (s=0 is effectively an interpolating spline, but
-        the actual value depends on the scale of the input data and it's not
-        trivial to establish a priori.)
+def create_backgound_template(emin=0.01, **kwargs):
+    '''The core function: takes a list of pha1 files and creates the background \
+        template. The parameters are taken from input.
+    '''
 
-    emin : float
-        The minimum energy for the spline.
-    """
-
-    # The file name, at this point, is hard-coded---this can be made more
-    # user-friendly in the future.
-    #file_name = 'ixpe01005401_det%d_evt2_v02_clean_bkg_pha1.fits'
-    #file_list = [os.path.join(IXPEOBSSIM_BKG_DATA, file_name % du_id) for du_id in DU_IDS]
-    file_list = glob(f'{IXPEOBSSIM_BKG_DATA}/*5701*pha1.fits')
-    logger.info (f'loading background spectra from {file_list}...')
-    output_file_name = 'bkg_conservative_3c279.txt'
-    output_file_path = os.path.join(IXPEOBSSIM_SRCMODEL, 'ascii', output_file_name)
+    phalist = kwargs.get('phalist')
+    ssmoth = kwargs.get('ssmooth')
+    outfile = kwargs.get('outfile')
+    logger.info (f'loading background spectra from {phalist}...')
 
     # Loop over all input background files:
-    # Load the raw count spectrum and convert PI channels in keV. 
+    # Load the raw count spectrum and convert PI channels in keV.
     # Calculate the scaling factors and convert in proper units
     livetime_total = 0
-    for file in file_list:
+    for file in phalist:
         spec = xBinnedCountSpectrum.from_file_list([file])
         # Load the livetime and divide all quantities for weighted average
         livetime = spec.spectrum_header['LIVETIME']
@@ -99,17 +96,18 @@ def create_backgound_template(spline_smoothing=5.e-4, emin=0.01):
         spec.RATE /= area_frac
         spec.STAT_ERR /= area_frac
         if 'avg_spec' in locals():
-            avg_spec += spec        
+            avg_spec += spec
         else:
             avg_spec = spec
-        plt.loglog(channel_to_energy(spec.CHANNEL),spec.RATE / livetime, linewidth = 1)
-    plt.loglog(channel_to_energy(avg_spec.CHANNEL),avg_spec.RATE / livetime_total, linewidth = 4, label = f'mean')
+        plt.figure('Single file input spectra vs average')
+        plt.semilogy(channel_to_energy(spec.CHANNEL),spec.RATE / livetime, lw = 1)
+    plt.semilogy(channel_to_energy(avg_spec.CHANNEL),avg_spec.RATE / livetime_total,
+        linewidth = 4, label = 'mean')
     plt.xlabel('Energy [keV]')
     plt.ylabel('Background spectrum')
+    plt.grid(which='both')
     plt.legend()
-    plt.show()
 
-    
     # Scale the single object for the overall livetime
     # Integrated signal / total livetime = rate again
     logger.info (f'scaling back for the total livetime of {livetime_total}')
@@ -119,52 +117,18 @@ def create_backgound_template(spline_smoothing=5.e-4, emin=0.01):
     logger.info('Converting into physical units...')
     scale = 1. / (FIDUCIAL_AREA / 100.) / ENERGY_STEP
     logger.info('Region backscal: %.3e', scale)
-    rate = avg_spec.RATE
-    rate_err = avg_spec.STAT_ERR
-    flux = rate * scale
-    flux_err = rate_err * scale
+    flux = avg_spec.RATE * scale
+    flux_err = avg_spec.STAT_ERR * scale
     energy = channel_to_energy(avg_spec.CHANNEL)
-    
-
-
-
-    #spec = xBinnedCountSpectrum.from_file_list(file_list)
-    #livetime = spec.spectrum_header['LIVETIME']
-    #num_detectors = len(file_list)
-    #energy = channel_to_energy(spec.CHANNEL)
-    #rate = spec.RATE / num_detectors
-    #rate_err = spec.STAT_ERR / num_detectors
-
-    # Calculate the scaling factor to compensate for the source cut in the
-    # underlying PHA1 file, i.e., convert the extraction radius from arcmin to mm
-    # and scale to the full fiducial area of the GPD.
-    #logger.info('Correcting for the extraction radius...')
-    #radius = FOCAL_LENGTH * numpy.radians(arcmin_to_degrees(extraction_radius))
-    #scale = 1. / (1. - numpy.pi * radius**2. / FIDUCIAL_AREA)
-    #logger.info('Scaling factor: %.3f', scale)
-    #rate *= scale
-    #rate_err *= scale
-
-    # Convert in the proper units, i.e., from s^{-1} to cm^{-1} s^{-1} keV^{-1}.
-    # This is done by divding by the detector fiducial area (converted from mm^2
-    # to cm^2) and the 40 eV step of the energy grid used to create the response
-    # files.
-    #logger.info('Converting into physical units...')
-    #scale = 1. / (FIDUCIAL_AREA / 100.) / ENERGY_STEP
-    #logger.info('Scaling factor: %.3e', scale)
-    #flux = rate * scale
-    #flux_err = rate_err * scale
-
-
     # Create a non-interpolating spline---note that we are cutting at a minimum
     # energy to avoid the peak in channel 0.
     mask = energy > emin
-    spline = xUnivariateSpline(energy[mask], flux[mask], s=spline_smoothing, k=3)
+    spline = xUnivariateSpline(energy[mask], flux[mask], s=ssmoth, k=3)
     # Create the output text file with the spline data.
-    logger.info('Writing output file to %s...', output_file_path)
+    logger.info('Writing output file to %s...', outfile)
     x = numpy.linspace(emin, energy.max(), 250)
     y = spline(x).clip(0.)
-    with open(output_file_path, 'w') as output_file:
+    with open(outfile, 'w') as output_file:
         for _x, _y in zip(x, y):
             output_file.write('%.5e   %.5e\n' % (_x, _y))
     logger.info('Done.')
@@ -184,4 +148,5 @@ def create_backgound_template(spline_smoothing=5.e-4, emin=0.01):
 
 
 if __name__ == '__main__':
-    create_backgound_template()
+    args = parser.parse_args()
+    create_backgound_template(**vars(args))
