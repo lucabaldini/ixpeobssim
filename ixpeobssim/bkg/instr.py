@@ -14,11 +14,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-"""Facilities to create templates for the instrumental background.
-"""
-
 from __future__ import print_function, division
-from operator import is_
 
 import os
 
@@ -34,16 +30,17 @@ from ixpeobssim.utils.argparse_ import xArgumentParser
 from ixpeobssim.utils.logging_ import logger
 from ixpeobssim.utils.matplotlib_ import plt, setup_gca, residual_plot
 
-
 __description__ = \
 '''
 Create a background template model starting from a series of PHA1
 background files.
 
-The PHA1 files are intented to be prepared starting from a field with a
-point sources, that has been preliminary been removed via a circular cut
-with a specified radius---the latter is used internally to reascale the
-rate to the full detector surface.
+The PHA1 files are intented to be prepared starting from a dark field with
+arbitrary shape that has been cut from a file and has a BACKSCAL keyword
+defined.
+
+This is suitable both for residual and total background, depending on the user
+needs.
 
 The count spectrum, normalized by the backscal, the fiducial area of the
 detector and by the bin width, is then parametrized with a non interpolated
