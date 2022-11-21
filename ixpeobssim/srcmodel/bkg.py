@@ -272,7 +272,7 @@ class xTemplateInstrumentalBkg(xInstrumentalBkg):
     """Instrumental background based on a template.
     """
 
-    DEFAULT_PATH = os.path.join(IXPEOBSSIM_SRCMODEL, 'ascii', 'bkg_smcx1_01903701.txt')
+    DEFAULT_PATH = os.path.join(IXPEOBSSIM_SRCMODEL, 'ascii', 'instrumental_bkg_template.txt')
 
     def __init__(self, file_path=DEFAULT_PATH, emin=0.1, emax=15., k=1):
         """Constructor.
