@@ -201,6 +201,15 @@ xpbinview
    :shell:
 
 
+.. _reference-xpdisplay:
+
+xpdisplay
+~~~~~~~~~
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpdisplay.py --help
+   :ellipsis: 0,11
+   :shell:
+
+
 .. _reference-xpirfview:
 
 xpirfview

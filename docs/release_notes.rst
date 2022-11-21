@@ -4,6 +4,20 @@ Release notes
 =============
 
 
+*ixpeobssim (29.4.0) - Thu, 17 Nov 2022 11:50:54 +0100*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/657
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/659
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/660
+* Fix in the error propagation in the histogram sum
+* Better handling of the parameter bounds when summing fitting models.
+* New interface to level-1 files and single-event display.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/639
+      * https://github.com/lucabaldini/ixpeobssim/issues/656
+      * https://github.com/lucabaldini/ixpeobssim/issues/658
+
+
 *ixpeobssim (29.3.1) - Thu, 06 Oct 2022 22:12:32 +0200*
 
 * Minor changes to the README file.

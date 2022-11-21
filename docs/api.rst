@@ -79,6 +79,9 @@ Event-level analysis
 .. automodule:: ixpeobssim.evt.deconvolution
    :members:
 
+.. automodule:: ixpeobssim.evt.display
+   :members:
+
 .. automodule:: ixpeobssim.evt.event
    :members:
 
