@@ -35,16 +35,16 @@ __description__ = \
 Create a background template model starting from a series of PHA1
 background files.
 
-The PHA1 files are intented to be prepared starting from a dark field with
-arbitrary shape that has been cut from a file and has a BACKSCAL keyword
+The PHA1 files should be prepared from a dark field with a arbitrary
+shapes that have been cut from one or more files and have a BACKSCAL keyword
 defined.
 
 This is suitable both for residual and total background, depending on the user
 needs.
 
 The count spectrum, normalized by the backscal, the fiducial area of the
-detector and by the bin width, is then parametrized with a non interpolated
-spline and written to file to be used later.
+detector and by the bin width, is parametrized with a non interpolated
+spline and written to file to be used later with an appropriate config file.
 
 The output file is written on a regular energy grid as a simple text file
 with two columns---energy and background rate.
@@ -53,7 +53,7 @@ with two columns---energy and background rate.
 parser = xArgumentParser(description=__description__)
 parser.add_argument('phalist', nargs='+', help='path(s) to the pha1 \
                     spectrum file(s) upon which to build the template')
-parser.add_argument('--ssmooth', type=float, default=5.e-4,
+parser.add_argument('--ssmooth', type=float, default=5.e-5,
     help='The smoothing coefficient ("s" argument in the scipy documentation) \
         used for the non interpolating spline. Note this is very important, as \
         it controls the level at which the spline is capturing the fluctuations \
@@ -76,7 +76,6 @@ def smooth_PDF(PDF):
     artificial_grad = 1.e-08
 
     for j in reversed(range(max_zero+1)):
-        input (j)
         PDF[j] = PDF[j+1]-artificial_grad
     return(PDF)
 
@@ -143,9 +142,7 @@ def create_backgound_template(emin=0.01, **kwargs):
     logger.info('Writing output file to %s...', outfile)
     x = numpy.linspace(emin, energy.max(), 250)
     y = spline(x).clip(0.)
-    input (y)
     y = smooth_PDF(y)
-    input (y)
     with open(outfile, 'w') as output_file:
         for _x, _y in zip(x, y):
             output_file.write('%.5e   %.5e\n' % (_x, _y))
