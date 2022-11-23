@@ -28,11 +28,13 @@ from ixpeobssim.utils.math_ import modulo_2pi
 
 # pylint: disable=invalid-name
 
-# Physical side of the readout chip on the two orthogonal directions.
+# Physical side of the readout chip on the two orthogonal directions...
 GPD_PHYSICAL_HALF_SIDE_X = 7.4875
 GPD_PHYSICAL_HALF_SIDE_Y = 7.599
+# ... and fellow derived quantities.
 GPD_PHYSICAL_AREA = 4. * GPD_PHYSICAL_HALF_SIDE_X * GPD_PHYSICAL_HALF_SIDE_Y
-GPD_PHYSICAL_MAX_RADIUS = numpy.sqrt(GPD_PHYSICAL_HALF_SIDE_X**2. + GPD_PHYSICAL_HALF_SIDE_Y**2.)
+GPD_PHYSICAL_MAX_RADIUS = numpy.sqrt(GPD_PHYSICAL_HALF_SIDE_X**2. +\
+    GPD_PHYSICAL_HALF_SIDE_Y**2.)
 
 # And not the default values for the fiducial half side in detector coordinates.
 # Note the fiducial rectangle has changed along the way due to a small bug in the
@@ -42,8 +44,7 @@ GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X = 6.600
 GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y = 6.800
 
 # THESE NEED TO BE REMOVED!
-FIDUCIAL_HALF_SIZE = 7.350
-FIDUCIAL_AREA = (2. * FIDUCIAL_HALF_SIZE)**2.
+FIDUCIAL_AREA = (2. * 7.350)**2.
 
 # GEM manufacturing parametes
 LASER_ETCHING_PITCH = 1.800
