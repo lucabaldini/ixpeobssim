@@ -28,33 +28,34 @@ from ixpeobssim.utils.math_ import modulo_2pi
 
 # pylint: disable=invalid-name
 
-# Physical size of the readout chip on the two orthogonal directions.
-PHYSICAL_HALF_SIZE_X = 7.4875
-PHYSICAL_HALF_SIZE_Y = 7.599
-PHYSICAL_MAX_RADIUS = numpy.sqrt(PHYSICAL_HALF_SIZE_X**2. + PHYSICAL_HALF_SIZE_Y**2.)
-# And not the default values for the fiducial half size in detector coordinates.
+# Physical side of the readout chip on the two orthogonal directions.
+GPD_PHYSICAL_HALF_SIDE_X = 7.4875
+GPD_PHYSICAL_HALF_SIDE_Y = 7.599
+GPD_PHYSICAL_MAX_RADIUS = numpy.sqrt(GPD_PHYSICAL_HALF_SIDE_X**2. + GPD_PHYSICAL_HALF_SIDE_Y**2.)
+
+# And not the default values for the fiducial half side in detector coordinates.
 # Note the fiducial rectangle has changed along the way due to a small bug in the
 # processing code and, unlike the physical dimensions of the readout chip, is not
 # guaranteed to be the same for all observations.
-DEFAULT_FIDUCIAL_HALF_SIZE_X = 6.600
-DEFAULT_FIDUCIAL_HALF_SIZE_Y = 6.800
+GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X = 6.600
+GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y = 6.800
 
-def fiducial_area(half_size_x=DEFAULT_FIDUCIAL_HALF_SIZE_X,
-    half_size_y=DEFAULT_FIDUCIAL_HALF_SIZE_Y):
-    """Return the area of the fiducial rectangle.
-    """
-    return 4. * half_size_x * half_size_y
-
-DEFAULT_FIDUCIAL_AREA = fiducial_area(DEFAULT_FIDUCIAL_HALF_SIZE_X, DEFAULT_FIDUCIAL_HALF_SIZE_Y)
-
-# And the following are "effective" values that we keep for historical reasons
-# (and we might actually consider removing or changing).
+# THESE NEED TO BE REMOVED!
 FIDUCIAL_HALF_SIZE = 7.350
 FIDUCIAL_AREA = (2. * FIDUCIAL_HALF_SIZE)**2.
 
 # GEM manufacturing parametes
 LASER_ETCHING_PITCH = 1.800
 NUM_LASER_SWEEPS = 8
+
+
+def fiducial_area(half_side_x, half_side_y):
+    """Return the area of the fiducial rectangle.
+
+    Note we re deliberately not providing any default value, here, with the
+    understanding in mind that the fiducial cut might change. 
+    """
+    return 4. * half_side_x * half_side_y
 
 
 def gpd_map_binning(num_bins):
@@ -64,8 +65,8 @@ def gpd_map_binning(num_bins):
     return numpy.linspace(-FIDUCIAL_HALF_SIZE, FIDUCIAL_HALF_SIZE, num_bins + 1)
 
 
-def within_fiducial_area(x, y, half_size_x=DEFAULT_FIDUCIAL_HALF_SIZE_X,
-    half_size_y=DEFAULT_FIDUCIAL_HALF_SIZE_Y):
+def within_fiducial_area(x, y, half_side_x=GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X,
+    half_side_y=GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y):
     """Return wheter an (x, y) position in mm is within the fiducial active
     area of the GPD readout ASIC.
 
@@ -77,7 +78,7 @@ def within_fiducial_area(x, y, half_size_x=DEFAULT_FIDUCIAL_HALF_SIZE_X,
     y : float or array
         The y position or array of y positions in mm
     """
-    return (abs(x) <= half_size_x) * (abs(y) <= half_size_y)
+    return (abs(x) <= half_side_x) * (abs(y) <= half_side_y)
 
 
 def rotate_detxy(x, y, du_id, roll_angle=0., inverse=False):

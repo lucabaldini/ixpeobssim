@@ -29,7 +29,7 @@ from ixpeobssim.core.stokes import xModelStokesParameters
 from ixpeobssim.core.modeling import xGaussian
 from ixpeobssim.core.fitting import fit_histogram
 from ixpeobssim.evt.spurmrot import correct_phi_stokes
-from ixpeobssim.instrument.gpd import PHYSICAL_HALF_SIZE_X, NUM_LASER_SWEEPS,\
+from ixpeobssim.instrument.gpd import GPD_PHYSICAL_HALF_SIDE_X, NUM_LASER_SWEEPS,\
     LASER_ETCHING_PITCH
 from ixpeobssim.irf.base import xResponseBase
 from ixpeobssim.irf.modf import xAzimuthalResponseGenerator
@@ -69,7 +69,7 @@ class xSyntheticSpuriousModulation:
         This is achieved by the sum of a constant and a number of gaussians
         centered on the spurious modulation peaks.
         """
-        x = numpy.linspace(-PHYSICAL_HALF_SIZE_X, PHYSICAL_HALF_SIZE_X, grid_size)
+        x = numpy.linspace(-GPD_PHYSICAL_HALF_SIDE_X, GPD_PHYSICAL_HALF_SIDE_X, grid_size)
         delta = max_value - min_value
         y = numpy.full(x.shape, min_value)
         amplitude = delta * numpy.sqrt(2. * numpy.pi) * peak_sigma

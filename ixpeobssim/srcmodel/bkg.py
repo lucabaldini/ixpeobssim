@@ -35,7 +35,7 @@ from ixpeobssim.irfgen.gpd import GPD_FILL_TEMPERATURE, GPD_TYPICAL_ASYMTPTOTIC_
 from ixpeobssim.irfgen.gpd import xQeffDataInterface
 from ixpeobssim.instrument.gpd import phi_to_detphi
 from ixpeobssim.instrument import gpd
-from ixpeobssim.instrument.gpd import phi_to_detphi, PHYSICAL_MAX_RADIUS
+from ixpeobssim.instrument.gpd import phi_to_detphi, GPD_PHYSICAL_MAX_RADIUS
 from ixpeobssim.instrument.mma import gpd_to_sky, parse_dithering_kwargs, apply_dithering
 from ixpeobssim.srcmodel.polarization import constant
 from ixpeobssim.srcmodel.roi import xModelComponentBase
@@ -93,37 +93,37 @@ class xRadialBackgroundGenerator(xUnivariateGenerator):
 
     Arguments
     ---------
-    half_size_x : float
-        The half size of the fiducial rectangle in the x coordinate.
+    half_side_x : float
+        The half side of the fiducial rectangle in the x coordinate.
 
-    half_size_y : float
-        The half size of the fiducial rectangle in the y coordinate.
+    half_side_y : float
+        The half side of the fiducial rectangle in the y coordinate.
 
     radial_slope : float
         The slope of the radial profile, that is, the fractional half-excursion
         of the variation across the size of the fiducial rectangle.
     """
 
-    def __init__(self, half_size_x, half_size_y, radial_slope, num_points=100):
+    def __init__(self, half_side_x, half_side_y, radial_slope, num_points=100):
         """Constructor.
         """
         if radial_slope > 2. or radial_slope < -1.:
             raise RuntimeError('Invalid background radial slope (%.3f)' % radial_slope)
-        self.half_size_x = half_size_x
-        self.half_size_y = half_size_y
+        self.half_side_x = half_side_x
+        self.half_side_y = half_side_y
         self.radial_slope = radial_slope
         # Calculate the effective radius and average half-size.
-        radius = numpy.sqrt(half_size_x**2. + half_size_y**2.)
-        half_size = 0.5 * (self.half_size_x + self.half_size_y)
+        radius = numpy.sqrt(half_side_x**2. + half_side_y**2.)
+        half_side = 0.5 * (self.half_side_x + self.half_side_y)
         # Create the underlying radial grid and initialize the spline.
         r = numpy.linspace(0., radius, num_points)
-        xUnivariateGenerator.__init__(self, r, self.pdf(r, half_size, radial_slope))
+        xUnivariateGenerator.__init__(self, r, self.pdf(r, half_side, radial_slope))
 
     @staticmethod
-    def pdf(r, half_size, radial_slope):
+    def pdf(r, half_side, radial_slope):
         """Small function encapsulating the underlying pdf for the random generator.
         """
-        r = r / half_size
+        r = r / half_side
         return (1. - radial_slope / 2.) * r  + radial_slope * r**2.
 
     @staticmethod
@@ -138,7 +138,7 @@ class xRadialBackgroundGenerator(xUnivariateGenerator):
     def trim(self, x, y):
         """Trim an array of r values to the rectangular fiducial region.
         """
-        mask = numpy.logical_and(abs(x) <= self.half_size_x, abs(y) <= self.half_size_y)
+        mask = numpy.logical_and(abs(x) <= self.half_side_x, abs(y) <= self.half_side_y)
         x = x[mask]
         y = y[mask]
         return x, y
@@ -334,9 +334,9 @@ class xInstrumentalBkg(xModelComponentBase):
         # Extract the event positions---note this was changed in response to
         # https://github.com/lucabaldini/ixpeobssim/issues/663
         # And we still need to handle the fiducial rectangle properly.
-        half_size_x = gpd.DEFAULT_FIDUCIAL_HALF_SIZE_X
-        half_size_y = gpd.DEFAULT_FIDUCIAL_HALF_SIZE_Y
-        rnd = xRadialBackgroundGenerator(half_size_x, half_size_y, self.radial_slope)
+        half_side_x = gpd.GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X
+        half_side_y = gpd.GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y
+        rnd = xRadialBackgroundGenerator(half_side_x, half_side_y, self.radial_slope)
         detx, dety = rnd.rvs_xy(len(time_))
         return time_, mc_energy, detx, dety
 
