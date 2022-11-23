@@ -29,7 +29,8 @@ from astropy.io import fits
 from ixpeobssim import IXPEOBSSIM_SRCMODEL
 from ixpeobssim.core.hist import xHistogram2d
 from ixpeobssim.evt.event import xEventList
-from ixpeobssim.instrument.gpd import gpd_map_binning
+from ixpeobssim.instrument.gpd import gpd_map_binning, GPD_PHYSICAL_HALF_SIDE_X,\
+    GPD_PHYSICAL_HALF_SIDE_Y
 from ixpeobssim.srcmodel.roi import xModelComponentBase
 from ixpeobssim.utils.logging_ import logger
 
@@ -270,7 +271,7 @@ class xMonochromaticUnpolarizedFlatField(xMonochromaticUnpolarizedCalibrationSou
     def rvs_detxy(self, size):
         """Overloaded method.
         """
-        return self.uniform_square(size, xCalibrationSourceImage.HALF_SIDE)
+        return self.uniform_rectangle(size, GPD_PHYSICAL_HALF_SIDE_X, GPD_PHYSICAL_HALF_SIDE_Y)
 
 
 
