@@ -54,7 +54,7 @@ parser = xArgumentParser(description=__description__)
 parser.add_argument('phalist', nargs='+', help='path(s) to the pha1 \
                     spectrum file(s) upon which to build the template')
 parser.add_argument('--ssmooth', type=float, default=5.e-5,
-    help='The smoothing coefficient ("s" argument in the scipy documentation) \
+        help='The smoothing coefficient ("s" argument in the scipy documentation) \
         used for the non interpolating spline. Note this is very important, as \
         it controls the level at which the spline is capturing the fluctuations \
         of the input data points. (s=0 is effectively an interpolating spline, \
@@ -63,18 +63,23 @@ parser.add_argument('--ssmooth', type=float, default=5.e-5,
 parser.add_outfile(default=os.path.join(IXPEOBSSIM_SRCMODEL, 'ascii',
         'instrumental_bkg_template.txt'))
 
-def smooth_PDF(PDF):
-    ''' Replaces the initial range (E<1keV) of the array with a monothonic
-    function fixing also the zeros. In this way, we are guaranteed that the
-    spline of the resulting PDF has no negative values 
-    '''
-    # E< keV
-    PDF[0:17] = numpy.sort(PDF[0:17])
-    #We don't want to approach zero with a large derivative
-    is_zero_idx = numpy.where (PDF[0:17]==0)
-    max_zero = numpy.max(is_zero_idx)
-    artificial_grad = 1.e-08
+def smooth_PDF(PDF, artificial_grad = 1.e-6):
+    ''' Replaces the initial range (E<1keV) of the spline with a monothonic
+    function and adjusts the interval of negative values with an artificial
+    gradient.
 
+    Note that for very dramatically compromised spectral shapes this does not,
+    nor is intended to work, and we should work on the spline smoothing 
+    parameter instead. 
+    '''
+    limit = 17 # E< keV
+    PDF[0:limit] = numpy.sort(PDF[0:limit])
+    is_zero_idx = numpy.where (PDF[0:limit]<=0)
+    max_zero = numpy.max(is_zero_idx)
+    # turn negative numbers into zeros
+    for j in range (limit):
+        if PDF[j]<0: PDF[j]=0
+    #We don't want to approach zero with a large derivative
     for j in reversed(range(max_zero+1)):
         PDF[j] = PDF[j+1]-artificial_grad
     return(PDF)
@@ -143,6 +148,7 @@ def create_backgound_template(emin=0.01, **kwargs):
     x = numpy.linspace(emin, energy.max(), 250)
     y = spline(x).clip(0.)
     y = smooth_PDF(y)
+    
     with open(outfile, 'w') as output_file:
         for _x, _y in zip(x, y):
             output_file.write('%.5e   %.5e\n' % (_x, _y))
