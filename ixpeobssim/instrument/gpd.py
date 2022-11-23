@@ -59,10 +59,10 @@ def fiducial_area(half_side_x, half_side_y):
     Arguments
     ---------
     half_side_x : float
-        The half side of the fiducial rectangle along the x coordinate.
+        The half side of the fiducial rectangle along the x coordinate in mm.
 
     half_side_y : float
-        The half side of the fiducial rectangle along the y coordinate.
+        The half side of the fiducial rectangle along the y coordinate in mm.
     """
     return 4. * half_side_x * half_side_y
 
@@ -78,10 +78,10 @@ def gpd_map_binning(half_side_x, half_side_y, num_bins_x, num_bins_y=None):
     Arguments
     ---------
     half_side_x : float
-        The half side of the histogram binning along the x coordinate.
+        The half side of the histogram binning along the x coordinate in mm.
 
     half_side_y : float
-        The half side of the histogram binning along the y coordinate.
+        The half side of the histogram binning along the y coordinate in mm.
     """
     if num_bins_y is None:
         num_bins_y = num_bins_x
@@ -102,10 +102,10 @@ def within_fiducial_rectangle(x, y, half_side_x, half_side_y):
         The y position or array of y positions in mm
 
     half_side_x : float
-        The half side of the fiducial rectangle along the x coordinate.
+        The half side of the fiducial rectangle along the x coordinate in mm.
 
     half_side_y : float
-        The half side of the fiducial rectangle along the y coordinate.
+        The half side of the fiducial rectangle along the y coordinate in mm.
     """
     return (abs(x) <= half_side_x) * (abs(y) <= half_side_y)
 
