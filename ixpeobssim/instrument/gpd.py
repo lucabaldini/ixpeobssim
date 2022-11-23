@@ -31,6 +31,7 @@ from ixpeobssim.utils.math_ import modulo_2pi
 # Physical side of the readout chip on the two orthogonal directions.
 GPD_PHYSICAL_HALF_SIDE_X = 7.4875
 GPD_PHYSICAL_HALF_SIDE_Y = 7.599
+GPD_PHYSICAL_AREA = 4. * GPD_PHYSICAL_HALF_SIDE_X * GPD_PHYSICAL_HALF_SIDE_Y
 GPD_PHYSICAL_MAX_RADIUS = numpy.sqrt(GPD_PHYSICAL_HALF_SIDE_X**2. + GPD_PHYSICAL_HALF_SIDE_Y**2.)
 
 # And not the default values for the fiducial half side in detector coordinates.

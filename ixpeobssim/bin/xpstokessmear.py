@@ -25,7 +25,7 @@ import numpy
 
 from ixpeobssim.core.hist import xGpdMap2d, xHistogram1d
 from ixpeobssim.evt.event import xEventFile
-from ixpeobssim.instrument.gpd import FIDUCIAL_HALF_SIZE
+from ixpeobssim.instrument.gpd import GPD_PHYSICAL_HALF_SIDE_X, GPD_PHYSICAL_HALF_SIDE_Y
 from ixpeobssim.utils.argparse_ import xArgumentParser
 from ixpeobssim.utils.logging_ import logger
 from ixpeobssim.utils.matplotlib_ import plt
@@ -76,6 +76,16 @@ PARSER.add_overwrite()
 
 def _create_maps(**kwargs):
     """Create the correction map.
+
+    Note this underwent some refactoring in response to issue
+    https://github.com/lucabaldini/ixpeobssim/issues/668
+    Particularly, since now the GPD maps are no more square, and they are binned
+    over the physical area of the GPD, rather than the old fiducial square,
+    the inner and outer masks are now calculated directly in mm rather than
+    in pixels.
+
+    Since this is a functionality that is rarely used in practice, we might
+    want to watch out for possible issue with the changes.
     """
     if kwargs.get('seed') is not None:
         numpy.random.seed(kwargs.get('seed'))
@@ -83,12 +93,22 @@ def _create_maps(**kwargs):
     nside = kwargs.get('nside')
     inner_sigma = kwargs.get('innersigma')
     outer_sigma = kwargs.get('outersigma')
-    # Convert the radius from mm to pixels.
-    radius = 0.5 * kwargs.get('innerradius') / FIDUCIAL_HALF_SIZE * nside
     # Create the mask for the inner region.
     y, x = numpy.ogrid[:nside, :nside]
     x0 = y0 = nside / 2. - 0.5
-    inner_mask = (x - x0)**2. + (y - y0)**2. <= radius**2.
+    # Calculate the conversion factor between pixels and mm, so that we can
+    # calculate the inner mask.
+    xscale = 2. * GPD_PHYSICAL_HALF_SIDE_X / nside
+    yscale = 2. * GPD_PHYSICAL_HALF_SIDE_Y / nside
+    # Note the cast to float is a terrible workaround for issue
+    # https://github.com/lucabaldini/ixpeobssim/issues/608
+    # triggered by numpy 1.22.0
+    x = xscale * x.astype(float)
+    y = yscale * y.astype(float)
+    x0 *= xscale
+    y0 *= yscale
+    # Calculate the actual masks.
+    inner_mask = (x - x0)**2. + (y - y0)**2. <= kwargs.get('innerradius')**2.
     outer_mask = numpy.logical_not(inner_mask)
     ninner = inner_mask.sum()
     nouter = outer_mask.sum()
