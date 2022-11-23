@@ -27,7 +27,7 @@ from ixpeobssim import IXPEOBSSIM_BKG_DATA, IXPEOBSSIM_SRCMODEL
 from ixpeobssim.binning.polarization import xBinnedCountSpectrum
 from ixpeobssim.core.spline import xUnivariateSpline
 from ixpeobssim.instrument import DU_IDS
-from ixpeobssim.instrument.gpd import FIDUCIAL_AREA
+from ixpeobssim.instrument.gpd import GPD_PHYSICAL_AREA
 from ixpeobssim.instrument.mma import FOCAL_LENGTH
 from ixpeobssim.irf.ebounds import channel_to_energy, ENERGY_STEP
 from ixpeobssim.utils.logging_ import logger
@@ -90,7 +90,7 @@ def create_backgound_template(extraction_radius=1.2, spline_smoothing=5.e-4, emi
     # and scale to the full fiducial area of the GPD.
     logger.info('Correcting for the extraction radius...')
     radius = FOCAL_LENGTH * numpy.radians(arcmin_to_degrees(extraction_radius))
-    scale = 1. / (1. - numpy.pi * radius**2. / FIDUCIAL_AREA)
+    scale = 1. / (1. - numpy.pi * radius**2. / GPD_PHYSICAL_AREA)
     logger.info('Scaling factor: %.3f', scale)
     rate *= scale
     rate_err *= scale
@@ -100,7 +100,7 @@ def create_backgound_template(extraction_radius=1.2, spline_smoothing=5.e-4, emi
     # to cm^2) and the 40 eV step of the energy grid used to create the response
     # files.
     logger.info('Converting into physical units...')
-    scale = 1. / (FIDUCIAL_AREA / 100.) / ENERGY_STEP
+    scale = 1. / (GPD_PHYSICAL_AREA / 100.) / ENERGY_STEP
     logger.info('Scaling factor: %.3e', scale)
     flux = rate * scale
     flux_err = rate_err * scale

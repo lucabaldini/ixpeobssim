@@ -43,9 +43,6 @@ GPD_PHYSICAL_MAX_RADIUS = numpy.sqrt(GPD_PHYSICAL_HALF_SIDE_X**2. +\
 GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X = 6.600
 GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y = 6.800
 
-# THESE NEED TO BE REMOVED!
-FIDUCIAL_AREA = (2. * 7.350)**2.
-
 # GEM manufacturing parametes
 LASER_ETCHING_PITCH = 1.800
 NUM_LASER_SWEEPS = 8
@@ -90,6 +87,21 @@ def gpd_map_binning(half_side_x, half_side_y, num_bins_x, num_bins_y=None):
         numpy.linspace(-half_side_y, half_side_y, num_bins_y + 1)
 
 
+def within_gpd_physical_area(x, y):
+    """Return wheter an (x, y) position in mm is within the GPD physical area.
+
+    Arguments
+    ---------
+    x : float or array
+        The x position or array of x positions in mm
+
+    y : float or array
+        The y position or array of y positions in mm
+    """
+    return numpy.logical_and(abs(x) <= GPD_PHYSICAL_HALF_SIDE_X,
+        abs(y) <= GPD_PHYSICAL_HALF_SIDE_Y)
+
+
 def within_fiducial_rectangle(x, y, half_side_x, half_side_y):
     """Return wheter an (x, y) position in mm is within a fiducial rectangle of
     given half-sides on the two coordinates.
@@ -108,7 +120,7 @@ def within_fiducial_rectangle(x, y, half_side_x, half_side_y):
     half_side_y : float
         The half side of the fiducial rectangle along the y coordinate in mm.
     """
-    return (abs(x) <= half_side_x) * (abs(y) <= half_side_y)
+    return numpy.logical_and(abs(x) <= half_side_x, abs(y) <= half_side_y)
 
 
 def rotate_detxy(x, y, du_id, roll_angle=0., inverse=False):

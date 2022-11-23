@@ -30,6 +30,8 @@ from ixpeobssim.core.hist import xHistogram1d, xHistogram2d
 from ixpeobssim.core.modeling import xLine, xConstant
 from ixpeobssim.core.fitting import fit_histogram, fit
 from ixpeobssim.core.rand import xUnivariateGenerator
+from ixpeobssim.instrument.gpd import GPD_PHYSICAL_MAX_RADIUS, gpd_map_binning,\
+    GPD_PHYSICAL_HALF_SIDE_X, GPD_PHYSICAL_HALF_SIDE_Y, within_gpd_physical_area
 from ixpeobssim.srcmodel.bkg import xRadialBackgroundGenerator
 from ixpeobssim.utils.logging_ import logger
 from ixpeobssim.utils.matplotlib_ import plt, setup_gca
@@ -45,15 +47,18 @@ class TestRadialBackground(unittest.TestCase):
     """Unit test for radial background.
     """
 
-    def test_oversample(self, half_size=7., num_events=500000):
+    def test_oversample(self, num_events=500000):
         """Small snippet to gauge the heuristic for the necessary oversample factor.
         """
         slope, oversample = [], []
         for s in numpy.linspace(-1., 2., 11):
-            gen = xRadialBackgroundGenerator(half_size, half_size, s)
+            gen = xRadialBackgroundGenerator(s)
             r = gen.rvs(num_events)
             phi = 2. * numpy.pi * numpy.random.random(num_events)
-            x, y = gen.trim(*gen.polar_to_cartesian(r, phi))
+            x, y = gen.polar_to_cartesian(r, phi)
+            mask = within_gpd_physical_area(x, y)
+            x = x[mask]
+            y = y[mask]
             ovrsmpl = len(r) / len(x)
             logger.info('Oversampling for %.3f radial slope: %.5f', s, ovrsmpl)
             slope.append(s)
@@ -70,11 +75,12 @@ class TestRadialBackground(unittest.TestCase):
         plt.plot(xgrid, pol2(xgrid, *popt))
         setup_gca(xlabel='Radial slope', ylabel='Oversampling factor', grids=True)
 
-    def test_sample(self, half_size=7., num_events=1000000, slope=0.2):
+    def test_sample(self, num_events=1000000, slope=0.2):
         """Convenience function for the direct transform (radial -> xy).
         """
+        half_size = xRadialBackgroundGenerator.HALF_SIDE
         radius = numpy.sqrt(2.) * half_size
-        x, y = xRadialBackgroundGenerator(half_size, half_size, slope).rvs_xy(num_events)
+        x, y = xRadialBackgroundGenerator(slope).rvs_xy(num_events)
         r = numpy.sqrt(x**2. + y**2.)
         plt.figure('Radial background r')
         binning = numpy.linspace(0., radius, 100)
@@ -88,24 +94,27 @@ class TestRadialBackground(unittest.TestCase):
         slope_hat = model.Slope * half_size / model(0.5 * half_size)
         logger.info('Best-fit slope: %.3f (target %.3f)', slope_hat, slope)
         plt.figure('Radial background xy')
-        binning = numpy.linspace(-half_size, half_size, 25)
-        hist = xHistogram2d(binning, binning, xlabel='x', ylabel='y').fill(x, y)
+        xbinning, ybinning = gpd_map_binning(GPD_PHYSICAL_HALF_SIDE_X,
+            GPD_PHYSICAL_HALF_SIDE_Y, 25)
+        hist = xHistogram2d(xbinning, ybinning, xlabel='x', ylabel='y').fill(x, y)
         hist.plot()
 
-    def test_sample_constant(self, half_size=7., num_events=1000000, num_bins=100):
+    def test_sample_constant(self, num_events=1000000, num_bins=100):
         """Test the radial generator with zero slope.
         """
-        x, y = xRadialBackgroundGenerator(half_size, half_size, 0.).rvs_xy(num_events)
-        binning = numpy.linspace(-half_size, half_size, num_bins)
+        half_size = xRadialBackgroundGenerator.HALF_SIDE
+        xbinning, ybinning = gpd_map_binning(GPD_PHYSICAL_HALF_SIDE_X,
+            GPD_PHYSICAL_HALF_SIDE_Y, num_bins)
+        x, y = xRadialBackgroundGenerator(0.).rvs_xy(num_events)
         plt.figure('Constant radial background x')
-        hist = xHistogram1d(binning, xlabel='x').fill(x)
+        hist = xHistogram1d(xbinning, xlabel='x').fill(x)
         model = fit_histogram(xConstant(), hist)
         hist.plot()
         model.plot()
         model.stat_box()
         self.assertTrue(model.chisq < model.ndof + 5. * numpy.sqrt(2. * model.ndof))
         plt.figure('Constant radial background y')
-        hist = xHistogram1d(binning, xlabel='y').fill(y)
+        hist = xHistogram1d(ybinning, xlabel='y').fill(y)
         model = fit_histogram(xConstant(), hist)
         hist.plot()
         model.plot()

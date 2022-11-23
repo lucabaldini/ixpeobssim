@@ -35,7 +35,8 @@ from ixpeobssim.irfgen.gpd import GPD_FILL_TEMPERATURE, GPD_TYPICAL_ASYMTPTOTIC_
 from ixpeobssim.irfgen.gpd import xQeffDataInterface
 from ixpeobssim.instrument.gpd import phi_to_detphi
 from ixpeobssim.instrument import gpd
-from ixpeobssim.instrument.gpd import phi_to_detphi, GPD_PHYSICAL_MAX_RADIUS
+from ixpeobssim.instrument.gpd import phi_to_detphi, GPD_PHYSICAL_MAX_RADIUS,\
+    GPD_PHYSICAL_HALF_SIDE_X, GPD_PHYSICAL_HALF_SIDE_Y, within_gpd_physical_area
 from ixpeobssim.instrument.mma import gpd_to_sky, parse_dithering_kwargs, apply_dithering
 from ixpeobssim.srcmodel.polarization import constant
 from ixpeobssim.srcmodel.roi import xModelComponentBase
@@ -93,37 +94,30 @@ class xRadialBackgroundGenerator(xUnivariateGenerator):
 
     Arguments
     ---------
-    half_side_x : float
-        The half side of the fiducial rectangle in the x coordinate.
-
-    half_side_y : float
-        The half side of the fiducial rectangle in the y coordinate.
-
     radial_slope : float
         The slope of the radial profile, that is, the fractional half-excursion
         of the variation across the size of the fiducial rectangle.
     """
 
-    def __init__(self, half_side_x, half_side_y, radial_slope, num_points=100):
+    HALF_SIDE = 0.5 * (GPD_PHYSICAL_HALF_SIDE_X + GPD_PHYSICAL_HALF_SIDE_Y)
+
+    def __init__(self, radial_slope, num_points=100):
         """Constructor.
         """
         if radial_slope > 2. or radial_slope < -1.:
             raise RuntimeError('Invalid background radial slope (%.3f)' % radial_slope)
-        self.half_side_x = half_side_x
-        self.half_side_y = half_side_y
         self.radial_slope = radial_slope
-        # Calculate the effective radius and average half-size.
-        radius = numpy.sqrt(half_side_x**2. + half_side_y**2.)
-        half_side = 0.5 * (self.half_side_x + self.half_side_y)
-        # Create the underlying radial grid and initialize the spline.
-        r = numpy.linspace(0., radius, num_points)
-        xUnivariateGenerator.__init__(self, r, self.pdf(r, half_side, radial_slope))
+        r = numpy.linspace(0., GPD_PHYSICAL_MAX_RADIUS, num_points)
+        xUnivariateGenerator.__init__(self, r, self.pdf(r, self.radial_slope))
 
     @staticmethod
-    def pdf(r, half_side, radial_slope):
+    def pdf(r, radial_slope):
         """Small function encapsulating the underlying pdf for the random generator.
+
+        Note we are using the average physical size of the GPD along the x and
+        y directions as an effective value for the radial parametrization.
         """
-        r = r / half_side
+        r = r / xRadialBackgroundGenerator.HALF_SIDE
         return (1. - radial_slope / 2.) * r  + radial_slope * r**2.
 
     @staticmethod
@@ -133,14 +127,6 @@ class xRadialBackgroundGenerator(xUnivariateGenerator):
         """
         x = r * numpy.cos(phi)
         y = r * numpy.sin(phi)
-        return x, y
-
-    def trim(self, x, y):
-        """Trim an array of r values to the rectangular fiducial region.
-        """
-        mask = numpy.logical_and(abs(x) <= self.half_side_x, abs(y) <= self.half_side_y)
-        x = x[mask]
-        y = y[mask]
         return x, y
 
     @staticmethod
@@ -182,7 +168,9 @@ class xRadialBackgroundGenerator(xUnivariateGenerator):
         r = self.rvs(oversize)
         phi = 2. * numpy.pi * numpy.random.random(oversize)
         x, y = self.polar_to_cartesian(r, phi)
-        x, y = self.trim(x, y)
+        mask = within_gpd_physical_area(x, y)
+        x = x[mask]
+        y = y[mask]
         if len(x) < size:
             raise RuntimeError('Not enough background counts after trimming.')
         x = x[:size]
@@ -322,7 +310,7 @@ class xInstrumentalBkg(xModelComponentBase):
         num_events = self.poisson(source_spectrum.build_light_curve().norm())
         # Multiply by the total number of events by the detector area.
         # Note the fiducial area must be converted from mm2 to cm2
-        num_events = int(num_events * gpd.FIDUCIAL_AREA / 100. + 0.5)
+        num_events = int(num_events * gpd.GPD_PHYSICAL_AREA / 100. + 0.5)
         logger.info('About to generate %d events...', num_events)
         # Extract the event time, sort the values and initialize the event list.
         time_ = source_spectrum.build_light_curve().rvs(num_events)
@@ -334,10 +322,7 @@ class xInstrumentalBkg(xModelComponentBase):
         # Extract the event positions---note this was changed in response to
         # https://github.com/lucabaldini/ixpeobssim/issues/663
         # And we still need to handle the fiducial rectangle properly.
-        half_side_x = gpd.GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X
-        half_side_y = gpd.GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y
-        rnd = xRadialBackgroundGenerator(half_side_x, half_side_y, self.radial_slope)
-        detx, dety = rnd.rvs_xy(len(time_))
+        detx, dety = xRadialBackgroundGenerator(self.radial_slope).rvs_xy(len(time_))
         return time_, mc_energy, detx, dety
 
     def rvs_event_list(self, parent_roi, irf_set, **kwargs):
