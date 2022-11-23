@@ -54,6 +54,14 @@ def fiducial_area(half_side_x, half_side_y):
 
     Note we re deliberately not providing any default value, here, with the
     understanding in mind that the fiducial cut might change.
+
+    Arguments
+    ---------
+    half_side_x : float
+        The half side of the fiducial rectangle along the x coordinate.
+
+    half_side_y : float
+        The half side of the fiducial rectangle along the y coordinate.
     """
     return 4. * half_side_x * half_side_y
 
@@ -65,6 +73,14 @@ def gpd_map_binning(half_side_x, half_side_y, num_bins_x, num_bins_y=None):
     Note this function was refactored to adapt to a generic rectangle in response
     to https://github.com/lucabaldini/ixpeobssim/issues/668, so this now
     returns two independent arrays representing the binng on the x and y axes.
+
+    Arguments
+    ---------
+    half_side_x : float
+        The half side of the histogram binning along the x coordinate.
+
+    half_side_y : float
+        The half side of the histogram binning along the y coordinate.
     """
     if num_bins_y is None:
         num_bins_y = num_bins_x
@@ -72,10 +88,9 @@ def gpd_map_binning(half_side_x, half_side_y, num_bins_x, num_bins_y=None):
         numpy.linspace(-half_side_y, half_side_y, num_bins_y + 1)
 
 
-def within_fiducial_area(x, y, half_side_x=GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X,
-    half_side_y=GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y):
-    """Return wheter an (x, y) position in mm is within the fiducial active
-    area of the GPD readout ASIC.
+def within_fiducial_rectangle(x, y, half_side_x, half_side_y):
+    """Return wheter an (x, y) position in mm is within a fiducial rectangle of
+    given half-sides on the two coordinates.
 
     Arguments
     ---------
@@ -84,6 +99,12 @@ def within_fiducial_area(x, y, half_side_x=GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X,
 
     y : float or array
         The y position or array of y positions in mm
+
+    half_side_x : float
+        The half side of the fiducial rectangle along the x coordinate.
+
+    half_side_y : float
+        The half side of the fiducial rectangle along the y coordinate.
     """
     return (abs(x) <= half_side_x) * (abs(y) <= half_side_y)
 

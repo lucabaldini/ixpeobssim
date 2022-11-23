@@ -38,7 +38,8 @@ from ixpeobssim.evt.fmt import standard_xy_to_radec, build_standard_wcs
 from ixpeobssim.evt.kislat2015 import xStokesAnalysis
 from ixpeobssim.instrument.charging import xEnergyFluxCube, read_charging_parameters
 from ixpeobssim.instrument.charging import read_charging_map, create_charging_map_extension
-from ixpeobssim.instrument.gpd import within_fiducial_area
+from ixpeobssim.instrument.gpd import within_fiducial_rectangle, GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X,\
+    GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y
 from ixpeobssim.instrument.mma import parse_dithering_kwargs
 from ixpeobssim.irf.ebounds import NUM_CHANNELS, channel_to_energy
 from ixpeobssim.utils.astro import read_ds9, ds9_region_filter_sky, angular_separation
@@ -268,7 +269,9 @@ class xBaseEventList(dict):
         """
         logger.info('Applying GPD fiducial area cut to the event list...')
         num_events = self.num_events()
-        mask = within_fiducial_area(detx, dety)
+        half_side_x = GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X
+        half_side_y = GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y
+        mask = within_fiducial_rectangle(detx, dety, half_side_x, half_side_y)
         self.trim(mask)
         frac = 100. * self.num_events() / float(num_events)
         logger.info('Done, %d/%d (%.2f%%) events remaining.', self.num_events(), num_events, frac)
