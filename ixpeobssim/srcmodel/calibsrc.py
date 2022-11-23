@@ -29,7 +29,7 @@ from astropy.io import fits
 from ixpeobssim import IXPEOBSSIM_SRCMODEL
 from ixpeobssim.core.hist import xHistogram2d
 from ixpeobssim.evt.event import xEventList
-from ixpeobssim.instrument.gpd import gpd_map_binning, FIDUCIAL_HALF_SIZE
+from ixpeobssim.instrument.gpd import gpd_map_binning
 from ixpeobssim.srcmodel.roi import xModelComponentBase
 from ixpeobssim.utils.logging_ import logger
 
