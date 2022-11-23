@@ -53,16 +53,23 @@ def fiducial_area(half_side_x, half_side_y):
     """Return the area of the fiducial rectangle.
 
     Note we re deliberately not providing any default value, here, with the
-    understanding in mind that the fiducial cut might change. 
+    understanding in mind that the fiducial cut might change.
     """
     return 4. * half_side_x * half_side_y
 
 
-def gpd_map_binning(num_bins):
+def gpd_map_binning(half_side_x, half_side_y, num_bins_x, num_bins_y=None):
     """Return a numpy array with an appropriate binning for a bidimensional
     map over the GPD area.
+
+    Note this function was refactored to adapt to a generic rectangle in response
+    to https://github.com/lucabaldini/ixpeobssim/issues/668, so this now
+    returns two independent arrays representing the binng on the x and y axes.
     """
-    return numpy.linspace(-FIDUCIAL_HALF_SIZE, FIDUCIAL_HALF_SIZE, num_bins + 1)
+    if num_bins_y is None:
+        num_bins_y = num_bins_x
+    return numpy.linspace(-half_side_x, half_side_x, num_bins_x + 1),\
+        numpy.linspace(-half_side_y, half_side_y, num_bins_y + 1)
 
 
 def within_fiducial_area(x, y, half_side_x=GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X,

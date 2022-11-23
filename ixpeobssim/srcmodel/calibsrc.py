@@ -191,7 +191,16 @@ class xCalibrationSourceImage:
         a map in detector coordinates stored in the form of a FITS file
         has a lot in common with the stuff on the spurious modulation branch, and
         all of these things should be accommodated in a consistent fashion.
+
+    The HALF_SIDE top-level class member was added in response to issue
+    https://github.com/lucabaldini/ixpeobssim/issues/668
+    and was set to the old value of the fiducial half-side. This is now
+    self-contained to the calibration source machinery, and we might have to
+    generalize the code to arbitrary fiducial cuts in the future, if we ever want
+    to heavily use this functionality (which has not been the case, up to now).
     """
+
+    HALF_SIDE = 7.350
 
     def __init__(self, file_path):
         """Constructor.
@@ -205,8 +214,8 @@ class xCalibrationSourceImage:
             # triggered by numpy 1.22.0
             self.cdf = numpy.cumsum(data.ravel().astype(float))
             self.cdf /= self.cdf[-1]
-        self.xbinning = gpd_map_binning(self.shape[0])
-        self.ybinning = gpd_map_binning(self.shape[1])
+        self.xbinning, self.ybinning = gpd_map_binning(self.HALF_SIDE, self.HALF_SIDE,
+            *self.shape)
 
     def plot(self):
         """Plot the source image.
@@ -261,7 +270,7 @@ class xMonochromaticUnpolarizedFlatField(xMonochromaticUnpolarizedCalibrationSou
     def rvs_detxy(self, size):
         """Overloaded method.
         """
-        return self.uniform_square(size, FIDUCIAL_HALF_SIZE)
+        return self.uniform_square(size, xCalibrationSourceImage.HALF_SIDE)
 
 
 
