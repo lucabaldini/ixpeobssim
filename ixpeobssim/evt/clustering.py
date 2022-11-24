@@ -125,9 +125,9 @@ def find_neighbors(col, row):
 
 def region_query_factory(event):
     """ Factory for the auxiliary region_query function used by the
-    clustering. We use the closure to cache two different piece of data from
-    the current event, namely the two arrays of offset coordinates (in serial
-    readout order) and the corresponding 2D array of serial readout indices.
+    clustering. We use the closure to cache some data from the current event,
+    namely the two arrays of offset coordinates (in serial readout order)
+    and the corresponding 2D array of serial readout indices.
 
     Arguments
     ---------
@@ -203,6 +203,10 @@ class ClusterInfo:
         if self.num_pixels < other.num_pixels:
             return False
         return True
+
+    def __str__(self):
+        return f'Cluster id {self.cluster_id}: {self.num_pixels} pixels, '\
+               f'{self.pulse_height} ADC counts total'
 
 
 class DBscan:
@@ -320,14 +324,14 @@ class DBscan:
                 # border pixel)
                 if cluster_ids[_id] == PixelStatus.NOISE:
                     cluster_ids[_id] = cluster.cluster_id
-                    cluster.update(pixel_value)
+                    cluster.update(input_data[_id])
                     continue
                 # If the pixel status is not undefined skip it
                 if cluster_ids[_id] != PixelStatus.UNDEFINED:
                     continue
                 # Assign the pixel to the current cluster
                 cluster_ids[_id] = cluster.cluster_id
-                cluster.update(pixel_value)
+                cluster.update(input_data[_id])
                 # Get the array of its neighbors
                 _neighbors = region_query(_id, self.threshold)
                 # If the density condition is satisfied, expand the list of
@@ -339,17 +343,24 @@ class DBscan:
                             neighbors.append(pixel)
             # Finally add the new cluster to the array of clusters found
             clusters.append(cluster)
-        # Sort clusters in descending order (so that the first cluster has the
-        # highest pulse invariant)
-        clusters.sort(reverse=True)
-        # Finally set the indixes in the output array to the corresponding
+        # Now get rid of all the clusters below the minimum size allowed,
+        # marking their pixels as NOISE
+        good_clusters = []
+        for cluster in clusters:
+            if cluster.num_pixels < self.min_cluster_size:
+                cluster_mask = (cluster_ids == cluster.cluster_id)
+                cluster_ids[cluster_mask] = PixelStatus.NOISE
+            else:
+                good_clusters.append(cluster)
+        # Now sort clusters in descending order (so that the first cluster has
+        # the highest pulse invariant)
+        good_clusters.sort(reverse=True)
+        # Finally set the indices in the output array to the corresponding
         # sorted cluster id
         numpy.copyto(output_ids, cluster_ids)
-        for idx, cluster in enumerate(clusters):
+        for idx, cluster in enumerate(good_clusters):
             cluster_mask = (cluster_ids == cluster.cluster_id)
-            # Mark clusters not reaching the minimum size as NOISE
-            if cluster.num_pixels < self.min_cluster_size:
-                output_ids[cluster_mask] = PixelStatus.NOISE
-            else:
-                output_ids[cluster_mask] = idx
-        return clusters
+            output_ids[cluster_mask] = idx
+            # Update the cluster id with the sorted number
+            cluster.cluster_id = idx
+        return good_clusters
