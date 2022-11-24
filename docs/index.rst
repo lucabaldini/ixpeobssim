@@ -90,6 +90,7 @@ is the most up-to-date reference.
    large_files
    irf
    orbit
+   background
 
 .. toctree::
    :hidden:

@@ -26,7 +26,7 @@ import numpy
 
 from ixpeobssim.irfgen.gpd import WINDOW_BE_THICKNESS, WINDOW_AL_THICKNESS
 from ixpeobssim.irfgen.gpd import ABSORPTION_GAP_THICKNESS
-from ixpeobssim.instrument.gpd import FIDUCIAL_HALF_SIZE
+from ixpeobssim.instrument.gpd import GPD_PHYSICAL_HALF_SIDE_X
 from ixpeobssim.core.geometry import xPoint, xLine, xRay
 from ixpeobssim.irfgen.astar import load_alpha_stopping_power_data
 from ixpeobssim.irfgen.astar import load_dme_alpha_stopping_power_data
@@ -38,7 +38,7 @@ from ixpeobssim.utils.math_ import modulo_2pi
 
 
 WINDOW_HALF_SIDE = 4. #cm
-ASIC_HALF_SIDE = FIDUCIAL_HALF_SIZE / 10. #cm
+ASIC_HALF_SIDE = GPD_PHYSICAL_HALF_SIDE_X / 10. #cm
 # Setup the geometry---all dimensions in cm.
 Z_ASIC = 0.
 Z_AL_BOT = Z_ASIC + ABSORPTION_GAP_THICKNESS
