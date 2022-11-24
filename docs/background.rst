@@ -82,7 +82,21 @@ linear radial dependence, as briefly summarized in the next section.
 Radial dependence
 ~~~~~~~~~~~~~~~~~
 
-To be filled in.
+IXPE celestial observations show that the distribution of the instrumental
+background in detector coordinates is not rigorously flat---in fact it is typically
+higher close to the walls of the detector---and can be reasonably modeled with a
+linear function of the radial distance from the center.
+
+The radial slope alpha represents the fractional half-excursion of the variation
+across the size h of the fiducial rectangle. For alpha = 0 the detector position
+are distributed uniformly over the fiducial rectangle. For alpha = 2 the radial
+dependence is maximal, and the density of events is zero at the center of the
+detector.
+
+The values of alpha found experimentally vary from observation to observation
+(at a level which is consistent with expectations based on the typical variations
+of the radiation environment in low-Earth orbit), and are typically between
+0 and 0.2.
 
 
 Creating a template
