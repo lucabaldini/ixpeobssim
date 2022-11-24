@@ -30,7 +30,6 @@ from ixpeobssim.utils.argparse_ import xArgumentParser
 from ixpeobssim.utils.logging_ import logger
 from ixpeobssim.utils.matplotlib_ import plt, setup_gca, residual_plot
 
-__description__ = \
 '''
 Create a background template model starting from a series of PHA1
 background files.
@@ -50,18 +49,6 @@ The output file is written on a regular energy grid as a simple text file
 with two columns---energy and background rate.
 '''
 
-parser = xArgumentParser(description=__description__)
-parser.add_argument('phalist', nargs='+', help='path(s) to the pha1 \
-                    spectrum file(s) upon which to build the template')
-parser.add_argument('--ssmooth', type=float, default=5.e-5,
-        help='The smoothing coefficient ("s" argument in the scipy documentation) \
-        used for the non interpolating spline. Note this is very important, as \
-        it controls the level at which the spline is capturing the fluctuations \
-        of the input data points. (s=0 is effectively an interpolating spline, \
-        but the actual value depends on the scale of the input data and it is \
-        not trivial to establish a priori.)')
-parser.add_outfile(default=os.path.join(IXPEOBSSIM_SRCMODEL, 'ascii',
-        'instrumental_bkg_template.txt'))
 
 def smooth_PDF(PDF, artificial_grad = 1.e-6):
     ''' Replaces the initial range (E<1keV) of the spline with a monothonic
@@ -85,14 +72,12 @@ def smooth_PDF(PDF, artificial_grad = 1.e-6):
     return(PDF)
 
 
-def create_backgound_template(emin=0.01, **kwargs):
+def create_backgound_template(phalist, ssmooth, outfile, emin=0.01):
     '''The core function: takes a list of pha1 files and creates the background \
         template. The parameters are taken from input.
     '''
 
-    phalist = kwargs.get('phalist')
-    ssmoth = kwargs.get('ssmooth')
-    outfile = kwargs.get('outfile')
+
     logger.info (f'loading background spectra from {phalist}...')
 
     # Loop over all input background files:
@@ -142,7 +127,7 @@ def create_backgound_template(emin=0.01, **kwargs):
     # Create a non-interpolating spline---note that we are cutting at a minimum
     # energy to avoid the peak in channel 0.
     mask = energy > emin
-    spline = xUnivariateSpline(energy[mask], flux[mask], s=ssmoth, k=3)
+    spline = xUnivariateSpline(energy[mask], flux[mask], s=ssmooth, k=3)
     # Create the output text file with the spline data.
     logger.info('Writing output file to %s...', outfile)
     x = numpy.linspace(emin, energy.max(), 250)
@@ -166,8 +151,3 @@ def create_backgound_template(emin=0.01, **kwargs):
     setup_gca(xlabel='Energy [keV]', ymin=-dy, ymax=dy, grids=True, xmax=energy.max())
     plt.show()
 
-
-
-if __name__ == '__main__':
-    args = parser.parse_args()
-    create_backgound_template(**vars(args))
