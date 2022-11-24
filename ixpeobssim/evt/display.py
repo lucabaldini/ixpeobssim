@@ -99,6 +99,31 @@ class xRegionOfInterest:
         row = numpy.repeat(self.row_indices(), self.num_cols)
         return col, row
 
+    def serial_readout_indices(self):
+        """Return a two-dimensional array containing the readout index for
+        each pixel of the ROI.
+
+        The ASIC serial readout starts from the top-left corner and proceeds
+        one row at a time, i.e., for a toy 5 x 5 window starting at <0, 0> the
+        readout indices look like
+        +--------------------
+        |   0   1   2   3   4
+        |
+        |   5   6   7   8   9
+        |
+        |  10  11  12  13  14
+        |
+        |  15  16  17  18  19
+        |
+        |  20  21  22  23  24
+
+        It is worth noting that, provided that one loops over the row indices
+        first and column indices last, the readout index can be determined by
+        just accumulating a counter. This function is useful as it provides the
+        right answer for any position in the event window, no matter what the
+        loop order is."""
+        return numpy.arange(self.size).reshape(self.shape)
+
     def coordinates_in_rot(self, col, row):
         """Return a boolean mask indicaing whether elements of the (col, row)
         arrays lie into the ROT area.
@@ -108,6 +133,17 @@ class xRegionOfInterest:
             col <= self.max_col - XPOL_HORIZONTAL_PADDING,
             row >= self.min_row + XPOL_VERTICAL_PADDING,
             row <= self.max_row - XPOL_VERTICAL_PADDING
+        ))
+
+    def coordinates_in_roi(self, col, row):
+        """Return a boolean mask indicaing whether elements of the (col, row)
+        arrays lie into the ROT area.
+        """
+        return numpy.logical_and.reduce((
+            col >= self.min_col,
+            col <= self.max_col,
+            row >= self.min_row,
+            row <= self.max_row
         ))
 
 
