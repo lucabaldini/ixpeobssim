@@ -1,6 +1,6 @@
 #!/urs/bin/env python
 #
-# Copyright (C) 2018--2020, the ixpeobssim team.
+# Copyright (C) 2018--2022, the ixpeobssim team.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,15 +23,33 @@ import numpy
 
 from ixpeobssim.instrument.sc import dithering_pattern
 from ixpeobssim.utils.units_ import arcmin_to_degrees, degrees_to_arcsec
-from ixpeobssim.instrument.gpd import FIDUCIAL_HALF_SIZE, rotate_detxy
+from ixpeobssim.instrument.gpd import rotate_detxy
 from ixpeobssim.utils.logging_ import logger
 
 # The focal length has been updated form the nominal 4-m value to the measured
 # value of 3997 mm based on issue #336.
 FOCAL_LENGTH = 3997.
-FIELD_OF_VIEW = numpy.degrees(2. * FIDUCIAL_HALF_SIZE / FOCAL_LENGTH)
-FIDUCIAL_BACKSCAL = degrees_to_arcsec(FIELD_OF_VIEW)**2.
 
+
+def fiducial_backscal(half_side_x, half_side_y):
+    """Calculate the BACKSCALE value for a give fiducial rectangle in detector
+    coordinates.
+
+    This function was introduced in response to the issue
+    https://github.com/lucabaldini/ixpeobssim/issues/668
+    in place of the old FIDUCIAL_BACKSCAL constant.
+
+    Arguments
+    ---------
+    half_side_x : float
+        The half side of the fiducial rectangle along the x coordinate in mm.
+
+    half_side_y : float
+        The half side of the fiducial rectangle along the y coordinate in mm.
+    """
+    dx = numpy.degrees(2. * half_side_x / FOCAL_LENGTH)
+    dy = numpy.degrees(2. * half_side_y / FOCAL_LENGTH)
+    return degrees_to_arcsec(dx) * degrees_to_arcsec(dy)
 
 def _sky_to_gpd_naive(ra, dec, ra_pnt, dec_pnt):
     """Convert an array of (ra, dec) positions in the sky to an array

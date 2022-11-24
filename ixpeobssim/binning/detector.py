@@ -24,7 +24,8 @@ import numpy
 
 from ixpeobssim.binning.base import xEventBinningBase, xBinnedFileBase
 from ixpeobssim.core.hist import xGpdMap2d
-from ixpeobssim.instrument.gpd import gpd_map_binning
+from ixpeobssim.instrument.gpd import gpd_map_binning, GPD_PHYSICAL_HALF_SIDE_X,\
+    GPD_PHYSICAL_HALF_SIDE_Y
 from ixpeobssim.utils.logging_ import logger
 
 
@@ -49,9 +50,10 @@ class xEventBinningARMAP(xEventBinningBase):
         a n x n array of area rate values to be written in the output file.
         """
         detx, dety = self.event_file.det_position_data()
-        binning = gpd_map_binning(self.get('npix'))
-        bin_area = (binning[1] - binning[0])**2.
-        rate, _, _ = numpy.histogram2d(detx, dety, bins=(binning, binning))
+        xbinning, ybinning = gpd_map_binning(GPD_PHYSICAL_HALF_SIDE_X,
+            GPD_PHYSICAL_HALF_SIDE_Y, self.get('npix'))
+        bin_area = (xbinning[1] - xbinning[0]) * (ybinning[1] - ybinning[0])
+        rate, _, _ = numpy.histogram2d(detx, dety, bins=(xbinning, ybinning))
         rate /= self.event_file.livetime() * bin_area
         return rate
 

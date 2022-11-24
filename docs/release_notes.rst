@@ -4,6 +4,19 @@ Release notes
 =============
 
 
+*ixpeobssim (29.5.0) - Thu, 24 Nov 2022 13:20:07 +0100*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/666
+* Constants related to the GPD physical size and default fiducial size fully
+  revamped, passing from a square to a rectangle wherever appropriate.
+* Possibility for a radial dependence added to the instrumental background classes.
+* Large refactoring and cleanup.
+* Documentation updated.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/668
+      * https://github.com/lucabaldini/ixpeobssim/issues/663
+
+
 *ixpeobssim (29.4.0) - Thu, 17 Nov 2022 11:50:54 +0100*
 
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/657

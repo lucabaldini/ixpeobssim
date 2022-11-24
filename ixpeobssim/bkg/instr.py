@@ -23,8 +23,14 @@ import numpy
 from ixpeobssim import IXPEOBSSIM_SRCMODEL
 from ixpeobssim.binning.polarization import xBinnedCountSpectrum
 from ixpeobssim.core.spline import xUnivariateSpline
+<<<<<<< HEAD
 from ixpeobssim.instrument.gpd import FIDUCIAL_AREA
 from ixpeobssim.instrument.mma import FIDUCIAL_BACKSCAL
+=======
+from ixpeobssim.instrument import DU_IDS
+from ixpeobssim.instrument.gpd import GPD_PHYSICAL_AREA
+from ixpeobssim.instrument.mma import FOCAL_LENGTH
+>>>>>>> main
 from ixpeobssim.irf.ebounds import channel_to_energy, ENERGY_STEP
 from ixpeobssim.utils.argparse_ import xArgumentParser
 from ixpeobssim.utils.logging_ import logger
@@ -112,6 +118,7 @@ def create_backgound_template(phalist, ssmooth, outfile, emin=0.01):
     plt.grid(which='both')
     plt.legend()
 
+<<<<<<< HEAD
     # Scale the single object for the overall livetime
     # Integrated signal / total livetime = rate again
     logger.info (f'scaling back for the total livetime of {livetime_total}')
@@ -124,6 +131,46 @@ def create_backgound_template(phalist, ssmooth, outfile, emin=0.01):
     flux = avg_spec.RATE * scale
     flux_err = avg_spec.STAT_ERR * scale
     energy = channel_to_energy(avg_spec.CHANNEL)
+=======
+    emin : float
+        The minimum energy for the spline.
+    """
+    # The file name, at this point, is hard-coded---this can be made more
+    # user-friendly in the future.
+    file_name = 'ixpe01903701_det%d_evt2_v02_bkg_pha1.fits'
+    file_list = [os.path.join(IXPEOBSSIM_BKG_DATA, file_name % du_id) for du_id in DU_IDS]
+    output_file_name = 'bkg_smcx1_01903701.txt'
+    output_file_path = os.path.join(IXPEOBSSIM_SRCMODEL, 'ascii', output_file_name)
+
+    # Load the raw count spectrum and convert PI channels in keV. Note we are
+    # divding by the number of detector units.
+    spec = xBinnedCountSpectrum.from_file_list(file_list)
+    num_detectors = len(file_list)
+    energy = channel_to_energy(spec.CHANNEL)
+    rate = spec.RATE / num_detectors
+    rate_err = spec.STAT_ERR / num_detectors
+
+    # Calculate the scaling factor to compensate for the source cut in the
+    # underlying PHA1 file, i.e., convert the extraction radius from arcmin to mm
+    # and scale to the full fiducial area of the GPD.
+    logger.info('Correcting for the extraction radius...')
+    radius = FOCAL_LENGTH * numpy.radians(arcmin_to_degrees(extraction_radius))
+    scale = 1. / (1. - numpy.pi * radius**2. / GPD_PHYSICAL_AREA)
+    logger.info('Scaling factor: %.3f', scale)
+    rate *= scale
+    rate_err *= scale
+
+    # Convert in the proper units, i.e., from s^{-1} to cm^{-1} s^{-1} keV^{-1}.
+    # This is done by divding by the detector fiducial area (converted from mm^2
+    # to cm^2) and the 40 eV step of the energy grid used to create the response
+    # files.
+    logger.info('Converting into physical units...')
+    scale = 1. / (GPD_PHYSICAL_AREA / 100.) / ENERGY_STEP
+    logger.info('Scaling factor: %.3e', scale)
+    flux = rate * scale
+    flux_err = rate_err * scale
+
+>>>>>>> main
     # Create a non-interpolating spline---note that we are cutting at a minimum
     # energy to avoid the peak in channel 0.
     mask = energy > emin
