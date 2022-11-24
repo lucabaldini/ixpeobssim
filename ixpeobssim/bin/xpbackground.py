@@ -40,18 +40,11 @@ with two columns---energy and background rate.
 
 import os
 
-import numpy
 
 from ixpeobssim import IXPEOBSSIM_SRCMODEL
 from ixpeobssim.bkg import instr
-from ixpeobssim.binning.polarization import xBinnedCountSpectrum
-from ixpeobssim.core.spline import xUnivariateSpline
-from ixpeobssim.instrument.gpd import FIDUCIAL_AREA
-from ixpeobssim.instrument.mma import FIDUCIAL_BACKSCAL
-from ixpeobssim.irf.ebounds import channel_to_energy, ENERGY_STEP
 from ixpeobssim.utils.argparse_ import xArgumentParser
 from ixpeobssim.utils.logging_ import logger
-from ixpeobssim.utils.matplotlib_ import plt, setup_gca, residual_plot
 
 parser = xArgumentParser(description=__description__)
 parser.add_filelist()
