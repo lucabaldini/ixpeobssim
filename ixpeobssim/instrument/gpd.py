@@ -28,11 +28,26 @@ from ixpeobssim.utils.math_ import modulo_2pi
 
 # pylint: disable=invalid-name
 
+def rectangle_area(half_side_x, half_side_y):
+    """Small convenience function to calulate the area of a rectangle, given the
+    half sides along the two coordinates.
+
+    Arguments
+    ---------
+    half_side_x : float
+        The half side of the rectangle along the x coordinate (in mm).
+
+    half_side_y : float
+        The half side of the rectangle along the y coordinate (in mm).
+    """
+    return 4. * half_side_x * half_side_y
+
+
 # Physical side of the readout chip on the two orthogonal directions...
 GPD_PHYSICAL_HALF_SIDE_X = 7.4875
 GPD_PHYSICAL_HALF_SIDE_Y = 7.599
 # ... and fellow derived quantities.
-GPD_PHYSICAL_AREA = 4. * GPD_PHYSICAL_HALF_SIDE_X * GPD_PHYSICAL_HALF_SIDE_Y
+GPD_PHYSICAL_AREA = rectangle_area(GPD_PHYSICAL_HALF_SIDE_X, GPD_PHYSICAL_HALF_SIDE_Y)
 GPD_PHYSICAL_MAX_RADIUS = numpy.sqrt(GPD_PHYSICAL_HALF_SIDE_X**2. +\
     GPD_PHYSICAL_HALF_SIDE_Y**2.)
 
@@ -48,11 +63,12 @@ LASER_ETCHING_PITCH = 1.800
 NUM_LASER_SWEEPS = 8
 
 
-def fiducial_area(half_side_x, half_side_y):
+def fiducial_area(half_side_x=GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X,
+    half_side_y=GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y):
     """Return the area of the fiducial rectangle.
 
-    Note we re deliberately not providing any default value, here, with the
-    understanding in mind that the fiducial cut might change.
+    This is essentially calling the base rectangle_area() function, with the
+    proper default values for the fiducial cut.
 
     Arguments
     ---------
@@ -62,7 +78,7 @@ def fiducial_area(half_side_x, half_side_y):
     half_side_y : float
         The half side of the fiducial rectangle along the y coordinate in mm.
     """
-    return 4. * half_side_x * half_side_y
+    return rectangle_area(half_side_x, half_side_y)
 
 
 def gpd_map_binning(half_side_x, half_side_y, num_bins_x, num_bins_y=None):
@@ -76,15 +92,37 @@ def gpd_map_binning(half_side_x, half_side_y, num_bins_x, num_bins_y=None):
     Arguments
     ---------
     half_side_x : float
-        The half side of the histogram binning along the x coordinate in mm.
+        The half side of the histogram binning along the x coordinate (in mm).
 
     half_side_y : float
-        The half side of the histogram binning along the y coordinate in mm.
+        The half side of the histogram binning along the y coordinate (in mm).
     """
     if num_bins_y is None:
         num_bins_y = num_bins_x
     return numpy.linspace(-half_side_x, half_side_x, num_bins_x + 1),\
         numpy.linspace(-half_side_y, half_side_y, num_bins_y + 1)
+
+
+def within_fiducial_rectangle(x, y, half_side_x=GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X,
+    half_side_y=GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y):
+    """Return wheter an (x, y) position in mm is within a fiducial rectangle of
+    given half-sides on the two coordinates.
+
+    Arguments
+    ---------
+    x : float or array
+        The x position or array of x positions in mm
+
+    y : float or array
+        The y position or array of y positions in mm
+
+    half_side_x : float
+        The half side of the fiducial rectangle along the x coordinate (in mm).
+
+    half_side_y : float
+        The half side of the fiducial rectangle along the y coordinate (in mm).
+    """
+    return numpy.logical_and(abs(x) <= half_side_x, abs(y) <= half_side_y)
 
 
 def within_gpd_physical_area(x, y):
@@ -98,29 +136,7 @@ def within_gpd_physical_area(x, y):
     y : float or array
         The y position or array of y positions in mm
     """
-    return numpy.logical_and(abs(x) <= GPD_PHYSICAL_HALF_SIDE_X,
-        abs(y) <= GPD_PHYSICAL_HALF_SIDE_Y)
-
-
-def within_fiducial_rectangle(x, y, half_side_x, half_side_y):
-    """Return wheter an (x, y) position in mm is within a fiducial rectangle of
-    given half-sides on the two coordinates.
-
-    Arguments
-    ---------
-    x : float or array
-        The x position or array of x positions in mm
-
-    y : float or array
-        The y position or array of y positions in mm
-
-    half_side_x : float
-        The half side of the fiducial rectangle along the x coordinate in mm.
-
-    half_side_y : float
-        The half side of the fiducial rectangle along the y coordinate in mm.
-    """
-    return numpy.logical_and(abs(x) <= half_side_x, abs(y) <= half_side_y)
+    return within_fiducial_rectangle(x, y, GPD_PHYSICAL_HALF_SIDE_X, GPD_PHYSICAL_HALF_SIDE_Y)
 
 
 def rotate_detxy(x, y, du_id, roll_angle=0., inverse=False):

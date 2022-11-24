@@ -28,8 +28,7 @@ from ixpeobssim.binning.base import xEventBinningBase, xBinnedFileBase
 from ixpeobssim.binning.fmt import xBinTableHDUEBOUNDS, xBinTableHDUTHETABOUNDS
 from ixpeobssim.core.fitsio import xFITSImageBase, xPrimaryHDU
 from ixpeobssim.core.hist import xHistogram3d
-from ixpeobssim.instrument.gpd import within_fiducial_rectangle,\
-    GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X, GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y
+from ixpeobssim.instrument.gpd import within_fiducial_rectangle
 from ixpeobssim.instrument.mma import sky_to_gpd
 from ixpeobssim.utils.astro import region_compound, angular_separation
 from ixpeobssim.utils.logging_ import logger
@@ -100,9 +99,7 @@ class xEventBinningLTCUBE(xEventBinningBase):
             # Create a mask cutting the GPD fiducial area and the angles greater
             # than the uppermost edge of the theta binning (for which
             # z==len(zbinning)).
-            half_side_x = GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X
-            half_side_y = GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y
-            mask = (z != thetabins) * within_fiducial_rectangle(detx, dety, half_side_x, half_side_y)
+            mask = (z != thetabins) * within_fiducial_rectangle(detx, dety)
             histo3d.content[z[mask], x[mask], y[mask]] += lvt
         # Write all the info to output fits file.
         data = histo3d.content

@@ -27,8 +27,7 @@ import astropy.io.fits as fits
 from ixpeobssim.core.hist import xHistogram1d
 from ixpeobssim.config.instrumental_bkg import bkg
 from ixpeobssim.utils.matplotlib_ import plt, setup_gca
-from ixpeobssim.instrument.gpd import GPD_PHYSICAL_AREA, fiducial_area,\
-    GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X, GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y
+from ixpeobssim.instrument.gpd import GPD_PHYSICAL_AREA, fiducial_area
 import ixpeobssim.core.pipeline as pipeline
 
 
@@ -55,8 +54,7 @@ class TestInstrumentalBackground(unittest.TestCase):
             with fits.open(file_path) as hdu_list:
                 data = hdu_list['MONTE_CARLO'].data
                 hist.fill(data['MC_ENERGY'])
-        area = fiducial_area(GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X, GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y)
-        scale = duration * bin_width * (area / 100.) * 3.
+        scale = duration * bin_width * (fiducial_area() / 100.) * 3.
         x = hist.bin_centers(0)
         y = hist.content
         chisq = (((y - scale * bkg.photon_spectrum(x)) / numpy.sqrt(y))**2.).sum()

@@ -1,7 +1,7 @@
 .. _background:
 
-Background
-==========
+Backgrounds
+===========
 
 
 Instrumental background
