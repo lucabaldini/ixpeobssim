@@ -14,24 +14,24 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from __future__ import print_function, division
+"""Facilities for the generation of instrumental background templates.
+"""
 
-import os
+from __future__ import print_function, division
 
 import numpy
 
-from ixpeobssim import IXPEOBSSIM_SRCMODEL
 from ixpeobssim.binning.polarization import xBinnedCountSpectrum
 from ixpeobssim.core.spline import xUnivariateSpline
-from ixpeobssim.instrument import DU_IDS
-from ixpeobssim.instrument.gpd import GPD_PHYSICAL_AREA, GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X,\
-    GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y, fiducial_area
-from ixpeobssim.instrument.mma import FOCAL_LENGTH, fiducial_backscal
+from ixpeobssim.instrument.gpd import fiducial_area, GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X,\
+    GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y
+from ixpeobssim.instrument.mma import fiducial_backscal
 from ixpeobssim.irf.ebounds import channel_to_energy, ENERGY_STEP
-from ixpeobssim.utils.argparse_ import xArgumentParser
 from ixpeobssim.utils.logging_ import logger
 from ixpeobssim.utils.matplotlib_ import plt, setup_gca, residual_plot
 
+
+# pylint: disable=invalid-name
 
 
 def smooth_PDF(PDF, artificial_grad = 1.e-6):
@@ -45,15 +45,16 @@ def smooth_PDF(PDF, artificial_grad = 1.e-6):
     """
     limit = 17 # E< keV
     PDF[0:limit] = numpy.sort(PDF[0:limit])
-    is_zero_idx = numpy.where (PDF[0:limit]<=0)
+    is_zero_idx = numpy.where (PDF[0:limit] <= 0)
     max_zero = numpy.max(is_zero_idx)
     # turn negative numbers into zeros
     for j in range (limit):
-        if PDF[j]<0: PDF[j]=0
+        if PDF[j] < 0:
+            PDF[j] = 0
     #We don't want to approach zero with a large derivative
-    for j in reversed(range(max_zero+1)):
-        PDF[j] = PDF[j+1]-artificial_grad
-    return(PDF)
+    for j in reversed(range(max_zero + 1)):
+        PDF[j] = PDF[j + 1] - artificial_grad
+    return PDF
 
 
 def create_backgound_template(phalist, ssmooth, outfile, emin=0.01):
@@ -72,7 +73,7 @@ def create_backgound_template(phalist, ssmooth, outfile, emin=0.01):
     The output file is written on a regular energy grid as a simple text file with
     two columns---energy and background rate.
     """
-    logger.info (f'loading background spectra from {phalist}...')
+    logger.info ('Loading background spectra from %s...', phalist)
 
     # Loop over all input background files:
     # Load the raw count spectrum and convert PI channels in keV.
@@ -94,7 +95,7 @@ def create_backgound_template(phalist, ssmooth, outfile, emin=0.01):
         # Divide by the fraction of the total area
         logger.info('Correcting for the extraction radius...')
         area_frac = backscal / det_backscal
-        logger.info (f'Fraction of the total area: {area_frac}')
+        logger.info ('Fraction of the total area: %f', area_frac)
         spec.RATE /= area_frac
         spec.STAT_ERR /= area_frac
         if 'avg_spec' in locals():
@@ -112,7 +113,7 @@ def create_backgound_template(phalist, ssmooth, outfile, emin=0.01):
 
     # Scale the single object for the overall livetime
     # Integrated signal / total livetime = rate again
-    logger.info (f'scaling back for the total livetime of {livetime_total}')
+    logger.info ('scaling back for the total livetime of %.3f', area_frac)
     avg_spec.RATE /= livetime_total
     avg_spec.STAT_ERR /= livetime_total
     # To physical units, also accounted for the backscal division
