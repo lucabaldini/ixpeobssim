@@ -19,13 +19,11 @@
 from __future__ import print_function, division
 
 __description__ = \
-'''
-Create a background template model starting from a series of PHA1
-background files.
+"""
+Create a background template model starting from a series of PHA1 background files.
 
-The PHA1 files should be prepared from a dark field with a arbitrary
-shapes that have been cut from one or more files and have a BACKSCAL keyword
-defined.
+The PHA1 files should be prepared from a dark field with a arbitrary shapes that
+have been cut from one or more files and have a BACKSCAL keyword defined.
 
 This is suitable both for residual and total background, depending on the user
 needs.
@@ -36,7 +34,7 @@ spline and written to file to be used later with an appropriate config file.
 
 The output file is written on a regular energy grid as a simple text file
 with two columns---energy and background rate.
-'''
+"""
 
 import os
 
@@ -46,19 +44,21 @@ from ixpeobssim.bkg import instr
 from ixpeobssim.utils.argparse_ import xArgumentParser
 from ixpeobssim.utils.logging_ import logger
 
-parser = xArgumentParser(description=__description__)
-parser.add_filelist()
-parser.add_argument('--ssmooth', type=float, default=5.e-5,
+
+PARSER = xArgumentParser(description=__description__)
+PARSER.add_filelist()
+PARSER.add_argument('--ssmooth', type=float, default=5.e-5,
         help='The smoothing coefficient ("s" argument in the scipy documentation) \
         used for the non interpolating spline. Note this is very important, as \
         it controls the level at which the spline is capturing the fluctuations \
         of the input data points. (s=0 is effectively an interpolating spline, \
         but the actual value depends on the scale of the input data and it is \
         not trivial to establish a priori.)')
-parser.add_outfile(default=os.path.join(IXPEOBSSIM_SRCMODEL, 'ascii',
+PARSER.add_outfile(default=os.path.join(IXPEOBSSIM_SRCMODEL, 'ascii',
         'instrumental_bkg_template.txt'))
 
-def create_template(**kwargs):
+
+def xpbkgtemplate(**kwargs):
     filelist = kwargs.get('filelist')
     ssmooth = kwargs.get('ssmooth')
     outfile = kwargs.get('outfile')
@@ -66,7 +66,10 @@ def create_template(**kwargs):
     instr.create_backgound_template(filelist, ssmooth=ssmooth, outfile=outfile)
 
 
-    
+
+def main():
+    xpbkgtemplate(**PARSER.parse_args().__dict__)
+
+
 if __name__ == '__main__':
-    args = parser.parse_args()
-    create_template(**vars(args))
+    main()

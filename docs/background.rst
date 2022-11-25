@@ -102,23 +102,22 @@ of the radiation environment in low-Earth orbit), and are typically between
 Creating a template
 ~~~~~~~~~~~~~~~~~~~
 
-|xpbkgtemplate| provides a tool to generate an instrumental background starting
+:ref:`reference-xpbkgtemplate` provides a tool to generate an instrumental background starting
 from an input pha1 file. The tool is designed specifically to work with dark fields
 extracted from ixpe observation, and as such it requires the pha1 file to have
 a backscal keyword defined in its header to account for the size of the extraction
 region.
 
-The rate of the background is then extracted from each file that is provided, 
+The rate of the background is then extracted from each file that is provided,
 multiplied by its livetime and normalized with respect to the total detector area.
 Everything is then averaged and rescaled back to physical units to create an
-average spectrum which is smoothed with a spline and saved as an ascii file that 
+average spectrum which is smoothed with a spline and saved as an ascii file that
 can be used as an agument to generate an :class:`ixpeobssim.srcmodel.bkg.xTemplateInstrumentalBkg`
 object into a config file to be used by |xpobssim|.
-Note that while this is designed to create the average spectrum from a single 
+Note that while this is designed to create the average spectrum from a single
 observation, the algorithm will run just fine on multiple observation and treat
 each file in the same way.
 
-The relevant piece of code for the generation of the templateresides in 
-:mod:`ixpeobssim.bkg.instr` in which the function create_background_template 
+The relevant piece of code for the generation of the templateresides in
+:mod:`ixpeobssim.bkg.instr` in which the function create_background_template
 is defined and invoked by |xpbkgtemplate|.
-
