@@ -47,7 +47,7 @@ from ixpeobssim.utils.logging_ import logger
 
 PARSER = xArgumentParser(description=__description__)
 PARSER.add_filelist()
-PARSER.add_argument('--ssmooth', type=float, default=5.e-5,
+PARSER.add_argument('--ssmooth', type=float, default=5.e-4,
         help='The smoothing coefficient ("s" argument in the scipy documentation) \
         used for the non interpolating spline. Note this is very important, as \
         it controls the level at which the spline is capturing the fluctuations \
