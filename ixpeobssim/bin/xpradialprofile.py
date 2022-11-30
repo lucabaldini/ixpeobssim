@@ -40,14 +40,14 @@ from ixpeobssim.utils.units_ import degrees_to_arcmin, arcmin_to_degrees, arcmin
 
 
 __description__ = \
-"""Create a radial profile plot, in sky coordinated, for a given observation.
+"""Create a radial profile plot, in sky coordinates, for a given observation.
 
 This program takes a level-2 file as an input and creates a radial histogram of
 the event counts, weighted with 1. / r to correct for the solid angle. This is
 a useful diagnostics to gauge the background level in a given observation.
 
 In order to provide more context to the plots, the PSF radial profile for the
-relevant DU is overlaied. 
+relevant DU is overlaied.
 """
 
 

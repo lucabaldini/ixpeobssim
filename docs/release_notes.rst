@@ -3,6 +3,11 @@
 Release notes
 =============
 
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/
+* New xLorentzian model in ixpeobssim.core.modeling
+* New xpradialprofile.py application to help gauging the level of background
+  in a given observation.
+
 
 *ixpeobssim (29.5.0) - Thu, 24 Nov 2022 13:20:07 +0100*
 
