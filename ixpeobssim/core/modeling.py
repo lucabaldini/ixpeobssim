@@ -969,23 +969,22 @@ class xLorentzian(xFitModelBase):
 
     PARAMETER_NAMES = ('Normalization', 'Peak', 'HWHM' )
     PARAMETER_DEFAULT_VALUES = (1., 0., 1.)
-    PARAMETER_DEFAULT_BOUNDS = ([0., -numpy.inf, 0.],
-                                [numpy.inf, numpy.inf, numpy.inf])
+    PARAMETER_DEFAULT_BOUNDS = ([0., -numpy.inf, 0.], [numpy.inf, numpy.inf, numpy.inf])
     DEFAULT_PLOTTING_RANGE = (-1., 1.)
 
     @staticmethod
-    def value(x, normalization, center, hwhm):
+    def value(x, normalization, peak, hwhm):
         """Overloaded value() method.
         """
-        return normalization * hwhm / ((x - center)**2 + hwhm**2)
+        return normalization * hwhm / ((x - peak)**2. + hwhm**2.)
 
     @staticmethod
-    def jacobian(x, normalization, center, hwhm):
+    def jacobian(x, normalization, peak, hwhm):
         """Overloaded jacobian() method.
         """
-        d_x = x - center
-        denom = d_x**2 + hwhm**2
+        d_x = x - peak
+        denom = d_x**2. + hwhm**2.
         d_normalization = hwhm / denom
-        d_center = 2 * normalization * hwhm * d_x / denom**2
-        d_hwhm = normalization * (d_x**2  - hwhm**2)/ denom**2
-        return numpy.array([d_normalization, d_center, d_hwhm]).transpose()
+        d_peak = 2. * normalization * hwhm * d_x / denom**2.
+        d_hwhm = normalization * (d_x**2.  - hwhm**2.)/ denom**2.
+        return numpy.array([d_normalization, d_peak, d_hwhm]).transpose()
