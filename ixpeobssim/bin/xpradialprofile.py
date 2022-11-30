@@ -29,12 +29,13 @@ from scipy.optimize import curve_fit
 from ixpeobssim.core.fitting import fit_histogram
 from ixpeobssim.core.hist import xHistogram1d
 from ixpeobssim.core.modeling import xFitModelBase, xConstant, xLorentzian
+from ixpeobssim.core.spline import xInterpolatedUnivariateSpline
 from ixpeobssim.evt.event import xEventFile
 from ixpeobssim.irf import load_psf
 from ixpeobssim.utils.argparse_ import xArgumentParser
 from ixpeobssim.utils.astro import angular_separation
 from ixpeobssim.utils.logging_ import logger
-from ixpeobssim.utils.matplotlib_ import plt, setup_gca
+from ixpeobssim.utils.matplotlib_ import plt, setup_gca, last_line_color
 from ixpeobssim.utils.os_ import check_input_file
 from ixpeobssim.utils.units_ import degrees_to_arcmin, arcmin_to_degrees, arcmin_to_arcsec
 
@@ -61,6 +62,8 @@ PARSER.add_argument('--rmin', type=float, default=0.,
                     help='minimum radial distance in arcminutes')
 PARSER.add_argument('--rmax', type=float, default=10.,
                     help='maximum radial distance in arcminutes')
+PARSER.add_argument('--rcore', type=float, default=0.5,
+                    help='core radius for the psf fit in arcminutes')
 PARSER.add_argument('--rbins', type=int, default=200,
                     help='number of bins for the radial profile')
 PARSER.add_boolean('--autocenter', default=True,
@@ -134,8 +137,8 @@ def fit_offset(delta_ra, delta_dec, rmax=2., num_bins=100, interactive=False):
     return offset
 
 
-def psf_model(irf_name, du_id, radial_hist, rmax=0.75):
-    """Return the psf radial model for a given IRF name and DU, fitter to the core
+def fit_psf_model(irf_name, du_id, radial_hist, rcore):
+    """Calculate the psf radial model for a given IRF name and DU, fitter to the core
     of a given radial histogram.
 
     This is essentially loading the PSF for a given IRF name and Detector Unit,
@@ -158,7 +161,7 @@ def psf_model(irf_name, du_id, radial_hist, rmax=0.75):
     psf = load_psf(irf_name, du_id)
     fit_model = lambda r, norm: norm * psf(arcmin_to_arcsec(r))
     r = radial_hist.bin_centers()
-    mask = r < rmax
+    mask = r < rcore
     r = r[mask]
     counts = radial_hist.content[mask]
     # Fit the PSF profile ro the inner core of the radial profile.
@@ -206,12 +209,34 @@ def xpradialprofile(**kwargs):
         if kwargs.get('psf'):
             irf_name = kwargs.get('irfname')
             du_id = event_file.du_id()
-            model = psf_model(irf_name, du_id, hist)
+            rcore = kwargs.get('rcore')
+            # Retrieve the PSF model fitted to the core of the count ditribution.
+            psf_model = fit_psf_model(irf_name, du_id, hist, rcore)
             r = hist.bin_centers()
-            plt.plot(r, model(r), label='PSF %s (DU %s)' % (irf_name, du_id))
+            plt.plot(r, psf_model(r), label='PSF %s (DU %s)' % (irf_name, du_id))
+            # Now calculate the cumulative source counts as a function of the
+            # angular separation based on the PSF model. Note that it is not
+            # obvious that we can use the fitted PSF model directly, as
+            # the normalization was fitted in the weighted (that is, corrected
+            # for the solid angle) setting. We therefore resort to create a spline
+            # with r * psf(r), normalize it so that the integral between 0 and
+            # rcore matches the total number of total counts within rcore, and
+            # than use it to integrate outside any desired radius.
+            psf_spline = xInterpolatedUnivariateSpline(r, r * psf_model(r))
+            norm = (angsep <= rcore).sum() / psf_spline.integral(0., rcore)
+            psf_spline = psf_spline.scale(norm)
+            # At this point we have a model for the radial cumulative source
+            # counts that we can use to label the plot.
+            for r0 in numpy.linspace(1., 5., 5):
+                tot_counts = (angsep >= r0).sum()
+                src_counts = psf_spline.integral(r0, 10.)
+                src_ratio = src_counts / tot_counts
+                print(r0, tot_counts, src_counts, src_counts/tot_counts)
+                y = psf_model(r0)
+                plt.plot(r0, y, 'o', color=last_line_color())
+                plt.text(r0, y, ' %.2f%%' % (src_ratio * 100), color=last_line_color())
         setup_gca(logy=True, grids=True, legend=True)
     plt.show()
-
 
 
 def main():
