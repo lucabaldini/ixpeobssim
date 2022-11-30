@@ -28,7 +28,7 @@ from scipy.optimize import curve_fit
 
 from ixpeobssim.core.fitting import fit_histogram
 from ixpeobssim.core.hist import xHistogram1d
-from ixpeobssim.core.modeling import xFitModelBase, xConstant, xGaussian
+from ixpeobssim.core.modeling import xFitModelBase, xConstant, xLorentzian
 from ixpeobssim.evt.event import xEventFile
 from ixpeobssim.irf import load_psf
 from ixpeobssim.utils.argparse_ import xArgumentParser
@@ -42,7 +42,12 @@ from ixpeobssim.utils.units_ import degrees_to_arcmin, arcmin_to_degrees, arcmin
 __description__ = \
 """Create a radial profile plot, in sky coordinated, for a given observation.
 
-This program takes a level-2 file as an input
+This program takes a level-2 file as an input and creates a radial histogram of
+the event counts, weighted with 1. / r to correct for the solid angle. This is
+a useful diagnostics to gauge the background level in a given observation.
+
+In order to provide more context to the plots, the PSF radial profile for the
+relevant DU is overlaied. 
 """
 
 
@@ -70,8 +75,8 @@ PARSER.add_irfname()
 
 def fit_offset(delta_ra, delta_dec, rmax=2., num_bins=100, interactive=False):
     """Fit the angular separation between the sky positions of the events and the
-    nominal source position in the two ra, dec projections, and return the
-    optimal offset values to recenter the count map.
+    nominal source position in the two ra, dec projections with a Lorentzian model,
+    and return the optimal offset values to recenter the count map.
 
     Arguments
     ---------
@@ -97,8 +102,8 @@ def fit_offset(delta_ra, delta_dec, rmax=2., num_bins=100, interactive=False):
     delta_dec = degrees_to_arcmin(delta_dec)
     # Create the histograms in right ascension and declination to fit the offset.
     binning = numpy.linspace(-rmax, rmax, num_bins)
-    model_ra = xConstant() + xGaussian()
-    model_dec = xConstant() + xGaussian()
+    model_ra = xConstant() + xLorentzian()
+    model_dec = xConstant() + xLorentzian()
     hist_ra = xHistogram1d(binning, xlabel='$\\Delta$ R. A. [arcmin]').fill(delta_ra)
     hist_dec = xHistogram1d(binning, xlabel='$\\Delta$ Dec. [arcmin]').fill(delta_dec)
     # Fit the histograms with a model.
