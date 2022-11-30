@@ -48,7 +48,9 @@ the event counts, weighted with 1. / r to correct for the solid angle. This is
 a useful diagnostics to gauge the background level in a given observation.
 
 In order to provide more context to the plots, the PSF radial profile for the
-relevant DU is overlaied.
+relevant DU is overlayied, and the estimated fraction of source events outside
+a circle of radius r is annotated over the PSF line for a discrete set of values
+of r.
 """
 
 
