@@ -967,7 +967,7 @@ class xLorentzian(xFitModelBase):
     """Lorentzian function
     """
 
-    PARAMETER_NAMES = ('Normalization', 'Center', 'Hwhm' )
+    PARAMETER_NAMES = ('Normalization', 'Peak', 'HWHM' )
     PARAMETER_DEFAULT_VALUES = (1., 0., 1.)
     PARAMETER_DEFAULT_BOUNDS = ([0., -numpy.inf, 0.],
                                 [numpy.inf, numpy.inf, numpy.inf])
