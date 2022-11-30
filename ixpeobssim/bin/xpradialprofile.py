@@ -134,6 +134,38 @@ def fit_offset(delta_ra, delta_dec, rmax=2., num_bins=100, interactive=False):
     return offset
 
 
+def psf_model(irf_name, du_id, radial_hist, rmax=0.75):
+    """Return the psf radial model for a given IRF name and DU, fitter to the core
+    of a given radial histogram.
+
+    This is essentially loading the PSF for a given IRF name and Detector Unit,
+    and fitting the corresponding radial profile
+
+    Arguments
+    ---------
+    irf_name : str
+        The IRF name.
+
+    du_id : int
+        The Detector Unit identifier.
+
+    radial_hist : xHistogram1d instance
+        The radial histogram containing the counts corrected for the solid angle.
+
+    rmax : float
+        The maximum angular separation for the fit.
+    """
+    psf = load_psf(irf_name, du_id)
+    fit_model = lambda r, norm: norm * psf(arcmin_to_arcsec(r))
+    r = radial_hist.bin_centers()
+    mask = r < rmax
+    r = r[mask]
+    counts = radial_hist.content[mask]
+    # Fit the PSF profile ro the inner core of the radial profile.
+    popt, pcov = curve_fit(fit_model, r, counts, sigma=numpy.sqrt(counts))
+    return lambda r: fit_model(r, popt)
+
+
 def xpradialprofile(**kwargs):
     """Create and show the radial profile plot.
     """
@@ -163,8 +195,7 @@ def xpradialprofile(**kwargs):
             ra0 += offset_ra
             dec0 += offset_dec
             logger.info('Final center for radial profile set to (%.4f, %.4f)', ra0, dec0)
-        # Calculate the angular separation and create the weighted radial
-        # plot
+        # Calculate the angular separation and create the weighted radial histogram.
         angsep = degrees_to_arcmin(angular_separation(ra, dec, ra0, dec0))
         binning = numpy.linspace(kwargs.get('rmin'), kwargs.get('rmax'), kwargs.get('rbins'))
         hist = xHistogram1d(binning, xlabel='Radial distance [arcmin]')
@@ -173,16 +204,11 @@ def xpradialprofile(**kwargs):
         hist.plot()
         # If necessary, overlay the PSF profile.
         if kwargs.get('psf'):
+            irf_name = kwargs.get('irfname')
             du_id = event_file.du_id()
-            psf = load_psf(kwargs.get('irfname'), du_id)
+            model = psf_model(irf_name, du_id, hist)
             r = hist.bin_centers()
-            model = lambda r, norm: norm * psf(arcmin_to_arcsec(r))
-            mask = r < 0.75
-            counts = hist.content[mask]
-            # Fit the PSF profile ro the inner core of the radial profile.
-            popt, pcov = curve_fit(model, r[mask], counts, sigma=numpy.sqrt(counts))
-            label = 'PSF %s (DU %s)' % (kwargs.get('irfname'), du_id)
-            plt.plot(r, popt * psf(arcmin_to_arcsec(r)), label=label)
+            plt.plot(r, model(r), label='PSF %s (DU %s)' % (irf_name, du_id))
         setup_gca(logy=True, grids=True, legend=True)
     plt.show()
 
