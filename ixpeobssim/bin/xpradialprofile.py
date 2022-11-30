@@ -58,29 +58,63 @@ PARSER.add_argument('--rmax', type=float, default=10.,
                     help='maximum radial distance in arcminutes')
 PARSER.add_argument('--rbins', type=int, default=200,
                     help='number of bins for the radial profile')
-PARSER.add_boolean('--recenter', default=True,
+PARSER.add_boolean('--autocenter', default=True,
                    help='recenter the image based on the count map')
 PARSER.add_boolean('--psf', default=True,
                    help='overimpose the PSF radial profile')
+PARSER.add_boolean('--interactive', default=False,
+                   help='plot some diagnostic plot')
 PARSER.add_irfname()
 
 
 
-def calculate_center(delta_ra, delta_dec, rmax=2., num_bins=100, interactive=False):
+def fit_offset(delta_ra, delta_dec, rmax=2., num_bins=100, interactive=False):
+    """Fit the angular separation between the sky positions of the events and the
+    nominal source position in the two ra, dec projections, and return the
+    optimal offset values to recenter the count map.
+
+    Arguments
+    ---------
+    delta_ra : array_like
+        The R. A. difference between the sky position and the nominal source position in
+        decimal degrees.
+
+    delta_dec : array_like
+        The Dec. difference between the sky position and the nominal source position in
+        decimal degrees.
+
+    r_max : float
+        The maximum angular separation for the underlying histograms to be fitted.
+
+    num_bins : int
+        The number of bins for the underlying histograms to be fitted.
+
+    interactive : bool
+        If True, show some diagnostic plots.
     """
-    """
-    logger.info('Calculating the center of the count map in sky coordinates...')
+    # Convert the coordinates in arcmin.
     delta_ra = degrees_to_arcmin(delta_ra)
     delta_dec = degrees_to_arcmin(delta_dec)
+    # Create the histograms in right ascension and declination to fit the offset.
     binning = numpy.linspace(-rmax, rmax, num_bins)
     model_ra = xConstant() + xGaussian()
     model_dec = xConstant() + xGaussian()
     hist_ra = xHistogram1d(binning, xlabel='$\\Delta$ R. A. [arcmin]').fill(delta_ra)
     hist_dec = xHistogram1d(binning, xlabel='$\\Delta$ Dec. [arcmin]').fill(delta_dec)
-    fit_histogram(model_ra, hist_ra)
-    fit_histogram(model_dec, hist_dec)
+    # Fit the histograms with a model.
+    p0 = (0., 1000., 0., 0.1)
+    try:
+        fit_histogram(model_ra, hist_ra, p0=p0)
+    except RuntimeError as e:
+        logger.error('Cannot fit delta-ra histogram: %s', e)
+    try:
+        fit_histogram(model_dec, hist_dec, p0=p0)
+    except RuntimeError as e:
+        logger.error('Cannot fit delta-dec histogram: %s', e)
+    # Convert back the fitted offset into arcmin.
     offset = arcmin_to_degrees(model_ra.Peak), arcmin_to_degrees(model_dec.Peak)
     logger.info('Offset best estimate: %s', offset)
+    # If necessary, show the diagnostic plots.
     if interactive:
         plt.figure()
         hist_ra.plot()
@@ -96,36 +130,43 @@ def calculate_center(delta_ra, delta_dec, rmax=2., num_bins=100, interactive=Fal
 
 
 def xpradialprofile(**kwargs):
-    """
+    """Create and show the radial profile plot.
     """
     file_list = kwargs.get('filelist')
     for file_path in file_list:
         check_input_file(file_path, 'fits')
         file_name = os.path.basename(file_path)
+        # Open the event file and retrieve the sky-position data.
         event_file = xEventFile(file_path)
         ra, dec = event_file.sky_position_data()
-
-
-
-        # Retrieve the center for the radial profile.
+        # Retrieve the nominal center for the radial profile---this is by
+        # default the reference pixel in the WCS of the input file, and the user
+        # can ovverride this via the--ra and --dec command-line switches.
         obj_ra, obj_dec = event_file.wcs_reference()
         ra0, dec0 = kwargs.get('ra'), kwargs.get('dec')
         if ra0 is None:
             ra0 = obj_ra
         if dec0 is None:
             dec0 = obj_dec
-        logger.info('Center for radial plot set to (%.3f, %.3f)', ra0, dec0)
-        if kwargs.get('recenter'):
+        logger.info('Nominal center for radial plot set to (%.4f, %.4f)', ra0, dec0)
+        # If necessary, optimize the center of the count map based on the
+        # count map into the event file.
+        if kwargs.get('autocenter'):
             logger.info('Recentering the map...')
-            offset_ra, offset_dec = calculate_center(ra - ra0, dec - dec0)
+            offset_ra, offset_dec = fit_offset(ra - ra0, dec - dec0,
+                interactive=kwargs.get('interactive'))
             ra0 += offset_ra
             dec0 += offset_dec
+            logger.info('Final center for radial profile set to (%.4f, %.4f)', ra0, dec0)
+        # Calculate the angular separation and create the weighted radial
+        # plot
         angsep = degrees_to_arcmin(angular_separation(ra, dec, ra0, dec0))
         binning = numpy.linspace(kwargs.get('rmin'), kwargs.get('rmax'), kwargs.get('rbins'))
         hist = xHistogram1d(binning, xlabel='Radial distance [arcmin]')
         hist.fill(angsep, weights=1. / angsep)
         plt.figure('%s radial profile' % file_name)
         hist.plot()
+        # If necessary, overlay the PSF profile.
         if kwargs.get('psf'):
             du_id = event_file.du_id()
             psf = load_psf(kwargs.get('irfname'), du_id)
@@ -133,6 +174,7 @@ def xpradialprofile(**kwargs):
             model = lambda r, norm: norm * psf(arcmin_to_arcsec(r))
             mask = r < 0.75
             counts = hist.content[mask]
+            # Fit the PSF profile ro the inner core of the radial profile.
             popt, pcov = curve_fit(model, r[mask], counts, sigma=numpy.sqrt(counts))
             label = 'PSF %s (DU %s)' % (kwargs.get('irfname'), du_id)
             plt.plot(r, popt * psf(arcmin_to_arcsec(r)), label=label)
