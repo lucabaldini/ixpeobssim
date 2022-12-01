@@ -148,7 +148,7 @@ def run_display(file_path, **kwargs):
     event_file = xL1EventFile(file_path)
     threshold = event_file.zero_sup_threshold()
     logger.info('Zero suppression threshold: %d', threshold)
-    dbscan = DBscan(threshold, 4, 6)
+    dbscan = DBscan(threshold, min_density_points=5, min_cluster_size=6)
     # If we are targeting a specific event, we show it and exit immediately.
     # Note in this case we're not drawing the info box---shall we make the extra effort?
     if kwargs.get('timestamp'):
