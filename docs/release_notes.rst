@@ -4,6 +4,7 @@ Release notes
 =============
 
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/673
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/674
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/675
 * Added a new command-line switch to xpdisplay to display a specific event
   (identified by timestamp) for diagnostic purposes.
@@ -11,6 +12,9 @@ Release notes
 * Added more command-line options in the event display to automatically save
   the display images to file.
 * Clustering added to the event display.
+* New xLorentzian model in ixpeobssim.core.modeling
+* New xpradialprofile.py application to help gauging the level of background
+  in a given observation.
 * Issue(s) closed:
       * https://github.com/lucabaldini/ixpeobssim/issues/664
       * https://github.com/lucabaldini/ixpeobssim/issues/665
