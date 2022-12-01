@@ -50,7 +50,11 @@ PARSER.add_argument('--timestamp', type=float, default=None,
 PARSER.add_argument('--evtlist', type=str,
     help='path to the auxiliary (Level-2 file) event list')
 PARSER.add_boolean('--clustering', True,
-    help='run the clustering on the events')
+    help='run the DBscan clustering on the events')
+PARSER.add_argument('--clumindensity', type=int, default=5,
+    help='the minimum density point for the DBscan clustering')
+PARSER.add_argument('--cluminsize', type=int, default=6,
+    help='the minimum cluster size for the DBscan clustering')
 PARSER.add_argument('--resample', type=float, default=None,
     help='the power-law index for resampling events in energy')
 PARSER.add_boolean('--absorption', True,
@@ -148,7 +152,8 @@ def run_display(file_path, **kwargs):
     event_file = xL1EventFile(file_path)
     threshold = event_file.zero_sup_threshold()
     logger.info('Zero suppression threshold: %d', threshold)
-    dbscan = DBscan(threshold, min_density_points=5, min_cluster_size=6)
+    dbscan = DBscan(threshold, min_density_points=kwargs.get('clumindensity'),
+        min_cluster_size=kwargs.get('cluminsize'))
     # If we are targeting a specific event, we show it and exit immediately.
     # Note in this case we're not drawing the info box---shall we make the extra effort?
     if kwargs.get('timestamp'):
