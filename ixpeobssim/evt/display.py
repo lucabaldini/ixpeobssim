@@ -30,6 +30,7 @@ import matplotlib
 from matplotlib.patches import RegularPolygon
 from matplotlib.collections import PatchCollection
 
+from ixpeobssim.evt.clustering import region_query_factory
 from ixpeobssim.utils.logging_ import logger
 from ixpeobssim.utils.matplotlib_ import plt
 
@@ -225,6 +226,13 @@ class xL1Event(xRegionOfInterest):
         """
         super().__post_init__()
         self.pha = self.pha.reshape(self.shape)
+        self.cluster_id = numpy.zeros(self.pha.shape, dtype=int)
+
+    def run_clustering(self, engine):
+        """Run the clustering on the track image.
+        """
+        region_query = region_query_factory(self)
+        engine.run(self.pha.flatten(), self.cluster_id, region_query)
 
     def highest_pixel(self, absolute=True):
         """Return the coordinates (col, row) of the highest pixel.
