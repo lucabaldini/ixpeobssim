@@ -476,11 +476,19 @@ class xHexagonalGrid:
         return collection
 
     @staticmethod
-    def show_display():
+    def show_display(file_path=None):
         """Convenience function to setup the matplotlib canvas for an event display.
+
+        Arguments
+        ---------
+        file_path : str
+            Optional file path to save the image immediately before the plt.show() call.
         """
         plt.gca().set_aspect('equal')
         plt.axis('off')
+        if file_path is not None:
+            logger.info('Saving event display to %s...', file_path)
+            plt.savefig(file_path)
         logger.info('Showing event display, close the window to move to the next one...')
         plt.show()
 

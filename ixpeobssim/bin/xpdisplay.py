@@ -21,9 +21,12 @@
 
 from __future__ import print_function, division
 
+import os
+
 from astropy.io import fits
 import numpy
 
+from ixpeobssim import IXPEOBSSIM_DATA
 from ixpeobssim.core.hist import xHistogram1d
 from ixpeobssim.evt.display import xL1EventFile, xXpolGrid
 from ixpeobssim.evt.event import xEventFile
@@ -63,6 +66,10 @@ PARSER.add_argument('--cmapoffset', type=int, default=10,
     help='the PHA offset for the color map')
 PARSER.add_argument('--axside', type=float, default=None,
     help='the axis side for the event display')
+PARSER.add_boolean('--autosave', False,
+    help='save the event displays automatically')
+PARSER.add_argument('--imgformat', type=str, default='png',
+    help='the image format for the output files when autosave is True')
 
 
 
@@ -101,58 +108,67 @@ def load_level_2_data(file_path, resample_index=None, pivot_energy=8., interacti
     return met, energy, ra, dec, q, u
 
 
-def draw_event(event, grid, **kwargs):
-    """Draw an event.
+def display_event(event, grid, threshold, base_file_name=None, box_info=None,
+    padding=False, **kwargs):
+    """Single-stop event display.
     """
+    draw_kwargs = dict(values=kwargs.get('pixpha'), indices=kwargs.get('indices'),
+        canvas_side=kwargs.get('axside'), zero_sup_threshold=threshold, padding=padding)
     plt.figure('IXPE single event display', figsize=(9., 10.))
     logger.info('Drawing event @ MET %.6f', event.timestamp)
-    grid.draw_event(event, **kwargs)
-
-
-def draw_recon(event, **kwargs):
-    """Draw the event recon.
-    """
+    # Draw the bare event...
+    grid.draw_event(event, **draw_kwargs)
+    # ... then the reconstruction elements.
     if kwargs.get('absorption'):
         event.recon.draw_absorption_point()
     if kwargs.get('barycenter'):
         event.recon.draw_barycenter()
     if kwargs.get('direction'):
         event.recon.draw_track_direction()
+    if box_info is not None:
+        event_box(*box_info)
+    if kwargs.get('autosave'):
+        file_name = '%s_%.6f.%s' % (base_file_name, event.timestamp, kwargs.get('imgformat'))
+        file_path = os.path.join(IXPEOBSSIM_DATA, file_name)
+    else:
+        file_path = None
+    grid.show_display(file_path)
 
 
 def run_display(file_path, **kwargs):
     """Run the event display.
     """
+    base_file_name = os.path.basename(file_path).replace('.fits', '')
     grid = xXpolGrid(cmap_name=kwargs.get('cmap'), cmap_offset=kwargs.get('cmapoffset'))
     event_file = xL1EventFile(file_path)
     threshold = event_file.zero_sup_threshold()
     logger.info('Zero suppression threshold: %d', threshold)
-    draw_kwargs = dict(values=kwargs.get('pixpha'), indices=kwargs.get('indices'),
-        zero_sup_threshold=threshold, padding=False, canvas_side=kwargs.get('axside'))
+    #draw_kwargs = dict(values=kwargs.get('pixpha'), indices=kwargs.get('indices'),
+    #    zero_sup_threshold=threshold, padding=False, canvas_side=kwargs.get('axside'))
     # If we are targeting a specific event, we show it and exit immediately.
     # Note in this case we're not drawing the info box---shall we make the extra effort?
     if kwargs.get('timestamp'):
         event = event_file.bisect_met(kwargs.get('timestamp'))
-        draw_event(event, grid, **draw_kwargs)
-        draw_recon(event, **kwargs)
-        grid.show_display()
+        display_event(event, grid, threshold, base_file_name, **kwargs)
         return
-    # If we are passing an event list, loop over that one.
+    # If we are passing an event list, loop over that one. Note that in this case
+    # we do have all the final, calibrated information at hand, and we can
+    # display it in a dedicated box.
     if kwargs.get('evtlist'):
         l2_data = load_level_2_data(kwargs.get('evtlist'), kwargs.get('resample'))
         for met, energy, ra, dec, q, u in zip(*l2_data):
             event = event_file.bisect_met(met)
-            draw_event(event, grid, **draw_kwargs)
-            if abs(event.timestamp - met) <= 1.e-6:
-                event_box(met, energy, ra, dec, q, u)
-            draw_recon(event, **kwargs)
-            grid.show_display()
+            # We only show the calibrated information if the timestamps in the
+            # level 1 and level 2 files agree to within 2 mus.
+            if abs(event.timestamp - met) <= 2.e-6:
+                box_info = (met, energy, ra, dec, q, u)
+            else:
+                box_info = None
+            display_event(event, grid, threshold, base_file_name, box_info, **kwargs)
     # Finally, handle the case where we're looking at a raw level-1 file.
     else:
         for event in event_file:
-            draw_event(event, grid, **draw_kwargs)
-            draw_recon(event, **kwargs)
-            grid.show_display()
+            display_event(event, grid, threshold, base_file_name, **kwargs)
 
 
 def xpdisplay(**kwargs):
