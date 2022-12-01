@@ -130,13 +130,14 @@ def run_display(file_path, **kwargs):
     draw_kwargs = dict(values=kwargs.get('pixpha'), indices=kwargs.get('indices'),
         zero_sup_threshold=threshold, padding=False, canvas_side=kwargs.get('axside'))
     # If we are targeting a specific event, we show it and exit immediately.
+    # Note in this case we're not drawing the info box---shall we make the extra effort?
     if kwargs.get('timestamp'):
         event = event_file.bisect_met(kwargs.get('timestamp'))
         draw_event(event, grid, **draw_kwargs)
         draw_recon(event, **kwargs)
         grid.show_display()
         return
-    # If we are passing an event list
+    # If we are passing an event list, loop over that one.
     if kwargs.get('evtlist'):
         l2_data = load_level_2_data(kwargs.get('evtlist'), kwargs.get('resample'))
         for met, energy, ra, dec, q, u in zip(*l2_data):
@@ -146,6 +147,7 @@ def run_display(file_path, **kwargs):
                 event_box(met, energy, ra, dec, q, u)
             draw_recon(event, **kwargs)
             grid.show_display()
+    # Finally, handle the case where we're looking at a raw level-1 file.
     else:
         for event in event_file:
             draw_event(event, grid, **draw_kwargs)

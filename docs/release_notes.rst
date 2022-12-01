@@ -4,6 +4,13 @@ Release notes
 =============
 
 
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull
+*
+*
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/
+
+
 *ixpeobssim (29.5.0) - Thu, 24 Nov 2022 13:20:07 +0100*
 
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/666
