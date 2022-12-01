@@ -160,9 +160,10 @@ def display_event(event, grid, threshold, dbscan, base_file_name=None, box_info=
     grid.show_display(file_path)
 
 
-def run_display(file_path, **kwargs):
+def xpdisplay(**kwargs):
     """Run the event display.
     """
+    file_path = kwargs.get('file')
     base_file_name = os.path.basename(file_path).replace('.fits', '')
     grid = xXpolGrid(cmap_name=kwargs.get('cmap'), cmap_offset=kwargs.get('cmapoffset'))
     event_file = xL1EventFile(file_path)
@@ -199,12 +200,6 @@ def run_display(file_path, **kwargs):
             display_event(event, grid, threshold, dbscan, base_file_name, **kwargs)
             if i + 1 == kwargs.get('autostop'):
                 break
-
-
-def xpdisplay(**kwargs):
-    """Application entry point.
-    """
-    return run_display(kwargs.get('file'), **kwargs)
 
 
 def main():
