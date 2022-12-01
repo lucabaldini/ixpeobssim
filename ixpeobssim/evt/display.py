@@ -211,6 +211,9 @@ class xL1Event(xRegionOfInterest):
     corresponding EVENTS extension in the underlying FITS files.
     """
 
+    _DIAGNOSTIC_DU_STATUS_BIT = 1
+    _DIAGNOSTIC_OFFSET = 256
+
     pha : numpy.array
     trigger_id : int = 0
     seconds : int = 0
@@ -225,6 +228,9 @@ class xL1Event(xRegionOfInterest):
         """Post-init hook implementation.
         """
         super().__post_init__()
+        # Handle diagnostic events.
+        if (self.du_status >> self._DIAGNOSTIC_DU_STATUS_BIT) & 0x1:
+            self.pha -= self._DIAGNOSTIC_OFFSET
         self.pha = self.pha.reshape(self.shape)
         self.cluster_id = numpy.zeros(self.pha.shape, dtype=int)
 
@@ -514,11 +520,19 @@ class xHexagonalGrid:
         return collection
 
     @staticmethod
-    def show_display():
+    def show_display(file_path=None):
         """Convenience function to setup the matplotlib canvas for an event display.
+
+        Arguments
+        ---------
+        file_path : str
+            Optional file path to save the image immediately before the plt.show() call.
         """
         plt.gca().set_aspect('equal')
         plt.axis('off')
+        if file_path is not None:
+            logger.info('Saving event display to %s...', file_path)
+            plt.savefig(file_path)
         logger.info('Showing event display, close the window to move to the next one...')
         plt.show()
 
