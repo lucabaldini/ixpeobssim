@@ -73,8 +73,11 @@ PARSER.add_argument('--cmapoffset', type=int, default=10,
     help='the PHA offset for the color map')
 PARSER.add_argument('--axside', type=float, default=None,
     help='the axis side for the event display')
+PARSER.add_argument('--autostop', type=int, default=None,
+    help='stop automatically after a given number of events')
 PARSER.add_boolean('--autosave', False,
     help='save the event displays automatically')
+PARSER.add_outfolder(default=IXPEOBSSIM_DATA)
 PARSER.add_argument('--imgformat', type=str, default='png',
     help='the image format for the output files when autosave is True')
 
@@ -94,10 +97,11 @@ def event_box(met, energy, ra, dec, q, u):
     box.plot(transform=plt.gcf().transFigure)
 
 
-def load_level_2_data(file_path, resample_index=None, pivot_energy=8., interactive=False):
+def load_level_2_data(file_path, pivot_energy=8., interactive=False, **kwargs):
     """Load the event data from the Level-2 event list.
     """
     event_list = xEventFile(file_path)
+    resample_index = kwargs.get('resample')
     met = event_list.time_data()
     energy = event_list.energy_data()
     ra, dec = event_list.sky_position_data()
@@ -112,6 +116,18 @@ def load_level_2_data(file_path, resample_index=None, pivot_energy=8., interacti
         plt.figure('Input energy spectrum')
         h = xHistogram1d(numpy.linspace(2., 8., 20)).fill(energy)
         h.plot()
+    autostop = kwargs.get('autostop')
+    if autostop is not None and autostop < len(met):
+        logger.info('Trimming down the L2 columns to the target autostop...')
+        # Create a mask to filter the column data---start from all False...
+        mask = numpy.zeros(len(met), dtype=bool)
+        # ... then pick ranom indices without replacement...
+        idx = numpy.arange(len(met), dtype=int)
+        idx = numpy.random.choice(idx, size=autostop, replace=False)
+        # ...and, finally, set the corresponding elements to True
+        mask[idx] = True
+        met, energy, ra, dec, q, u = [item[mask] for item in (met, energy, ra, dec, q, u)]
+        logger.info('Done, %d event(s) left.', len(met))
     return met, energy, ra, dec, q, u
 
 
@@ -138,7 +154,7 @@ def display_event(event, grid, threshold, dbscan, base_file_name=None, box_info=
         event_box(*box_info)
     if kwargs.get('autosave'):
         file_name = '%s_%.6f.%s' % (base_file_name, event.timestamp, kwargs.get('imgformat'))
-        file_path = os.path.join(IXPEOBSSIM_DATA, file_name)
+        file_path = os.path.join(kwargs.get('outfolder'), file_name)
     else:
         file_path = None
     grid.show_display(file_path)
@@ -163,8 +179,10 @@ def run_display(file_path, **kwargs):
     # If we are passing an event list, loop over that one. Note that in this case
     # we do have all the final, calibrated information at hand, and we can
     # display it in a dedicated box.
+    # Note the autostop mechanism is implemented in the load_level_2_data() hook,
+    # so that we get events nicely spaces across the entire observation.
     if kwargs.get('evtlist'):
-        l2_data = load_level_2_data(kwargs.get('evtlist'), kwargs.get('resample'))
+        l2_data = load_level_2_data(kwargs.get('evtlist'), **kwargs)
         for met, energy, ra, dec, q, u in zip(*l2_data):
             event = event_file.bisect_met(met)
             # We only show the calibrated information if the timestamps in the
@@ -175,9 +193,12 @@ def run_display(file_path, **kwargs):
                 box_info = None
             display_event(event, grid, threshold, dbscan, base_file_name, box_info, **kwargs)
     # Finally, handle the case where we're looking at a raw level-1 file.
+    # Note that we have to handle the autostop by hand in this branch of the code.
     else:
-        for event in event_file:
+        for i, event in enumerate(event_file):
             display_event(event, grid, threshold, dbscan, base_file_name, **kwargs)
+            if i + 1 == kwargs.get('autostop'):
+                break
 
 
 def xpdisplay(**kwargs):
