@@ -4,14 +4,16 @@ Release notes
 =============
 
 
-* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/675
 * Added a new command-line switch to xpdisplay to display a specific event
   (identified by timestamp) for diagnostic purposes.
 * Diagnostic events properly handled in the event display.
 * Added more command-line options in the event display to automatically save
   the display images to file.
+* Clustering added to the event display.
 * Issue(s) closed:
       * https://github.com/lucabaldini/ixpeobssim/issues/664
+      * https://github.com/lucabaldini/ixpeobssim/issues/665
 
 
 *ixpeobssim (29.5.0) - Thu, 24 Nov 2022 13:20:07 +0100*
