@@ -385,6 +385,8 @@ class xBinnedPolarizationCube(xBinnedFileBase):
         """
         self.__check_compat(other)
         self.E_MEAN = self._weighted_average(other, 'E_MEAN', 'I')
+        self.EFLUX = self._invsquare_weighted_average(other, 'EFLUX', 'EFLUXERR')
+        self.EFLUXERR = self._invsquare_sum(other, 'EFLUXERR')
         self.MU = self._weighted_average(other, 'MU', 'I')
         self.COUNTS += other.COUNTS
         self.W2 += other.W2
@@ -399,6 +401,8 @@ class xBinnedPolarizationCube(xBinnedFileBase):
         """
         self.__check_compat(other)
         self.E_MEAN = self._weighted_average(other, 'E_MEAN', 'I', invert_w2=True)
+        self.EFLUX = self._invsquare_weighted_average(other, 'EFLUX', 'EFLUXERR', invert_w2=True)
+        self.EFLUXERR = self._invsquare_sum(other, 'EFLUXERR', invert_v2=False)
         self.MU = self._weighted_average(other, 'MU', 'I', invert_w2=True)
         self.COUNTS -= other.COUNTS
         # Note W2 must always be added.
@@ -445,6 +449,17 @@ class xBinnedPolarizationCube(xBinnedFileBase):
         tuple (PD, PD_err, PA, PA_err) of arrays.
         """
         return self.PD, self.PD_ERR, self.PA, self.PA_ERR
+
+    def eflux(self):
+        """Return the first component of the energy flux and its error
+        PCUBE binned products, in erg/cm^2/s.
+        """
+        return self.EFLUX[0], self.EFLUXERR[0]
+
+    def i_ierr(self):
+        """ Return the first component of I and I_ERR PCUBE binned products.
+        """
+        return self.I[0], self.I_ERR[0]
 
     def _energy_scatter_plot(self, y, dy, ylabel=None):
         """Make a scatter plot of a given quanity vs. energy.
@@ -984,6 +999,8 @@ class xBinnedPolarizationMapCube(xBinnedMDPMapCube):
         """Overloaded method for binned data addition.
         """
         self._check_iadd(other, ('Q', 'U'))
+        self.EFLUX = self._invsq_pxsum_w_ave(other, 'EFLUX', 'EFLUXERR')
+        self.EFLUXERR = self._invsq_pxsum_sq_w_ave(other, 'EFLUXERR','EFLUXERR')
         xBinnedMDPMapCube.__iadd__(self, other)
         self.Q += other.Q
         self.U += other.U
@@ -997,7 +1014,9 @@ class xBinnedPolarizationMapCube(xBinnedMDPMapCube):
             self.I[layer] = scipy.signal.convolve2d(self.I[layer], kernel, mode='same')
             self.Q[layer] = scipy.signal.convolve2d(self.Q[layer], kernel, mode='same')
             self.U[layer] = scipy.signal.convolve2d(self.U[layer], kernel, mode='same')
+            self.EFLUX[layer] = scipy.signal.convolve2d(self.EFLUX[layer], kernel, mode='same')
             self.W2[layer] = scipy.signal.convolve2d(self.W2[layer], kernel, mode='same')
+            self.EFLUXERR[layer] = numpy.sqrt(scipy.signal.convolve2d((self.EFLUXERR[layer])**2, kernel, mode='same'))
             self.MU[layer] = scipy.signal.convolve2d(self.MU[layer], kernel, mode='same') /\
                 kernel.sum()
         self.__recalculate()
