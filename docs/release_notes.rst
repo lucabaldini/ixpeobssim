@@ -8,6 +8,8 @@ Release notes
 * Added a new command-line switch to xpdisplay to display a specific event
   (identified by timestamp) for diagnostic purposes.
 * Diagnostic events properly handled in the event display.
+* Added more command-line options in the event display to automatically save
+  the display images to file.
 * Issue(s) closed:
       * https://github.com/lucabaldini/ixpeobssim/issues/664
 
