@@ -232,13 +232,15 @@ class xL1Event(xRegionOfInterest):
         if (self.du_status >> self._DIAGNOSTIC_DU_STATUS_BIT) & 0x1:
             self.pha -= self._DIAGNOSTIC_OFFSET
         self.pha = self.pha.reshape(self.shape)
-        self.cluster_id = numpy.zeros(self.pha.shape, dtype=int)
+        self.cluster_id = numpy.zeros(self.shape, dtype=int)
 
     def run_clustering(self, engine):
         """Run the clustering on the track image.
         """
         region_query = region_query_factory(self)
-        engine.run(self.pha.flatten(), self.cluster_id, region_query)
+        cluster_id = self.cluster_id.flatten()
+        engine.run(self.pha.flatten(), cluster_id, region_query)
+        self.cluster_id = cluster_id.reshape(self.shape)
 
     def highest_pixel(self, absolute=True):
         """Return the coordinates (col, row) of the highest pixel.
@@ -489,7 +491,7 @@ class xHexagonalGrid:
         r, g, b, _ = color.T
         return (299 * r + 587 * g + 114 * b) / 1000
 
-    def draw_event(self, event, offset=(0., 0.), canvas_side=2.0, indices=True,
+    def draw_event(self, event, cluster_id=0, offset=(0., 0.), canvas_side=2.0, indices=True,
                    padding=True, zero_sup_threshold=None, values=False, **kwargs):
         """Draw an actual event int the parent hexagonal grid.
 
@@ -497,8 +499,14 @@ class xHexagonalGrid:
         event part.
         """
         # pylint: disable = invalid-name
+        # Create a copy of the PHA vector and set to zero all the pixels not
+        # belonging to the target cluster.
+        pha = event.pha.copy()
+        mask = event.cluster_id == cluster_id
+        pha[numpy.logical_not(mask)] = 0
+        # We're good to go!
         collection = self.draw_roi(event, offset, indices, padding, **kwargs)
-        face_color = self.pha_to_colors(event.pha, zero_sup_threshold)
+        face_color = self.pha_to_colors(pha, zero_sup_threshold)
         collection.set_facecolor(face_color)
         if values:
             # Draw the pixel values---note that we use black or white for the text
@@ -508,7 +516,7 @@ class xHexagonalGrid:
             text_color = numpy.tile(black, len(face_color)).reshape(face_color.shape)
             text_color[self.brightness(face_color) < 0.5] = white
             fmt = dict(ha='center', va='center', fontsize='xx-small')
-            for x, y, value, color in zip(collection.x, collection.y, event.pha.flatten(),
+            for x, y, value, color in zip(collection.x, collection.y, pha.flatten(),
                 text_color):
                 if value > zero_sup_threshold:
                     plt.text(x, y, f'{value}', color=color, **fmt)

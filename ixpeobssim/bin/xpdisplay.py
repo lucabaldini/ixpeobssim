@@ -28,6 +28,7 @@ import numpy
 
 from ixpeobssim import IXPEOBSSIM_DATA
 from ixpeobssim.core.hist import xHistogram1d
+from ixpeobssim.evt.clustering import DBscan
 from ixpeobssim.evt.display import xL1EventFile, xXpolGrid
 from ixpeobssim.evt.event import xEventFile
 from ixpeobssim.utils.argparse_ import xArgumentParser
@@ -48,6 +49,8 @@ PARSER.add_argument('--timestamp', type=float, default=None,
     help='timestamp of a single specific event to be displayed')
 PARSER.add_argument('--evtlist', type=str,
     help='path to the auxiliary (Level-2 file) event list')
+PARSER.add_boolean('--clustering', True,
+    help='run the clustering on the events')
 PARSER.add_argument('--resample', type=float, default=None,
     help='the power-law index for resampling events in energy')
 PARSER.add_boolean('--absorption', True,
@@ -108,7 +111,7 @@ def load_level_2_data(file_path, resample_index=None, pivot_energy=8., interacti
     return met, energy, ra, dec, q, u
 
 
-def display_event(event, grid, threshold, base_file_name=None, box_info=None,
+def display_event(event, grid, threshold, dbscan, base_file_name=None, box_info=None,
     padding=False, **kwargs):
     """Single-stop event display.
     """
@@ -116,6 +119,8 @@ def display_event(event, grid, threshold, base_file_name=None, box_info=None,
         canvas_side=kwargs.get('axside'), zero_sup_threshold=threshold, padding=padding)
     plt.figure('IXPE single event display', figsize=(9., 10.))
     logger.info('Drawing event @ MET %.6f', event.timestamp)
+    if kwargs.get('clustering'):
+        event.run_clustering(dbscan)
     # Draw the bare event...
     grid.draw_event(event, **draw_kwargs)
     # ... then the reconstruction elements.
@@ -143,13 +148,12 @@ def run_display(file_path, **kwargs):
     event_file = xL1EventFile(file_path)
     threshold = event_file.zero_sup_threshold()
     logger.info('Zero suppression threshold: %d', threshold)
-    #draw_kwargs = dict(values=kwargs.get('pixpha'), indices=kwargs.get('indices'),
-    #    zero_sup_threshold=threshold, padding=False, canvas_side=kwargs.get('axside'))
+    dbscan = DBscan(threshold, 4, 6)
     # If we are targeting a specific event, we show it and exit immediately.
     # Note in this case we're not drawing the info box---shall we make the extra effort?
     if kwargs.get('timestamp'):
         event = event_file.bisect_met(kwargs.get('timestamp'))
-        display_event(event, grid, threshold, base_file_name, **kwargs)
+        display_event(event, grid, threshold, dbscan, base_file_name, **kwargs)
         return
     # If we are passing an event list, loop over that one. Note that in this case
     # we do have all the final, calibrated information at hand, and we can
@@ -164,11 +168,11 @@ def run_display(file_path, **kwargs):
                 box_info = (met, energy, ra, dec, q, u)
             else:
                 box_info = None
-            display_event(event, grid, threshold, base_file_name, box_info, **kwargs)
+            display_event(event, grid, threshold, dbscan, base_file_name, box_info, **kwargs)
     # Finally, handle the case where we're looking at a raw level-1 file.
     else:
         for event in event_file:
-            display_event(event, grid, threshold, base_file_name, **kwargs)
+            display_event(event, grid, threshold, dbscan, base_file_name, **kwargs)
 
 
 def xpdisplay(**kwargs):
