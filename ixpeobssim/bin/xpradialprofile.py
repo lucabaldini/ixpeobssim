@@ -35,7 +35,7 @@ from ixpeobssim.irf import load_psf
 from ixpeobssim.utils.argparse_ import xArgumentParser
 from ixpeobssim.utils.astro import angular_separation
 from ixpeobssim.utils.logging_ import logger
-from ixpeobssim.utils.matplotlib_ import plt, setup_gca, last_line_color
+from ixpeobssim.utils.matplotlib_ import plt, setup_gca, last_line_color, residual_plot
 from ixpeobssim.utils.os_ import check_input_file
 from ixpeobssim.utils.units_ import degrees_to_arcmin, arcmin_to_degrees, arcmin_to_arcsec
 
@@ -72,6 +72,8 @@ PARSER.add_boolean('--autocenter', default=True,
                    help='recenter the image based on the count map')
 PARSER.add_boolean('--psf', default=True,
                    help='overimpose the PSF radial profile')
+PARSER.add_boolean('--residuals', default=False,
+                   help='plot the estimated residual background')
 PARSER.add_boolean('--interactive', default=False,
                    help='plot some diagnostic plot')
 PARSER.add_irfname()
@@ -205,7 +207,11 @@ def xpradialprofile(**kwargs):
         binning = numpy.linspace(kwargs.get('rmin'), kwargs.get('rmax'), kwargs.get('rbins'))
         hist = xHistogram1d(binning, xlabel='Radial distance [arcmin]')
         hist.fill(angsep, weights=1. / angsep)
-        plt.figure('%s radial profile' % file_name)
+        figure_name = '%s radial profile' % file_name
+        if kwargs.get('residuals'):
+            ax1, ax2 = residual_plot(figure_name)
+        else:
+            plt.figure(figure_name)
         hist.plot()
         # If necessary, overlay the PSF profile.
         if kwargs.get('psf'):
@@ -216,6 +222,15 @@ def xpradialprofile(**kwargs):
             psf_model = fit_psf_model(irf_name, du_id, hist, rcore)
             r = hist.bin_centers()
             plt.plot(r, psf_model(r), label='PSF %s (DU %s)' % (irf_name, du_id))
+            # If necessary, plot the residual background.
+            if kwargs.get('residuals'):
+                plt.sca(ax2)
+                res = (hist.content - psf_model(r))
+                sigma_res = hist.errors()
+                plt.errorbar(r, res, sigma_res, fmt='o')
+                setup_gca(xlabel=hist.labels[0], ylabel='Residuals', grids=True,
+                    ymin=0., ymax=3. * res.mean())
+                plt.sca(ax1)
             # Now calculate the cumulative source counts as a function of the
             # angular separation based on the PSF model. Note that it is not
             # obvious that we can use the fitted PSF model directly, as
