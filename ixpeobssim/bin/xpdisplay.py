@@ -75,6 +75,8 @@ PARSER.add_argument('--axside', type=float, default=None,
     help='the axis side for the event display')
 PARSER.add_argument('--autostop', type=int, default=None,
     help='stop automatically after a given number of events')
+PARSER.add_boolean('--batch', default=False,
+    help='run in batch mode')
 PARSER.add_boolean('--autosave', False,
     help='save the event displays automatically')
 PARSER.add_outfolder(default=IXPEOBSSIM_DATA)
@@ -157,7 +159,7 @@ def display_event(event, grid, threshold, dbscan, base_file_name=None, box_info=
         file_path = os.path.join(kwargs.get('outfolder'), file_name)
     else:
         file_path = None
-    grid.show_display(file_path)
+    grid.show_display(file_path, kwargs.get('batch'))
 
 
 def xpdisplay(**kwargs):

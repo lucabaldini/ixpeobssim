@@ -528,7 +528,7 @@ class xHexagonalGrid:
         return collection
 
     @staticmethod
-    def show_display(file_path=None):
+    def show_display(file_path=None, batch=False):
         """Convenience function to setup the matplotlib canvas for an event display.
 
         Arguments
@@ -541,8 +541,9 @@ class xHexagonalGrid:
         if file_path is not None:
             logger.info('Saving event display to %s...', file_path)
             plt.savefig(file_path)
-        logger.info('Showing event display, close the window to move to the next one...')
-        plt.show()
+        if not batch:
+            logger.info('Showing event display, close the window to move to the next one...')
+            plt.show()
 
 
 
