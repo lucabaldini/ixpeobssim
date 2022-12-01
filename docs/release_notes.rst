@@ -3,7 +3,7 @@
 Release notes
 =============
 
-
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/673
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/675
 * Added a new command-line switch to xpdisplay to display a specific event
   (identified by timestamp) for diagnostic purposes.
