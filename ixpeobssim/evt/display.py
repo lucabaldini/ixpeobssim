@@ -30,6 +30,7 @@ import matplotlib
 from matplotlib.patches import RegularPolygon
 from matplotlib.collections import PatchCollection
 
+from ixpeobssim.evt.clustering import region_query_factory
 from ixpeobssim.utils.logging_ import logger
 from ixpeobssim.utils.matplotlib_ import plt
 
@@ -99,6 +100,31 @@ class xRegionOfInterest:
         row = numpy.repeat(self.row_indices(), self.num_cols)
         return col, row
 
+    def serial_readout_indices(self):
+        """Return a two-dimensional array containing the readout index for
+        each pixel of the ROI.
+
+        The ASIC serial readout starts from the top-left corner and proceeds
+        one row at a time, i.e., for a toy 5 x 5 window starting at <0, 0> the
+        readout indices look like
+        +--------------------
+        |   0   1   2   3   4
+        |
+        |   5   6   7   8   9
+        |
+        |  10  11  12  13  14
+        |
+        |  15  16  17  18  19
+        |
+        |  20  21  22  23  24
+
+        It is worth noting that, provided that one loops over the row indices
+        first and column indices last, the readout index can be determined by
+        just accumulating a counter. This function is useful as it provides the
+        right answer for any position in the event window, no matter what the
+        loop order is."""
+        return numpy.arange(self.size).reshape(self.shape)
+
     def coordinates_in_rot(self, col, row):
         """Return a boolean mask indicaing whether elements of the (col, row)
         arrays lie into the ROT area.
@@ -108,6 +134,17 @@ class xRegionOfInterest:
             col <= self.max_col - XPOL_HORIZONTAL_PADDING,
             row >= self.min_row + XPOL_VERTICAL_PADDING,
             row <= self.max_row - XPOL_VERTICAL_PADDING
+        ))
+
+    def coordinates_in_roi(self, col, row):
+        """Return a boolean mask indicaing whether elements of the (col, row)
+        arrays lie into the ROT area.
+        """
+        return numpy.logical_and.reduce((
+            col >= self.min_col,
+            col <= self.max_col,
+            row >= self.min_row,
+            row <= self.max_row
         ))
 
 
@@ -174,6 +211,9 @@ class xL1Event(xRegionOfInterest):
     corresponding EVENTS extension in the underlying FITS files.
     """
 
+    _DIAGNOSTIC_DU_STATUS_BIT = 1
+    _DIAGNOSTIC_OFFSET = 256
+
     pha : numpy.array
     trigger_id : int = 0
     seconds : int = 0
@@ -188,7 +228,19 @@ class xL1Event(xRegionOfInterest):
         """Post-init hook implementation.
         """
         super().__post_init__()
+        # Handle diagnostic events.
+        if (self.du_status >> self._DIAGNOSTIC_DU_STATUS_BIT) & 0x1:
+            self.pha -= self._DIAGNOSTIC_OFFSET
         self.pha = self.pha.reshape(self.shape)
+        self.cluster_id = numpy.zeros(self.shape, dtype=int)
+
+    def run_clustering(self, engine):
+        """Run the clustering on the track image.
+        """
+        region_query = region_query_factory(self)
+        cluster_id = self.cluster_id.flatten()
+        engine.run(self.pha.flatten(), cluster_id, region_query)
+        self.cluster_id = cluster_id.reshape(self.shape)
 
     def highest_pixel(self, absolute=True):
         """Return the coordinates (col, row) of the highest pixel.
@@ -439,7 +491,7 @@ class xHexagonalGrid:
         r, g, b, _ = color.T
         return (299 * r + 587 * g + 114 * b) / 1000
 
-    def draw_event(self, event, offset=(0., 0.), canvas_side=2.0, indices=True,
+    def draw_event(self, event, cluster_id=0, offset=(0., 0.), canvas_side=2.0, indices=True,
                    padding=True, zero_sup_threshold=None, values=False, **kwargs):
         """Draw an actual event int the parent hexagonal grid.
 
@@ -447,8 +499,14 @@ class xHexagonalGrid:
         event part.
         """
         # pylint: disable = invalid-name
+        # Create a copy of the PHA vector and set to zero all the pixels not
+        # belonging to the target cluster.
+        pha = event.pha.copy()
+        mask = event.cluster_id == cluster_id
+        pha[numpy.logical_not(mask)] = 0
+        # We're good to go!
         collection = self.draw_roi(event, offset, indices, padding, **kwargs)
-        face_color = self.pha_to_colors(event.pha, zero_sup_threshold)
+        face_color = self.pha_to_colors(pha, zero_sup_threshold)
         collection.set_facecolor(face_color)
         if values:
             # Draw the pixel values---note that we use black or white for the text
@@ -458,7 +516,7 @@ class xHexagonalGrid:
             text_color = numpy.tile(black, len(face_color)).reshape(face_color.shape)
             text_color[self.brightness(face_color) < 0.5] = white
             fmt = dict(ha='center', va='center', fontsize='xx-small')
-            for x, y, value, color in zip(collection.x, collection.y, event.pha.flatten(),
+            for x, y, value, color in zip(collection.x, collection.y, pha.flatten(),
                 text_color):
                 if value > zero_sup_threshold:
                     plt.text(x, y, f'{value}', color=color, **fmt)
@@ -470,11 +528,19 @@ class xHexagonalGrid:
         return collection
 
     @staticmethod
-    def show_display():
+    def show_display(file_path=None):
         """Convenience function to setup the matplotlib canvas for an event display.
+
+        Arguments
+        ---------
+        file_path : str
+            Optional file path to save the image immediately before the plt.show() call.
         """
         plt.gca().set_aspect('equal')
         plt.axis('off')
+        if file_path is not None:
+            logger.info('Saving event display to %s...', file_path)
+            plt.savefig(file_path)
         logger.info('Showing event display, close the window to move to the next one...')
         plt.show()
 
