@@ -75,12 +75,8 @@ variety of event topologies.
 
 .. warning::
 
-   The current version of the event display comes with at least two limitations that
-   will be taken care of in the future:
-
-   * all the pixels above user-defined zero suppression thresholds are shown,
-     i.e., there is currently no way to apply the clustering stage that is performed
-     in real life to remove the noise hits, see https://github.com/lucabaldini/ixpeobssim/issues/665;
-   * diagnostic events are not handled properly (if you occasionally see a track
-     that is all red don't panic: this is a feature of the display and not
-     an issue with the data), see https://github.com/lucabaldini/ixpeobssim/issues/664.
+   Be mindful that, since the event time is the only quantity that we can use
+   to keep in synch level-2 and level-1 data, the event list functionality does
+   not play well with any analysis tool (e.g., the barycorr FTOOL) that change
+   the event time---for the purpose of the event display you want to use event
+   file as distributed, without further processing.
