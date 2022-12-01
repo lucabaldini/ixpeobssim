@@ -140,6 +140,9 @@ def display_event(event, grid, threshold, dbscan, base_file_name=None, box_info=
     draw_kwargs = dict(values=kwargs.get('pixpha'), indices=kwargs.get('indices'),
         canvas_side=kwargs.get('axside'), zero_sup_threshold=threshold, padding=padding)
     plt.figure('IXPE single event display', figsize=(9., 10.))
+    # This is very important when running in batch in order to get the canvas
+    # cleared out before the next event is painted.
+    plt.gcf().clear()
     logger.info('Drawing event @ MET %.6f', event.timestamp)
     if kwargs.get('clustering'):
         event.run_clustering(dbscan)
