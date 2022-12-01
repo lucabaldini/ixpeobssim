@@ -174,6 +174,9 @@ class xL1Event(xRegionOfInterest):
     corresponding EVENTS extension in the underlying FITS files.
     """
 
+    _DIAGNOSTIC_DU_STATUS_BIT = 1
+    _DIAGNOSTIC_OFFSET = 256
+
     pha : numpy.array
     trigger_id : int = 0
     seconds : int = 0
@@ -188,6 +191,9 @@ class xL1Event(xRegionOfInterest):
         """Post-init hook implementation.
         """
         super().__post_init__()
+        # Handle diagnostic events.
+        if (self.du_status >> self._DIAGNOSTIC_DU_STATUS_BIT) & 0x1:
+            self.pha -= self._DIAGNOSTIC_OFFSET
         self.pha = self.pha.reshape(self.shape)
 
     def highest_pixel(self, absolute=True):

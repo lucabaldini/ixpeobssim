@@ -41,6 +41,8 @@ Level-1 IXPE files.
 
 PARSER = xArgumentParser(description=__description__)
 PARSER.add_file()
+PARSER.add_argument('--timestamp', type=float, default=None,
+    help='timestamp of a single specific event to be displayed')
 PARSER.add_argument('--evtlist', type=str,
     help='path to the auxiliary (Level-2 file) event list')
 PARSER.add_argument('--resample', type=float, default=None,
@@ -103,6 +105,7 @@ def draw_event(event, grid, **kwargs):
     """Draw an event.
     """
     plt.figure('IXPE single event display', figsize=(9., 10.))
+    logger.info('Drawing event @ MET %.6f', event.timestamp)
     grid.draw_event(event, **kwargs)
 
 
@@ -126,6 +129,14 @@ def run_display(file_path, **kwargs):
     logger.info('Zero suppression threshold: %d', threshold)
     draw_kwargs = dict(values=kwargs.get('pixpha'), indices=kwargs.get('indices'),
         zero_sup_threshold=threshold, padding=False, canvas_side=kwargs.get('axside'))
+    # If we are targeting a specific event, we show it and exit immediately.
+    if kwargs.get('timestamp'):
+        event = event_file.bisect_met(kwargs.get('timestamp'))
+        draw_event(event, grid, **draw_kwargs)
+        draw_recon(event, **kwargs)
+        grid.show_display()
+        return
+    # If we are passing an event list
     if kwargs.get('evtlist'):
         l2_data = load_level_2_data(kwargs.get('evtlist'), kwargs.get('resample'))
         for met, energy, ra, dec, q, u in zip(*l2_data):
