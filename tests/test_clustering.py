@@ -28,6 +28,7 @@ from ixpeobssim.utils.logging_ import logger
 from ixpeobssim.utils.matplotlib_ import plt
 
 
+@unittest.skip('This has a hard-coded path')
 class TestClocking(unittest.TestCase):
 
     """Unit test for the clustering.
