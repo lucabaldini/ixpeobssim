@@ -514,6 +514,71 @@ class xStatBox:
         plt.text(self.x0, self.y0, self.text.strip('\n'), **kwargs)
 
 
+
+class xTextCard(dict):
+
+    """Small class reperesenting a text card.
+
+    This is essentially a dictionary that is capable of plotting itself on
+    a matplotlib figure in the form of a multi-line graphic card.
+    """
+
+    def __init__(self):
+        """Constructor.
+        """
+        dict.__init__(self)
+        self.key_kwargs = dict(color='gray', size='small', ha='left', va='top')
+        self.value_kwargs = dict(color='black', ha='left', va='top')
+
+    def set_line(self, key, value, fmt='%s', units=None):
+        """Set the value for a given key.
+
+        Arguments
+        ---------
+        key : str
+            The key, i.e., the explanatory text for a given value.
+
+        value : number or str
+            The actual value (if None, a blank line will be added).
+
+        fmt : str
+            The string format to be used to render the value.
+
+        units : str
+            The measurement units for the value.
+        """
+        self[key] = (value, fmt, units)
+
+    def draw(self, x0=0.1, y0=0.9, line_spacing=0.1, spacing_ratio=0.9):
+        """Draw the card.
+
+        Arguments
+        ---------
+        x0, y0 : float
+            The absolute coordinates of the top-left corner of the card.
+
+        line_spacing : float
+            The line spacing in units of the total height of the current axes.
+
+        spacing_ratio : float
+            The fractional line spacing assigned to the key label.
+        """
+        key_norm = spacing_ratio / (1. + spacing_ratio)
+        value_norm = 1. - key_norm
+        for key, (value, fmt, units) in self.items():
+            if value is None:
+                y0 -= 0.5 * line_spacing
+                continue
+            plt.text(x0, y0, key, self.key_kwargs)
+            y0 -= key_norm * line_spacing
+            value = fmt % value
+            if units is not None:
+                value = '%s %s' % (value, units)
+            plt.text(x0, y0, value, self.value_kwargs)
+            y0 -= value_norm * line_spacing
+
+
+
 class xDraggableColorbar:
     """Interactive colorbar than can be dragged and zoomed.
     Most of the code is taken from:
