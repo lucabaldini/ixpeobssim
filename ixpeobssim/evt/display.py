@@ -30,9 +30,12 @@ import matplotlib
 from matplotlib.patches import RegularPolygon
 from matplotlib.collections import PatchCollection
 
+from ixpeobssim import IXPEOBSSIM_DATA
 from ixpeobssim.evt.clustering import region_query_factory
+from ixpeobssim.evt.event import xEventFile
 from ixpeobssim.utils.logging_ import logger
-from ixpeobssim.utils.matplotlib_ import plt
+from ixpeobssim.utils.argparse_ import xArgumentParser
+from ixpeobssim.utils.matplotlib_ import plt, xStatBox
 
 
 XPOL_LAYOUT = 'ODD_R'
@@ -436,6 +439,19 @@ class xHexagonalGrid:
         y = self.yoffset - row * self.secondary_pitch
         return x, y
 
+    def roi_center(self, roi):
+        """Return the world coordinates of the physical center of a given ROI.
+
+        Note the small offsets that we apply serves the purpose of taking into
+        account the fact that pixels are staggered in one direction.
+        """
+        col = (roi.min_col + roi.max_col + 1) // 2
+        row = (roi.min_row + roi.max_row + 1) // 2
+        x, y = self.pixel_to_world(col, row)
+        x -= 0.75 * self.pitch
+        y += 0.5 * self.secondary_pitch
+        return x, y
+
     def pha_to_colors(self, pha, zero_sup_threshold=None):
         """Convert the pha values to colors for display purposes.
         """
@@ -521,10 +537,14 @@ class xHexagonalGrid:
                 if value > zero_sup_threshold:
                     plt.text(x, y, f'{value}', color=color, **fmt)
         if canvas_side is not None:
-            x0, y0 = event.recon.barycenter
-            pad = 0.5 * canvas_side
-            plt.gca().set_xlim(x0 - pad, x0 + pad)
-            plt.gca().set_ylim(y0 - pad, y0 + pad)
+            # We want to center the display of the geometrical center of the ROI.
+            x0, y0 = self.roi_center(event)
+            dx, dy = offset
+            x0 += dx
+            y0 += dy
+            half_side = 0.5 * canvas_side
+            plt.gca().set_xlim(x0 - half_side, x0 + half_side)
+            plt.gca().set_ylim(y0 - half_side, y0 + half_side)
         return collection
 
     @staticmethod
@@ -556,3 +576,178 @@ class xXpolGrid(xHexagonalGrid):
         """Constructor.
         """
         super().__init__(*XPOL_SIZE, XPOL_PITCH, **kwargs)
+
+
+
+class xDisplayArgumentParser(xArgumentParser):
+
+    """Specialized argument parser for the event display and related facilities.
+
+    This is placed here because if needs to be used by both the single-event
+    display and the observation carousel.
+    """
+
+    def __init__(self, description):
+        """Constructor.
+        """
+        xArgumentParser.__init__(self, description)
+        self.add_file()
+        self.add_argument('--evtlist', type=str,
+            help='path to the auxiliary (Level-2 file) event list')
+        self.add_boolean('--clustering', True,
+            help='run the DBscan clustering on the events')
+        self.add_argument('--clumindensity', type=int, default=5,
+            help='the minimum density point for the DBscan clustering')
+        self.add_argument('--cluminsize', type=int, default=6,
+            help='the minimum cluster size for the DBscan clustering')
+        self.add_argument('--resample', type=float, default=None,
+            help='the power-law index for resampling events in energy')
+        self.add_boolean('--absorption', True,
+            help='draw the reconstructed absorption_point')
+        self.add_boolean('--barycenter', True,
+            help='draw the reconstructed barycenter')
+        self.add_boolean('--direction', True,
+            help='draw the reconstructed track direction')
+        self.add_boolean('--pixpha', False,
+            help='indicate the pixel PHA values')
+        self.add_boolean('--indices', False,
+            help='draw the row and column indices of the readout matrix')
+        self.add_argument('--cmap', type=str, default='Reds',
+            help='the color map for the pixel values')
+        self.add_argument('--cmapoffset', type=int, default=10,
+            help='the PHA offset for the color map')
+        self.add_argument('--axside', type=float, default=None,
+            help='the axis side for the event display')
+        self.add_argument('--autostop', type=int, default=None,
+            help='stop automatically after a given number of events')
+        self.add_boolean('--batch', default=False,
+            help='run in batch mode')
+        self.add_boolean('--autosave', False,
+            help='save the event displays automatically')
+        self.add_outfolder(default=IXPEOBSSIM_DATA)
+        self.add_argument('--imgformat', type=str, default='png',
+            help='the image format for the output files when autosave is True')
+
+
+
+def load_level_2_data(file_path, pivot_energy=8., interactive=False, **kwargs):
+    """Load the event data from the Level-2 event list for the purpose of the
+    event display---these include, in order: mission elapsed time, energy,
+    sky position and Stokes parameters.
+
+    This function has a few other functionalities, other than just loadinf the
+    relevant colums from the the Level-2 files, and particularly:
+
+    * resample the input events with a given power-law spectral function;
+    * trimming the resampled colums to a target number of events preserving the
+      time ordering and covering evengly the entire time span.
+
+    Arguments
+    ---------
+    file_path : str
+        The path to the input Level-2 file.
+
+    pivot_energy : float
+        The pivot energy for the resampling of the count spectrum.
+
+    interactive : bool
+        If True, show some debug plot with the output (resampled) spectrum.
+
+    kwargs : dict
+        The keyword arguments from the xDisplayArgumentParser.
+    """
+    event_list = xEventFile(file_path)
+    resample_index = kwargs.get('resample')
+    met = event_list.time_data()
+    energy = event_list.energy_data()
+    ra, dec = event_list.sky_position_data()
+    q, u = event_list.stokes_data()
+    if resample_index is not None:
+        logger.info('Resampling input level-2 data with index %.3f', resample_index)
+        mask = numpy.random.uniform(size=len(energy)) <= (energy /  pivot_energy)**resample_index
+        logger.info('%d event(s) out of %s remaining.', mask.sum(), len(mask))
+        met, energy, ra, dec, q, u = [item[mask] for item in (met, energy, ra, dec, q, u)]
+    if interactive:
+        # Debug plot for the input energy spectrum.
+        plt.figure('Input energy spectrum')
+        h = xHistogram1d(numpy.linspace(2., 8., 20)).fill(energy)
+        h.plot()
+    autostop = kwargs.get('autostop')
+    if autostop is not None and autostop < len(met):
+        logger.info('Trimming down the L2 columns to the target autostop...')
+        # Create a mask to filter the column data---start from all False...
+        mask = numpy.zeros(len(met), dtype=bool)
+        # ... then pick ranom indices without replacement...
+        idx = numpy.arange(len(met), dtype=int)
+        idx = numpy.random.choice(idx, size=autostop, replace=False)
+        # ...and, finally, set the corresponding elements to True
+        mask[idx] = True
+        met, energy, ra, dec, q, u = [item[mask] for item in (met, energy, ra, dec, q, u)]
+        logger.info('Done, %d event(s) left.', len(met))
+    return met, energy, ra, dec, q, u
+
+
+def event_box(met, energy, ra, dec, q, u):
+    """Draw a text box with all event information relevant to high-level science
+    analysis: time, energy, sky position and Stokes parameters.
+
+    Arguments
+    ---------
+    met : float
+        The mission elapsed time.
+
+    energy : float
+        The energy of the event.
+
+    ra : float
+        The right ascention of the event.
+
+    dec : float
+        The declination of the event.
+
+    q : float
+        The Q Stokes parameter of the event.
+
+    u : float
+        The U Stokes parameter of the event.
+    """
+    box = xStatBox()
+    box.add_entry('MET = %.6f s' % met)
+    box.add_entry('Energy = %.3f keV' % energy)
+    box.add_entry('(R.A., Dec) = (%.3f, %.3f) degrees' % (ra, dec))
+    box.add_entry('(Q, U) = (%.3f, %.3f)' % (q, u))
+    box.x0 = 0.025
+    box.y0 = 0.975
+    box.plot(transform=plt.gcf().transFigure)
+
+
+def display_event(event, grid, threshold, dbscan, base_file_name=None, box_info=None,
+    padding=False, **kwargs):
+    """Single-stop event display.
+    """
+    draw_kwargs = dict(values=kwargs.get('pixpha'), indices=kwargs.get('indices'),
+        canvas_side=kwargs.get('axside'), zero_sup_threshold=threshold, padding=padding)
+    #plt.figure('IXPE single event display', figsize=(9., 10.))
+    # This is very important when running in batch in order to get the canvas
+    # cleared out before the next event is painted.
+    #plt.gca().clear()
+    logger.info('Drawing event @ MET %.6f', event.timestamp)
+    if kwargs.get('clustering'):
+        event.run_clustering(dbscan)
+    # Draw the bare event...
+    grid.draw_event(event, **draw_kwargs)
+    # ... then the reconstruction elements.
+    if kwargs.get('absorption'):
+        event.recon.draw_absorption_point()
+    if kwargs.get('barycenter'):
+        event.recon.draw_barycenter()
+    if kwargs.get('direction'):
+        event.recon.draw_track_direction()
+    if box_info is not None:
+        event_box(*box_info)
+    if kwargs.get('autosave'):
+        file_name = '%s_%.6f.%s' % (base_file_name, event.timestamp, kwargs.get('imgformat'))
+        file_path = os.path.join(kwargs.get('outfolder'), file_name)
+    else:
+        file_path = None
+    grid.show_display(file_path, kwargs.get('batch'))
