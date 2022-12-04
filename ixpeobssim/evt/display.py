@@ -35,7 +35,7 @@ from ixpeobssim.evt.clustering import region_query_factory
 from ixpeobssim.evt.event import xEventFile
 from ixpeobssim.utils.logging_ import logger
 from ixpeobssim.utils.argparse_ import xArgumentParser
-from ixpeobssim.utils.matplotlib_ import plt, xStatBox
+from ixpeobssim.utils.matplotlib_ import plt, xStatBox, xTextCard
 
 
 XPOL_LAYOUT = 'ODD_R'
@@ -687,9 +687,42 @@ def load_level_2_data(file_path, pivot_energy=8., interactive=False, **kwargs):
     return met, energy, ra, dec, q, u
 
 
+
+class xDisplayCard(xTextCard):
+
+    """Specialize text card to display event information.
+
+    The basic idea, here, is that one initializes the card with the EVENTS
+    header of a Level-2 file, and then updates the information on an event-by-event
+    basis using the set_event_data() hook.
+    """
+
+    def __init__(self, header):
+        """Constructor.
+        """
+        xTextCard.__init__(self)
+        self.set_line('Target Name', header['OBJECT'])
+        self.set_line('Observation Start', header['DATE-OBS'])
+        self.set_line('Observation End', header['DATE-END'])
+        self.set_line('Detector Unit', '%s (%s)' % (header['DETNAM'], header['DET_ID']))
+        self.set_line('Spacer', None)
+
+    def set_event_data(self, met, energy, ra, dec, q, u):
+        """Set the event data.
+        """
+        self.set_line('Mission elsapsed time', met, '%.6f', 's')
+        self.set_line('Energy', energy, '%.2f', 'keV')
+        self.set_line('Right ascention', ra, '%.3f', 'decimal degrees')
+        self.set_line('Declination', dec, '%.3f', 'decimal degrees')
+        self.set_line('Stokes parameters', '(%.4f, %.4f)' % (q, u))
+
+
+
 def event_box(met, energy, ra, dec, q, u):
     """Draw a text box with all event information relevant to high-level science
     analysis: time, energy, sky position and Stokes parameters.
+
+    THIS IS OBSOLETE AND SHOULD BE REMOVED!
 
     Arguments
     ---------
