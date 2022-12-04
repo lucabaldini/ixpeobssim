@@ -73,12 +73,15 @@ def composite_figure(wcs, obs_name=None, figsize=(18., 9.), left_pad=0.06,
     # The axes for the event display---this is guaranteed to be square, and
     # placed right on the left of the figure, spanning its entire height.
     ax_display = fig.add_axes((0., 0., display_width, 1.))
-    # Now the skymap and the polarization axes on the top left of the figure.
+    # Now the count map and the polarization axes on the top left of the figure.
     # Note these have a square aspect ratio, and will naturally place themselves
     # in the right place vertically.
     rect = (display_width + left_pad, 0.5, plot_width, 0.5)
-    ax_skymap = fig.add_axes(rect, projection=wcs)
-    ax_skymap.set_aspect('equal')
+    ax_cmap = fig.add_axes(rect, projection=wcs)
+    ax_cmap.set_aspect('equal')
+    rect = (display_width + left_pad, 0.525, plot_width, 0.5)
+    ax_cmap_colorbar = fig.add_axes(rect)
+    plt.axis('off')
     rect = (display_width + plot_width + 2. * left_pad, 0.5, plot_width, 0.5)
     ax_polarization = fig.add_axes(rect)
     #setup_gca_stokes()
@@ -88,7 +91,7 @@ def composite_figure(wcs, obs_name=None, figsize=(18., 9.), left_pad=0.06,
     rect = (display_width + left_pad, 0., plot_width, 0.5)
     ax_text = fig.add_axes(rect)
     plt.axis('off')
-    return fig, ax_display, ax_skymap, ax_polarization, ax_spectrum, ax_text
+    return fig, ax_display, ax_cmap, ax_cmap_colorbar, ax_polarization, ax_spectrum, ax_text
 
 
 
@@ -101,7 +104,6 @@ def xpobsdisplay(**kwargs):
     * add significance to Stokes plot
     * add colorbar to the display
     * add sigma levels on Stokes plot
-    * add grids on skymap
     """
     # We do need an event list, here...
     if not kwargs.get('evtlist'):
@@ -167,11 +169,16 @@ def xpobsdisplay(**kwargs):
         # damned thing within the event loop and destroy it at each event.
         # I am sure this is pointing at something fundamentally wrong in the
         # code and I should look at it in details...
-        fig, ax_display, ax_skymap, ax_polarization, ax_spectrum, ax_text = composite_figure(wcs_)
-        # Update the skymap.
-        ax_skymap.imshow(cmap_data)
-        ax_skymap.set_xlabel('Right Ascension')
-        ax_skymap.set_ylabel('Declination')
+        fig, ax_display, ax_cmap, ax_cmap_colorbar, ax_polarization,\
+            ax_spectrum, ax_text = composite_figure(wcs_)
+        # Update the count map.
+        plt.sca(ax_cmap)
+        im = ax_cmap.imshow(cmap_data)
+        ax_cmap.set_xlabel('Right Ascension')
+        ax_cmap.set_ylabel('Declination')
+        plt.grid()
+        plt.sca(ax_cmap_colorbar)
+        plt.colorbar(im, location='top')
         # Update the polarization plot.
         plt.sca(ax_polarization)
         # Need to refine this!
