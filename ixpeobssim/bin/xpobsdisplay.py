@@ -31,12 +31,15 @@ import numpy
 from ixpeobssim import IXPEOBSSIM_DATA
 from ixpeobssim.binning.base import xEventBinningBase
 from ixpeobssim.core.hist import xHistogram1d
+from ixpeobssim.irf import load_arf, load_modf
 from ixpeobssim.evt.clustering import DBscan
 from ixpeobssim.evt.display import xL1EventFile, xXpolGrid, xDisplayArgumentParser,\
     event_box, load_level_2_data, display_event
 from ixpeobssim.evt.event import xEventFile
+from ixpeobssim.evt.kislat2015 import xStokesAnalysis
 from ixpeobssim.utils.logging_ import logger
-from ixpeobssim.utils.matplotlib_ import plt, setup_gca, setup_gca_stokes
+from ixpeobssim.utils.matplotlib_ import plt, setup_gca, setup_gca_stokes,\
+    xTextCard, plot_ellipse, DEFAULT_COLORS
 
 
 __description__ = \
@@ -47,6 +50,7 @@ Level-1 IXPE files.
 """
 
 PARSER = xDisplayArgumentParser(__description__)
+PARSER.add_irfname()
 
 
 
@@ -77,14 +81,15 @@ def composite_figure(wcs, obs_name=None, figsize=(18., 9.), left_pad=0.06,
     ax_skymap.set_aspect('equal')
     rect = (display_width + plot_width + 2. * left_pad, 0.5, plot_width, 0.5)
     ax_polarization = fig.add_axes(rect)
-    setup_gca_stokes()
+    #setup_gca_stokes()
     # The spectrum axes on the bottom-right corner.
     rect = (display_width + plot_width + 2. * left_pad, bot_pad, plot_width, 0.5 - bot_pad)
     ax_spectrum = fig.add_axes(rect)
     rect = (display_width + left_pad, 0., plot_width, 0.5)
     ax_text = fig.add_axes(rect)
     plt.axis('off')
-    return fig, ax_display, ax_skymap, ax_spectrum, ax_polarization
+    return fig, ax_display, ax_skymap, ax_polarization, ax_spectrum, ax_text
+
 
 
 def xpobsdisplay(**kwargs):
@@ -93,51 +98,87 @@ def xpobsdisplay(**kwargs):
     file_path = kwargs.get('file')
     base_file_name = os.path.basename(file_path).replace('.fits', '')
     grid = xXpolGrid(cmap_name=kwargs.get('cmap'), cmap_offset=kwargs.get('cmapoffset'))
+    # Open the Level-1 file and retrieve the necessary information.
     l1_file = xL1EventFile(file_path)
     threshold = l1_file.zero_sup_threshold()
     logger.info('Zero suppression threshold: %d', threshold)
+    # Setup the DBscan
     dbscan = DBscan(threshold, min_density_points=kwargs.get('clumindensity'),
         min_cluster_size=kwargs.get('cluminsize'))
-
+    # Open the Level-2 file and retrieve the necessary info,
     l2_file = xEventFile(kwargs.get('evtlist'))
-    energy = l2_file.energy_data()
+    xref, yref = l2_file.wcs_reference()
+    wcs_kwargs = dict(xref=xref, yref=yref, npix=200)
+    wcs_ = xEventBinningBase._build_image_wcs(default_img_side=10., **wcs_kwargs)
+    energy_data = l2_file.energy_data()
+    ra_data, dec_data = l2_file.sky_position_data()
+    q_data, u_data = l2_file.stokes_data()
+    # Prepate the text card with the observation-related info that does not
+    # change within the event loop.
+    header = l2_file.hdu_list['EVENTS'].header
+    card = xTextCard()
+    card.set_line('Target Name', header['OBJECT'])
+    card.set_line('Observation Start', header['DATE-OBS'])
+    card.set_line('Observation End', header['DATE-END'])
+    card.set_line('Detector Unit', '%s (%s)' % (header['DETNAM'], header['DET_ID']))
+    card.set_line('Spacer', None)
 
-    # Build the glorious, composite panel.
-    wcs = xEventBinningBase._build_image_wcs()
-    # Temporary stuff...
+    # Temporary stuff: for the time being we fill the plots all at once at the
+    # beginning, but this should happen in the event loop.
     # Note the number of bins is relevant, here. 2--8 keV in steps of 40 eV is 150 bins.
-    hist_spec = xHistogram1d(numpy.linspace(2., 8., 151), xlabel='Energy [keV]',
-        ylabel='Counts')
-    hist_spec.fill(energy)
+    hist_spec = xHistogram1d(numpy.linspace(2., 8., 151), xlabel='Energy [keV]', ylabel='Counts')
+    hist_spec.fill(energy_data)
+    x, y, binning = xEventBinningBase._pixelize_skycoords(ra_data, dec_data, wcs_)
+    hist_skymap, _, _ = numpy.histogram2d(x, y, bins=binning)
+    aeff = load_arf(kwargs.get('irfname'), l2_file.du_id())
+    modf = load_modf(kwargs.get('irfname'), l2_file.du_id())
+    analysis = xStokesAnalysis(q_data, u_data, energy_data, modf, aeff, l2_file.livetime())
     # ... end of hack
 
     # We do need an event list, here...
     if not kwargs.get('evtlist'):
         raise RuntimeError('Please provide an event list...')
     l2_data = load_level_2_data(kwargs.get('evtlist'), **kwargs)
-    for met, energy, ra, dec, q, u in zip(*l2_data):
-        event = l1_file.bisect_met(met)
-        # We only show the calibrated information if the timestamps in the
-        # level 1 and level 2 files agree to within 2 mus.
-        #if abs(event.timestamp - met) <= 2.e-6:
-        #    box_info = (met, energy, ra, dec, q, u)
-        #else:
-        #box_info = None
-
-        fig, ax_display, ax_skymap, ax_spectrum, ax_polarization = composite_figure(wcs)
-
+    for t, E, ra, dec, q, u in zip(*l2_data):
+        event = l1_file.bisect_met(t)
+        assert abs(event.timestamp - t) <= 2.e-6
+        # Create the composite panel---I can't seem to be able to understand why
+        # the event display is not refreshed if I don't create and delete the
+        # damned thing within the event loop and destroy it at each event.
+        # I am sure this is pointing at something fundamentally wrong in the
+        # code and I should look at it in details...
+        fig, ax_display, ax_skymap, ax_polarization, ax_spectrum, ax_text = composite_figure(wcs_)
+        # Update the skymap.
+        ax_skymap.imshow(hist_skymap)
+        ax_skymap.set_xlabel('Right Ascension')
+        ax_skymap.set_ylabel('Declination')
+        # Update the polarization plot.
+        plt.sca(ax_polarization)
+        # Need to refine this!
+        table = analysis.polarization_table(numpy.linspace(2., 8., 2))
+        for sigma in (1., 2., 3):
+            q, u, dq, du = [table[key] for key in ('QN', 'UN', 'QN_ERR', 'UN_ERR')]
+            plot_ellipse((q, u), 2. * sigma * dq, 2. * sigma * du, zorder=10,
+                color=DEFAULT_COLORS[0])
+        setup_gca_stokes(side=0.12, pd_grid=numpy.linspace(0.05, 0.1, 2))
+        # Update the spectrum.
         plt.sca(ax_spectrum)
         hist_spec.plot()
         setup_gca(logy=True, grids=True)
-
-        # Event display is blocking, and goes last.
+        # Update the text card.
+        plt.sca(ax_text)
+        card.set_line('Mission elsapsed time', t, '%.6f', 's')
+        card.set_line('Energy', E, '%.2f', 'keV')
+        card.set_line('Right ascention', ra, '%.3f', 'decimal degrees')
+        card.set_line('Declination', dec, '%.3f', 'decimal degrees')
+        card.set_line('Stokes parameters', '(%.4f, %.4f)' % (q, u))
+        card.draw(x0=0., y0=0.95, line_spacing=0.09)
+        # And, finally, the actual event display---since this is blocking,
+        # it needs to go last.
         plt.sca(ax_display)
         display_event(event, grid, threshold, dbscan, base_file_name, **kwargs)
-
-
-
+        # See the initial remark about the need to destroy the figure.
         plt.close(fig)
-
 
 
 def main():
@@ -149,9 +190,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    # ra, dec = 0., 0.
-    # x, y, binning = xEventBinningBase._pixelize_skycoords(ra, dec, wcs_)
-    # data, _, _ = numpy.histogram2d(x, y, bins=binning)
-    # ax_hists[0].imshow(data)
-    # ax_hists[0].set_xlabel('Right Ascension')
-    # ax_hists[0].set_ylabel('Declination')
