@@ -663,14 +663,25 @@ def load_event_list(file_path, pivot_energy=8., interactive=False, **kwargs):
     """
     event_list = xEventFile(file_path)
     resample_index = kwargs.get('resample')
-    met = event_list.time_data()
+    emin = kwargs.get('emin')
+    emax = kwargs.get('emax')
+    logger.info('Loading event list from %s...', file_path)
     energy = event_list.energy_data()
+    logger.info('Selecting energies in %.2f--%.2f keV...', emin, emax)
+    mask = numpy.logical_and(energy >= emin, energy < emax)
+    logger.info('Done, %d event(s) out of %d remaining.', mask.sum(), len(mask))
+    energy = energy[mask]
+    met = event_list.time_data()[mask]
     ra, dec = event_list.sky_position_data()
+    ra = ra[mask]
+    dec = dec[mask]
     q, u = event_list.stokes_data()
+    q = q[mask]
+    u = u[mask]
     if resample_index is not None:
         logger.info('Resampling input level-2 data with index %.3f', resample_index)
         mask = numpy.random.uniform(size=len(energy)) <= (energy /  pivot_energy)**resample_index
-        logger.info('%d event(s) out of %s remaining.', mask.sum(), len(mask))
+        logger.info('Done, %d event(s) out of %s remaining.', mask.sum(), len(mask))
         met, energy, ra, dec, q, u = [item[mask] for item in (met, energy, ra, dec, q, u)]
     if interactive:
         # Debug plot for the input energy spectrum.
@@ -680,12 +691,9 @@ def load_event_list(file_path, pivot_energy=8., interactive=False, **kwargs):
     autostop = kwargs.get('autostop')
     if autostop is not None and autostop < len(met):
         logger.info('Trimming down the L2 columns to the target autostop...')
-        # Create a mask to filter the column data---start from all False...
+        # We achieve this by trying and select events uniformly within the range.
         mask = numpy.zeros(len(met), dtype=bool)
-        # ... then pick ranom indices without replacement...
-        idx = numpy.arange(len(met), dtype=int)
-        idx = numpy.random.choice(idx, size=autostop, replace=False)
-        # ...and, finally, set the corresponding elements to True
+        idx = numpy.linspace(0, len(met) - 1, autostop, dtype=int).astype(int)
         mask[idx] = True
         met, energy, ra, dec, q, u = [item[mask] for item in (met, energy, ra, dec, q, u)]
         logger.info('Done, %d event(s) left.', len(met))
