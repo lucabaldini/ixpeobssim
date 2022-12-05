@@ -161,7 +161,7 @@ def xpobsdisplay(**kwargs):
     previous_met = time_data[0]
 
     # Start the loop over the event list.
-    for met, energy, ra, dec, q, u in zip(*event_list):
+    for i, (met, energy, ra, dec, q, u) in enumerate(zip(*event_list)):
         # Retrieve the actual event from the underlying level-1 file.
         event = l1_file.bisect_met(met)
         assert abs(event.timestamp - met) <= 2.e-6
@@ -221,7 +221,8 @@ def xpobsdisplay(**kwargs):
         # And, finally, the actual event display---since this is blocking,
         # it needs to go last.
         plt.sca(ax_display)
-        display_event(event, grid, threshold, dbscan, base_file_name, **kwargs)
+        file_name = '%s_%04d.%s' % (base_file_name, i, kwargs.get('imgformat'))
+        display_event(event, grid, threshold, dbscan, file_name, **kwargs)
         # See the initial remark about the need to destroy the figure.
         plt.close(fig)
 

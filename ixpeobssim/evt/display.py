@@ -771,7 +771,7 @@ def event_box(met, energy, ra, dec, q, u):
     box.plot(transform=plt.gcf().transFigure)
 
 
-def display_event(event, grid, threshold, dbscan, base_file_name=None, box_info=None,
+def display_event(event, grid, threshold, dbscan, file_name=None, box_info=None,
     padding=False, **kwargs):
     """Single-stop event display.
     """
@@ -796,7 +796,6 @@ def display_event(event, grid, threshold, dbscan, base_file_name=None, box_info=
     if box_info is not None:
         event_box(*box_info)
     if kwargs.get('autosave'):
-        file_name = '%s_%.6f.%s' % (base_file_name, event.timestamp, kwargs.get('imgformat'))
         file_path = os.path.join(kwargs.get('outfolder'), file_name)
     else:
         file_path = None
