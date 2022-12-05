@@ -701,7 +701,11 @@ class xDisplayCard(xTextCard):
         """Constructor.
         """
         xTextCard.__init__(self)
-        self.set_line('Target Name', header['OBJECT'])
+        try:
+            self.set_line('Target Name', header['OBJECT'])
+        except KeyError as e:
+            logger.warning(e)
+            self.set_line('Observation ID', header['OBS_ID'])
         self.set_line('Observation Start', header['DATE-OBS'])
         self.set_line('Observation End', header['DATE-END'])
         self.set_line('Detector Unit', '%s (%s)' % (header['DETNAM'], header['DET_ID']))
