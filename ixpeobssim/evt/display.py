@@ -22,6 +22,7 @@ level-1 files.
 """
 
 from dataclasses import dataclass
+import os
 
 from astropy.io import fits
 import numpy
@@ -304,7 +305,11 @@ class xL1EventFile:
     def value(self, col_name):
         """Return the value of a given column for a given extension for the current event.
         """
-        return self.hdu_list[self.EVT_EXT_NAME].data[col_name][self.__index]
+        try:
+            return self.hdu_list[self.EVT_EXT_NAME].data[col_name][self.__index]
+        except IndexError as e:
+            logger.warning(e)
+            return None
 
     def _recon(self):
         """Retrieve the reconstructed quantities.
