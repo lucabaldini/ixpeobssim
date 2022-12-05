@@ -49,6 +49,10 @@ __description__ = \
 PARSER = xDisplayArgumentParser(__description__)
 PARSER.add_irfname()
 PARSER.add_ebounds()
+PARSER.add_argument('--pdmax', type=float, default=0.2,
+    help='maximum polarization degree for the Stokes plot')
+PARSER.add_argument('--pdstep', type=float, default=0.05,
+    help='polarization degree step for the Stokes plot grid')
 PARSER.add_argument('--npix', type=int, default=200,
     help='number of pixels per side for the count map in sky coordinates')
 
@@ -106,17 +110,11 @@ def polarization_analysis(q, u, energy, modf, aeff, mask):
     W2 = analysis.W2(mask)
     QN, UN, dI, dQ, dU, dQN, dUN, cov, pval, conf, sig = analysis.calculate_stokes_errors(I, Q, U, mu, W2)
     #pd, pd_err, pa, pa_err = analysis.calculate_polarization(I, Q, U, mu, W2)
-    return QN, UN, dQN, dUN
+    return QN, UN, dQN, dUN, sig
 
 
 def xpobsdisplay(**kwargs):
     """Run the observation event display.
-
-    TODO:
-
-    * add significance to Stokes plot
-    * add colorbar to the display
-    * add sigma levels on Stokes plot
     """
     # We do need an event list, here...
     if not kwargs.get('evtlist'):
@@ -126,6 +124,13 @@ def xpobsdisplay(**kwargs):
     file_path = kwargs.get('file')
     emin, emax = kwargs.get('emin'), kwargs.get('emax')
     npix = kwargs.get('npix')
+    pdmax = kwargs.get('pdmax')
+    pdstep = kwargs.get('pdstep')
+    pd_grid = numpy.arange(pdstep, pdmax, pdstep)
+    sig_color = 'black'
+    sig_arrowprops=dict(arrowstyle='->', connectionstyle='angle3', color=sig_color)
+    sig_kwargs = dict(xycoords='data', textcoords='axes fraction',
+        arrowprops=sig_arrowprops, backgroundcolor='white', color=sig_color, ha='center')
     base_file_name = os.path.basename(file_path).replace('.fits', '')
     grid = xXpolGrid(cmap_name=kwargs.get('cmap'), cmap_offset=kwargs.get('cmapoffset'))
 
@@ -184,7 +189,7 @@ def xpobsdisplay(**kwargs):
         # error-prone.
         mask = time_data < met
         mask *= energy_mask
-        qn, un, dqn, dun = polarization_analysis(q_data, u_data, energy_data, modf, aeff, mask)
+        qn, un, dqn, dun, sig = polarization_analysis(q_data, u_data, energy_data, modf, aeff, mask)
 
         # Create the composite panel---I can't seem to be able to understand why
         # the event display is not refreshed if I don't create and delete the
@@ -202,10 +207,19 @@ def xpobsdisplay(**kwargs):
         plt.colorbar(im, ax=ax_cmap_colorbar, location='top')
         # Update the polarization plot.
         plt.sca(ax_polarization)
+        color = DEFAULT_COLORS[0]
+        plt.plot(qn, un, 'o', color=color)
         for sigma in (1., 2., 3):
-            plot_ellipse((qn, un), 2. * sigma * dqn, 2. * sigma * dun, zorder=10,
-                color=DEFAULT_COLORS[0])
-        setup_gca_stokes(side=0.12, pd_grid=numpy.linspace(0.05, 0.1, 2))
+            plot_ellipse((qn, un), 2. * sigma * dqn, 2. * sigma * dun, zorder=10, color=color)
+        delta = 0.5 * (dqn + dun) * sigma * numpy.sqrt(0.5)
+        x0 = qn - delta * numpy.sign(qn)
+        y0 = un - delta * numpy.sign(un)
+        plt.text(x0, y0, '%.d$\\sigma$' % sigma, color=color, backgroundcolor='white',
+            ha='center', va='center', zorder=11, bbox=dict(boxstyle='square,pad=0.', fc='white', ec='none'))
+        if sig > 3.:
+            text = 'Polarization significance: %.2f $\\sigma$' % sig
+            plt.gca().annotate(text, xy=(qn, un), xytext=(0.5, 1.1), **sig_kwargs)
+        setup_gca_stokes(side=pdmax, pd_grid=pd_grid)
         # Update the spectrum.
         plt.sca(ax_spectrum)
         hist_spec.plot()
