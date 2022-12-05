@@ -630,7 +630,7 @@ class xDisplayArgumentParser(xArgumentParser):
 
 
 
-def load_level_2_data(file_path, pivot_energy=8., interactive=False, **kwargs):
+def load_event_list(file_path, pivot_energy=8., interactive=False, **kwargs):
     """Load the event data from the Level-2 event list for the purpose of the
     event display---these include, in order: mission elapsed time, energy,
     sky position and Stokes parameters.

@@ -34,7 +34,7 @@ from ixpeobssim.core.hist import xHistogram1d
 from ixpeobssim.irf import load_arf, load_modf
 from ixpeobssim.evt.clustering import DBscan
 from ixpeobssim.evt.display import xL1EventFile, xXpolGrid, xDisplayArgumentParser,\
-    event_box, load_level_2_data, display_event, xDisplayCard
+    event_box, load_event_list, display_event, xDisplayCard
 from ixpeobssim.evt.event import xEventFile
 from ixpeobssim.evt.kislat2015 import xStokesAnalysis
 from ixpeobssim.utils.logging_ import logger
@@ -79,6 +79,9 @@ def composite_figure(wcs, obs_name=None, figsize=(18., 9.), left_pad=0.06,
     rect = (display_width + left_pad, 0.5, plot_width, 0.5)
     ax_cmap = fig.add_axes(rect, projection=wcs)
     ax_cmap.set_aspect('equal')
+    # This additional, ghost axes object is to hold the color bar count map,
+    # so that we get it displayed without the count map axes being resized---this
+    # a horrible hack, but I could not figure out a better way to do it.
     rect = (display_width + left_pad, 0.525, plot_width, 0.5)
     ax_cmap_colorbar = fig.add_axes(rect)
     plt.axis('off')
@@ -86,7 +89,7 @@ def composite_figure(wcs, obs_name=None, figsize=(18., 9.), left_pad=0.06,
     ax_polarization = fig.add_axes(rect)
     #setup_gca_stokes()
     # The spectrum axes on the bottom-right corner.
-    rect = (display_width + plot_width + 2. * left_pad, bot_pad, plot_width, 0.5 - bot_pad)
+    rect = (display_width + plot_width + 2. * left_pad, bot_pad, plot_width, 0.475 - bot_pad)
     ax_spectrum = fig.add_axes(rect)
     rect = (display_width + left_pad, 0., plot_width, 0.5)
     ax_text = fig.add_axes(rect)
@@ -94,13 +97,23 @@ def composite_figure(wcs, obs_name=None, figsize=(18., 9.), left_pad=0.06,
     return fig, ax_display, ax_cmap, ax_cmap_colorbar, ax_polarization, ax_spectrum, ax_text
 
 
+def polarization_analysis(q, u, energy, modf, aeff, mask):
+    """
+    """
+    analysis = xStokesAnalysis(q, u, energy, modf, aeff, None)
+    I, Q, U = analysis._sum_stokes_parameters(mask)
+    mu = analysis._effective_mu(mask)
+    W2 = analysis.W2(mask)
+    QN, UN, dI, dQ, dU, dQN, dUN, cov, pval, conf, sig = analysis.calculate_stokes_errors(I, Q, U, mu, W2)
+    #pd, pd_err, pa, pa_err = analysis.calculate_polarization(I, Q, U, mu, W2)
+    return QN, UN, dQN, dUN
+
 
 def xpobsdisplay(**kwargs):
     """Run the observation event display.
 
     TODO:
 
-    * hists update dynamically
     * add significance to Stokes plot
     * add colorbar to the display
     * add sigma levels on Stokes plot
@@ -133,6 +146,7 @@ def xpobsdisplay(**kwargs):
     energy_data = l2_file.energy_data()
     ra_data, dec_data = l2_file.sky_position_data()
     q_data, u_data = l2_file.stokes_data()
+    energy_mask = numpy.logical_and(energy_data >= emin, energy_data < emax)
 
     # Setup all the binned data products.
     card = xDisplayCard(l2_file.hdu_list['EVENTS'].header)
@@ -141,28 +155,36 @@ def xpobsdisplay(**kwargs):
     cmap_data = numpy.zeros((npix, npix), dtype=float)
     aeff = load_arf(kwargs.get('irfname'), l2_file.du_id())
     modf = load_modf(kwargs.get('irfname'), l2_file.du_id())
-    analysis = xStokesAnalysis(q_data, u_data, energy_data, modf, aeff, l2_file.livetime())
 
     # Load the event data from the event list.
-    l2_data = load_level_2_data(kwargs.get('evtlist'), **kwargs)
+    event_list = load_event_list(kwargs.get('evtlist'), **kwargs)
     previous_met = time_data[0]
 
     # Start the loop over the event list.
-    for met, energy, ra, dec, q, u in zip(*l2_data):
+    for met, energy, ra, dec, q, u in zip(*event_list):
         # Retrieve the actual event from the underlying level-1 file.
         event = l1_file.bisect_met(met)
         assert abs(event.timestamp - met) <= 2.e-6
         # Create the mask for the current chunck of data.
         logger.info('Filtering events between MET %.6f and %.6f...', previous_met, met)
         mask = numpy.logical_and(time_data >= previous_met, time_data < met)
-        logger.info('Done, %d event(s) left.', mask.sum())
-        # Update all the binned products.
+        logger.info('Done, %d event(s) left before the energy cut.', mask.sum())
+
+        # Update all the binned products: the energy spcetrum...
         hist_spec.fill(energy_data[mask])
+        # ... the count map...
+        mask *= energy_mask
         x, y, binning = xEventBinningBase._pixelize_skycoords(ra_data[mask], dec_data[mask], wcs_)
         counts, _, _ = numpy.histogram2d(x, y, bins=binning)
         cmap_data += counts
-
-        # Polarization stuff missing.
+        # ... and the polarization analysis. Note that, instead of keeping track
+        # of all the necessary stuff to accumulate the polarization analysis in
+        # cuncks, we repeat the entire calculation feeding in all the events up to
+        # the current met---this is slightly suboptimal, but simpler and less
+        # error-prone.
+        mask = time_data < met
+        mask *= energy_mask
+        qn, un, dqn, dun = polarization_analysis(q_data, u_data, energy_data, modf, aeff, mask)
 
         # Create the composite panel---I can't seem to be able to understand why
         # the event display is not refreshed if I don't create and delete the
@@ -177,15 +199,11 @@ def xpobsdisplay(**kwargs):
         ax_cmap.set_xlabel('Right Ascension')
         ax_cmap.set_ylabel('Declination')
         plt.grid()
-        plt.sca(ax_cmap_colorbar)
-        plt.colorbar(im, location='top')
+        plt.colorbar(im, ax=ax_cmap_colorbar, location='top')
         # Update the polarization plot.
         plt.sca(ax_polarization)
-        # Need to refine this!
-        table = analysis.polarization_table(numpy.linspace(2., 8., 2))
         for sigma in (1., 2., 3):
-            q, u, dq, du = [table[key] for key in ('QN', 'UN', 'QN_ERR', 'UN_ERR')]
-            plot_ellipse((q, u), 2. * sigma * dq, 2. * sigma * du, zorder=10,
+            plot_ellipse((qn, un), 2. * sigma * dqn, 2. * sigma * dun, zorder=10,
                 color=DEFAULT_COLORS[0])
         setup_gca_stokes(side=0.12, pd_grid=numpy.linspace(0.05, 0.1, 2))
         # Update the spectrum.
