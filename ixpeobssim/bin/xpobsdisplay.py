@@ -34,7 +34,7 @@ from ixpeobssim.core.hist import xHistogram1d
 from ixpeobssim.irf import load_arf, load_modf
 from ixpeobssim.evt.clustering import DBscan
 from ixpeobssim.evt.display import xL1EventFile, xXpolGrid, xDisplayArgumentParser,\
-    event_box, load_event_list, display_event, xDisplayCard
+    load_event_list, display_event, xDisplayCard
 from ixpeobssim.evt.event import xEventFile
 from ixpeobssim.evt.kislat2015 import xStokesAnalysis
 from ixpeobssim.utils.logging_ import logger
@@ -44,6 +44,7 @@ from ixpeobssim.utils.matplotlib_ import plt, setup_gca, setup_gca_stokes,\
 
 __description__ = \
 """IXPE composite carousel to display observations.
+
 """
 
 PARSER = xDisplayArgumentParser(__description__)
