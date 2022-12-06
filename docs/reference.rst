@@ -210,11 +210,11 @@ xpradialprofile
    :shell:
 
 
-.. _reference-xpdisplay:
+.. _reference-xpevtdisplay:
 
-xpdisplay
+xpevtdisplay
 ~~~~~~~~~
-.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpdisplay.py --help
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpevtdisplay.py --help
    :ellipsis: 0,11
    :shell:
 

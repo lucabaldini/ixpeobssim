@@ -16,7 +16,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-"""xpdisplay app.
+"""xpevtdisplay app.
 """
 
 from __future__ import print_function, division
@@ -165,7 +165,7 @@ def display_event(event, grid, threshold, dbscan, base_file_name=None, box_info=
     grid.show_display(file_path, kwargs.get('batch'))
 
 
-def xpdisplay(**kwargs):
+def xpevtdisplay(**kwargs):
     """Run the event display.
     """
     file_path = kwargs.get('file')
@@ -210,7 +210,7 @@ def xpdisplay(**kwargs):
 def main():
     """main() entry point.
     """
-    xpdisplay(**PARSER.parse_args().__dict__)
+    xpevtdisplay(**PARSER.parse_args().__dict__)
 
 
 
