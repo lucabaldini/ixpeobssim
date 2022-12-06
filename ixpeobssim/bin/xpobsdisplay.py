@@ -48,7 +48,6 @@ __description__ = \
 
 PARSER = xDisplayArgumentParser(__description__)
 PARSER.add_irfname()
-PARSER.add_ebounds()
 PARSER.add_argument('--pdmax', type=float, default=0.2,
     help='maximum polarization degree for the Stokes plot')
 PARSER.add_argument('--pdstep', type=float, default=0.05,

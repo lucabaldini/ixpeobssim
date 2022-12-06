@@ -512,7 +512,7 @@ class xHexagonalGrid:
         r, g, b, _ = color.T
         return (299 * r + 587 * g + 114 * b) / 1000
 
-    def draw_event(self, event, cluster_id=0, offset=(0., 0.), canvas_side=2.0, indices=True,
+    def draw_event(self, event, num_clusters=1, offset=(0., 0.), canvas_side=2.0, indices=True,
                    padding=True, zero_sup_threshold=None, values=False, **kwargs):
         """Draw an actual event int the parent hexagonal grid.
 
@@ -523,7 +523,10 @@ class xHexagonalGrid:
         # Create a copy of the PHA vector and set to zero all the pixels not
         # belonging to the target cluster.
         pha = event.pha.copy()
-        mask = event.cluster_id == cluster_id
+        # Note that negative numbers are used for orphan pixels, and if we want to
+        # plot the first n clusters, we want the cluster id associated to the
+        # pixel to be between 0 and n - 1.
+        mask = numpy.logical_and(event.cluster_id >= 0, event.cluster_id < num_clusters)
         pha[numpy.logical_not(mask)] = 0
         # We're good to go!
         collection = self.draw_roi(event, offset, indices, padding, **kwargs)
@@ -599,8 +602,11 @@ class xDisplayArgumentParser(xArgumentParser):
         self.add_file()
         self.add_argument('--evtlist', type=str,
             help='path to the auxiliary (Level-2 file) event list')
+        self.add_ebounds()
         self.add_boolean('--clustering', True,
             help='run the DBscan clustering on the events')
+        self.add_argument('--numclusters', type=int, default=1,
+            help='the number of clusters to be displayed for each event')
         self.add_argument('--clumindensity', type=int, default=5,
             help='the minimum density point for the DBscan clustering')
         self.add_argument('--cluminsize', type=int, default=6,
@@ -735,52 +741,12 @@ class xDisplayCard(xTextCard):
 
 
 
-def event_box(met, energy, ra, dec, q, u):
-    """Draw a text box with all event information relevant to high-level science
-    analysis: time, energy, sky position and Stokes parameters.
-
-    THIS IS OBSOLETE AND SHOULD BE REMOVED!
-
-    Arguments
-    ---------
-    met : float
-        The mission elapsed time.
-
-    energy : float
-        The energy of the event.
-
-    ra : float
-        The right ascention of the event.
-
-    dec : float
-        The declination of the event.
-
-    q : float
-        The Q Stokes parameter of the event.
-
-    u : float
-        The U Stokes parameter of the event.
-    """
-    box = xStatBox()
-    box.add_entry('MET = %.6f s' % met)
-    box.add_entry('Energy = %.3f keV' % energy)
-    box.add_entry('(R.A., Dec) = (%.3f, %.3f) degrees' % (ra, dec))
-    box.add_entry('(Q, U) = (%.3f, %.3f)' % (q, u))
-    box.x0 = 0.025
-    box.y0 = 0.975
-    box.plot(transform=plt.gcf().transFigure)
-
-
-def display_event(event, grid, threshold, dbscan, file_name=None, box_info=None,
-    padding=False, **kwargs):
+def display_event(event, grid, threshold, dbscan, file_name=None, padding=False, **kwargs):
     """Single-stop event display.
     """
     draw_kwargs = dict(values=kwargs.get('pixpha'), indices=kwargs.get('indices'),
-        canvas_side=kwargs.get('axside'), zero_sup_threshold=threshold, padding=padding)
-    #plt.figure('IXPE single event display', figsize=(9., 10.))
-    # This is very important when running in batch in order to get the canvas
-    # cleared out before the next event is painted.
-    #plt.gca().clear()
+        canvas_side=kwargs.get('axside'), zero_sup_threshold=threshold, padding=padding,
+        num_clusters=kwargs.get('numclusters'))
     logger.info('Drawing event @ MET %.6f', event.timestamp)
     if kwargs.get('clustering'):
         event.run_clustering(dbscan)
@@ -793,8 +759,6 @@ def display_event(event, grid, threshold, dbscan, file_name=None, box_info=None,
         event.recon.draw_barycenter()
     if kwargs.get('direction'):
         event.recon.draw_track_direction()
-    if box_info is not None:
-        event_box(*box_info)
     if kwargs.get('autosave'):
         file_path = os.path.join(kwargs.get('outfolder'), file_name)
     else:
