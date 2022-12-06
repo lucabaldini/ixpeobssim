@@ -45,6 +45,8 @@ from ixpeobssim.utils.matplotlib_ import plt, setup_gca, setup_gca_stokes,\
 __description__ = \
 """IXPE composite carousel to display observations.
 
+This application extends xpevtdisplay to include the most relevant cumulative
+distributions for a given observation.
 """
 
 PARSER = xDisplayArgumentParser(__description__)
