@@ -57,6 +57,8 @@ PARSER.add_argument('--pdstep', type=float, default=0.05,
     help='polarization degree step for the Stokes plot grid')
 PARSER.add_argument('--npix', type=int, default=200,
     help='number of pixels per side for the count map in sky coordinates')
+PARSER.add_argument('--pixsize', type=float, default=None,
+    help='pixel size in arcseconds for the count map in sky coordinates')
 
 
 
@@ -126,6 +128,7 @@ def xpobsdisplay(**kwargs):
     file_path = kwargs.get('file')
     emin, emax = kwargs.get('emin'), kwargs.get('emax')
     npix = kwargs.get('npix')
+    pixsize = kwargs.get('pixsize')
     pdmax = kwargs.get('pdmax')
     pdstep = kwargs.get('pdstep')
     pd_grid = numpy.arange(pdstep, pdmax, pdstep)
@@ -147,7 +150,7 @@ def xpobsdisplay(**kwargs):
     # Open the Level-2 file and retrieve the necessary info,
     l2_file = xEventFile(kwargs.get('evtlist'))
     xref, yref = l2_file.wcs_reference()
-    wcs_kwargs = dict(xref=xref, yref=yref, npix=npix)
+    wcs_kwargs = dict(xref=xref, yref=yref, npix=npix, pixsize=pixsize)
     wcs_ = xEventBinningBase._build_image_wcs(default_img_side=10., **wcs_kwargs)
     time_data = l2_file.time_data()
     energy_data = l2_file.energy_data()
