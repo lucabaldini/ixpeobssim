@@ -84,7 +84,7 @@ def xpevtdisplay(**kwargs):
     dbscan = DBscan(threshold, min_density_points=kwargs.get('clumindensity'),
         min_cluster_size=kwargs.get('cluminsize'))
 
-    card = xDisplayCard(l1_file.hdu_list['EVENTS'].header)
+    card = xDisplayCard(kwargs.get('targetname'), l1_file.hdu_list['EVENTS'].header)
     # If we are targeting a specific event, we show it and exit immediately.
     # Note in this case we're not drawing the info box---shall we make the extra effort?
     if kwargs.get('timestamp'):
