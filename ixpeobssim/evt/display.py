@@ -169,10 +169,11 @@ class Recon:
     def _annotate_point(x, y, text, xoffset=125, yoffset=75, color='black'):
         """Small convenience function to annotate a point.
         """
-        plt.plot(x, y, 'o', color=color)
+        plt.plot(x, y, 'o', color=color, markersize=9.)
         arrowprops=dict(arrowstyle='-', connectionstyle='angle3', color=color)
         kwargs = dict(xycoords='data', textcoords='offset points', arrowprops=arrowprops,
-            backgroundcolor='white', color=color, ha='center')
+            backgroundcolor='white', color=color, ha='center',
+            bbox=dict(boxstyle='square,pad=0.', fc='white', ec='none'))
         plt.gca().annotate(text, xy=(x, y), xytext=(xoffset, yoffset), **kwargs)
 
     def draw_absorption_point(self):
@@ -199,7 +200,8 @@ class Recon:
         plt.plot([x0, x0 - length_ratio * dx], [y0, y0 - length_ratio * dy],
             lw=line_width, color='black', ls='dashed')
         plt.gca().annotate('', xy=(x0 + dx, y0 + dy), xytext=(x0, y0),
-            arrowprops=dict(arrowstyle='->, head_width=0.25, head_length=0.5', lw=line_width))
+            arrowprops=dict(arrowstyle='->, head_width=0.4, head_length=0.65',
+            lw=line_width))
 
 
 @dataclass
