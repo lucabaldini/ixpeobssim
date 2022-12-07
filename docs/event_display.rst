@@ -14,7 +14,7 @@ the standard IXPE level-1 publicily distributed through HEASARC.
 
 .. _figure-ixpe_track_display:
 .. figure:: figures/misc/ixpe_track_display.*
-   :width: 80%
+   :width: 100%
 
    Sample display of a track image---note that mileage may vary depending on the
    setting (i.e., command-line switches) used in :ref:`reference-xpevtdisplay`.
@@ -80,3 +80,41 @@ variety of event topologies.
    not play well with any analysis tool (e.g., the barycorr FTOOL) that change
    the event time---for the purpose of the event display you want to use event
    file as distributed, without further processing.
+
+   Also, when reading a Level-1 files and passing at the same time an event list
+   in the form of a Level-2 file, you should make sure that the former covers
+   the entire time span of the latter, otherwise the MET bisection will fail.
+   If the Level-2 file covers a longer time span wrt. the Level-1 file, you can
+   simply trim the former with the standard tools.
+
+
+Observation animations
+----------------------
+
+Building on top of the single event display, ixpeobssim provides a separate application,
+:ref:`reference-xpobsdisplay`, that allows to create complex animations starting
+from the standard observation products distributed through HEASARC by jut adding
+to the track images accumulating histograms of the relevant science quantities:
+energy, sky position, and Stokes parameters.
+
+The :ref:`reference-xpobsdisplay` is fairly similar to that of
+:ref:`reference-xpevtdisplay`. We won't describe the meaning of all the command-line
+switches here, but the following command
+
+.. code-block::
+
+   xpobsdisplay path_to_my_level1_file --evtlist path_to_the_fellow_level2_file \
+       --resample 2 --autostop 200 --targetname "The name of the source" --autosave True \
+       --imgdpi 200 --batch True
+
+will read in the target files and write to file 200 still track images in batch
+mode (i.e., no matplotlib canvas will be displayed on the screen).
+
+The user can then combine the still frames into an actual animation by using
+any of the countless tools available on the market, one possible example
+being
+
+.. code-block::
+
+   ffmpeg -framerate 1/2 -i path_to_frames_%04d.png -c:v libx264 -r 30 \
+       -pix_fmt yuv420p animation.mp4
