@@ -156,7 +156,7 @@ def xpobsdisplay(**kwargs):
     energy_mask = numpy.logical_and(energy_data >= emin, energy_data < emax)
 
     # Setup all the binned data products.
-    card = xDisplayCard(l2_file.hdu_list['EVENTS'].header)
+    card = xDisplayCard(kwargs.get('targetname'), l2_file.hdu_list['EVENTS'].header)
     energy_binning = numpy.arange(0., 12.02, 0.04)
     hist_spec = xHistogram1d(energy_binning, xlabel='Energy [keV]', ylabel='Counts')
     cmap_data = numpy.zeros((npix, npix), dtype=float)
@@ -233,7 +233,7 @@ def xpobsdisplay(**kwargs):
         # Update the text card.
         plt.sca(ax_text)
         card.set_event_data(met, energy, ra, dec, q, u)
-        card.draw(x0=0., y0=0.95, line_spacing=0.09)
+        card.draw(x0=0., y0=0.95, line_spacing=0.086)
         # And, finally, the actual event display---since this is blocking,
         # it needs to go last.
         plt.sca(ax_display)

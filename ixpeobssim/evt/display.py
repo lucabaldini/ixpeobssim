@@ -611,6 +611,8 @@ class xDisplayArgumentParser(xArgumentParser):
         self.add_file()
         self.add_argument('--evtlist', type=str,
             help='path to the auxiliary (Level-2 file) event list')
+        self.add_argument('--targetname', type=str, default=None,
+            help='name of the celestial target')
         self.add_ebounds()
         self.add_boolean('--clustering', True,
             help='run the DBscan clustering on the events')
@@ -725,15 +727,12 @@ class xDisplayCard(xTextCard):
     basis using the set_event_data() hook.
     """
 
-    def __init__(self, header):
+    def __init__(self, target_name, header):
         """Constructor.
         """
         xTextCard.__init__(self)
-        try:
-            self.set_line('Target Name', header['OBJECT'])
-        except KeyError as e:
-            logger.warning(e)
-            self.set_line('Observation ID', header['OBS_ID'])
+        self.set_line('Target Name', target_name)
+        self.set_line('Observation ID', header['OBS_ID'])
         self.set_line('Observation Start', header['DATE-OBS'])
         self.set_line('Observation End', header['DATE-END'])
         self.set_line('Detector Unit', '%s (%s)' % (header['DETNAM'], header['DET_ID']))
