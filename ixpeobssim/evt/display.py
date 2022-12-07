@@ -467,6 +467,13 @@ class xHexagonalGrid:
         values = values / float(values.max())
         return self.color_map(values)
 
+    def default_roi_side(self, roi, min_side, pad=0.1):
+        """Return the default physical size of the canvas necessary to fully
+        contain a given ROI.
+        """
+        return pad + max(self.pitch * roi.num_cols, self.secondary_pitch * roi.num_rows,
+            min_side)
+
     # pylint: disable = too-many-arguments, too-many-locals
     def draw_roi(self, roi, offset=(0., 0.), indices=True, padding=True, **kwargs):
         """Draw a specific ROI of the parent grid.
@@ -512,7 +519,7 @@ class xHexagonalGrid:
         r, g, b, _ = color.T
         return (299 * r + 587 * g + 114 * b) / 1000
 
-    def draw_event(self, event, num_clusters=1, offset=(0., 0.), canvas_side=2.0, indices=True,
+    def draw_event(self, event, num_clusters=1, offset=(0., 0.), min_canvas_side=2.0, indices=True,
                    padding=True, zero_sup_threshold=None, values=False, **kwargs):
         """Draw an actual event int the parent hexagonal grid.
 
@@ -544,15 +551,15 @@ class xHexagonalGrid:
                 text_color):
                 if value > zero_sup_threshold:
                     plt.text(x, y, f'{value}', color=color, **fmt)
-        if canvas_side is not None:
-            # We want to center the display of the geometrical center of the ROI.
-            x0, y0 = self.roi_center(event)
-            dx, dy = offset
-            x0 += dx
-            y0 += dy
-            half_side = 0.5 * canvas_side
-            plt.gca().set_xlim(x0 - half_side, x0 + half_side)
-            plt.gca().set_ylim(y0 - half_side, y0 + half_side)
+        canvas_side = self.default_roi_side(event, min_canvas_side)
+        # We want to center the display of the geometrical center of the ROI.
+        x0, y0 = self.roi_center(event)
+        dx, dy = offset
+        x0 += dx
+        y0 += dy
+        half_side = 0.5 * canvas_side
+        plt.gca().set_xlim(x0 - half_side, x0 + half_side)
+        plt.gca().set_ylim(y0 - half_side, y0 + half_side)
         return collection
 
     @staticmethod
@@ -605,7 +612,7 @@ class xDisplayArgumentParser(xArgumentParser):
         self.add_ebounds()
         self.add_boolean('--clustering', True,
             help='run the DBscan clustering on the events')
-        self.add_argument('--numclusters', type=int, default=1,
+        self.add_argument('--numclusters', type=int, default=2,
             help='the number of clusters to be displayed for each event')
         self.add_argument('--clumindensity', type=int, default=5,
             help='the minimum density point for the DBscan clustering')
@@ -627,7 +634,7 @@ class xDisplayArgumentParser(xArgumentParser):
             help='the color map for the pixel values')
         self.add_argument('--cmapoffset', type=int, default=10,
             help='the PHA offset for the color map')
-        self.add_argument('--axside', type=float, default=None,
+        self.add_argument('--minaxside', type=float, default=2.,
             help='the axis side for the event display')
         self.add_argument('--autostop', type=int, default=None,
             help='stop automatically after a given number of events')
@@ -745,8 +752,8 @@ def display_event(event, grid, threshold, dbscan, file_name=None, padding=False,
     """Single-stop event display.
     """
     draw_kwargs = dict(values=kwargs.get('pixpha'), indices=kwargs.get('indices'),
-        canvas_side=kwargs.get('axside'), zero_sup_threshold=threshold, padding=padding,
-        num_clusters=kwargs.get('numclusters'))
+        min_canvas_side=kwargs.get('minaxside'), zero_sup_threshold=threshold,
+        padding=padding, num_clusters=kwargs.get('numclusters'))
     logger.info('Drawing event @ MET %.6f', event.timestamp)
     if kwargs.get('clustering'):
         event.run_clustering(dbscan)
