@@ -565,7 +565,7 @@ class xHexagonalGrid:
         return collection
 
     @staticmethod
-    def show_display(file_path=None, batch=False):
+    def show_display(file_path=None, dpi=100, batch=False):
         """Convenience function to setup the matplotlib canvas for an event display.
 
         Arguments
@@ -577,7 +577,7 @@ class xHexagonalGrid:
         plt.axis('off')
         if file_path is not None:
             logger.info('Saving event display to %s...', file_path)
-            plt.savefig(file_path)
+            plt.savefig(file_path, dpi=dpi)
         if not batch:
             logger.info('Showing event display, close the window to move to the next one...')
             plt.show()
@@ -649,6 +649,8 @@ class xDisplayArgumentParser(xArgumentParser):
         self.add_outfolder(default=IXPEOBSSIM_DATA)
         self.add_argument('--imgformat', type=str, default='png',
             help='the image format for the output files when autosave is True')
+        self.add_argument('--imgdpi', type=int, default=100,
+            help='resolution of the output image in dot per inches')
 
 
 
@@ -771,4 +773,4 @@ def display_event(event, grid, threshold, dbscan, file_name=None, padding=False,
         file_path = os.path.join(kwargs.get('outfolder'), file_name)
     else:
         file_path = None
-    grid.show_display(file_path, kwargs.get('batch'))
+    grid.show_display(file_path, kwargs.get('imgdpi'), kwargs.get('batch'))
