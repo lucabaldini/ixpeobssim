@@ -746,11 +746,12 @@ class xDisplayCard(xTextCard):
         self.set_line('Detector Unit', '%s (%s)' % (header['DETNAM'], header['DET_ID']))
         self.set_line('Spacer', None)
 
-    def update_cumulative_statistics(self, elapsed_time, num_events, emin, emax):
+    def update_cumulative_statistics(self, current_events, total_events, emin, emax):
         """Set the card line with the basic cumulative statistics info.
         """
         key = 'Accumulated statistics in %.1f-%.1f keV' % (emin, emax)
-        text = '%d event(s) in %.2f ks (wall time)' % (num_events, elapsed_time / 1000.)
+        frac = current_events / total_events
+        text = '%d events (%.1f%% of the observation)' % (current_events, 100. * frac)
         self.set_line(key, text)
 
     def set_event_data(self, met, energy, ra, dec, q, u, compact=True):

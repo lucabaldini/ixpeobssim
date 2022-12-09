@@ -184,6 +184,7 @@ def xpobsdisplay(**kwargs):
     ra_data, dec_data = l2_file.sky_position_data()
     q_data, u_data = l2_file.stokes_data()
     energy_mask = numpy.logical_and(energy_data >= emin, energy_data < emax)
+    total_events = energy_mask.sum()
 
     # Setup all the binned data products.
     card = xDisplayCard(kwargs.get('targetname'), l2_file.hdu_list['EVENTS'].header)
@@ -260,7 +261,8 @@ def xpobsdisplay(**kwargs):
         x0 = qn - delta * numpy.sign(qn)
         y0 = un - delta * numpy.sign(un)
         plt.text(x0, y0, '%.d$\\sigma$' % sigma, color=color, backgroundcolor='white',
-            ha='center', va='center', zorder=11, bbox=dict(boxstyle='square,pad=0.', fc='white', ec='none'))
+            ha='center', va='center', zorder=11, clip_on=True,
+            bbox=dict(boxstyle='square,pad=0.', fc='white', ec='none'))
         if sig > 3.:
             text = 'Polarization significance: %.2f $\\sigma$' % sig
             plt.gca().annotate(text, xy=(qn, un), xytext=(0.5, 1.1), **sig_kwargs)
@@ -276,7 +278,7 @@ def xpobsdisplay(**kwargs):
         # Update the text card.
         plt.sca(ax_text)
         # Update the cumulative statistics.
-        card.update_cumulative_statistics(elapsed_time, num_events, emin, emax)
+        card.update_cumulative_statistics(num_events, total_events, emin, emax)
         # Update the event data.
         card.set_event_data(met, energy, ra, dec, q, u)
         card.draw(x0=0., y0=0.95, line_spacing=0.086)
