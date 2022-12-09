@@ -682,21 +682,24 @@ def load_event_list(file_path, pivot_energy=8., interactive=False, **kwargs):
     kwargs : dict
         The keyword arguments from the xDisplayArgumentParser.
     """
-    event_list = xEventFile(file_path)
+    event_file = xEventFile(file_path)
+    logger.info('Total good time in the Level-2 file: %.3f', event_file.total_good_time())
+    logger.info('Livetime in the Level-2 file: %.3f', event_file.livetime())
+    logger.info('Livetime correction: %.3f', event_file.deadtime_correction())
     resample_index = kwargs.get('resample')
     emin = kwargs.get('emin')
     emax = kwargs.get('emax')
     logger.info('Loading event list from %s...', file_path)
-    energy = event_list.energy_data()
+    energy = event_file.energy_data()
     logger.info('Selecting energies in %.2f--%.2f keV...', emin, emax)
     mask = numpy.logical_and(energy >= emin, energy < emax)
     logger.info('Done, %d event(s) out of %d remaining.', mask.sum(), len(mask))
     energy = energy[mask]
-    met = event_list.time_data()[mask]
-    ra, dec = event_list.sky_position_data()
+    met = event_file.time_data()[mask]
+    ra, dec = event_file.sky_position_data()
     ra = ra[mask]
     dec = dec[mask]
-    q, u = event_list.stokes_data()
+    q, u = event_file.stokes_data()
     q = q[mask]
     u = u[mask]
     if resample_index is not None:

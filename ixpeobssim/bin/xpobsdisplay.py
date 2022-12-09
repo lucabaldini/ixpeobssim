@@ -124,6 +124,17 @@ def polarization_analysis(q, u, energy, modf, aeff, mask):
     return QN, UN, dQN, dUN, sig
 
 
+def met_span(event_file):
+    """Return the times for the first and the last event in a given (Level-1 or Level-2)
+    file.
+    """
+    met = event_file.hdu_list['EVENTS'].data['TIME']
+    first_met, last_met = met[0], met[-1]
+    span = (last_met - first_met) / 1000.
+    logger.info('Wall-clock file span: %.6f--%.6f s (%.3f ks)', first_met, last_met, span)
+    return first_met, last_met
+
+
 def xpobsdisplay(**kwargs):
     """Run the observation event display.
     """
@@ -154,6 +165,8 @@ def xpobsdisplay(**kwargs):
 
     # Open the Level-1 file and retrieve the necessary information.
     l1_file = xL1EventFile(file_path)
+    l1_first_met, l1_last_met = met_span(l1_file)
+
     threshold = l1_file.zero_sup_threshold()
     logger.info('Zero suppression threshold: %d', threshold)
     # Setup the DBscan
@@ -162,6 +175,7 @@ def xpobsdisplay(**kwargs):
 
     # Open the Level-2 file and retrieve the necessary info,
     l2_file = xEventFile(kwargs.get('evtlist'))
+    l2_first_met, l2_last_met = met_span(l2_file)
     xref, yref = l2_file.wcs_reference()
     wcs_kwargs = dict(xref=xref, yref=yref, npix=npix, pixsize=pixsize)
     wcs_ = xEventBinningBase._build_image_wcs(default_img_side=10., **wcs_kwargs)
