@@ -59,11 +59,13 @@ PARSER.add_argument('--npix', type=int, default=200,
     help='number of pixels per side for the count map in sky coordinates')
 PARSER.add_argument('--pixsize', type=float, default=None,
     help='pixel size in arcseconds for the count map in sky coordinates')
+PARSER.add_argument('--subtitle', type=str, default=None,
+    help='subtitle for the animation')
 
 
 
 def composite_figure(wcs, obs_name=None, figsize=(18., 9.), left_pad=0.06,
-                     right_pad=0.01, bot_pad=0.1):
+                     right_pad=0.01, bot_pad=0.1, title_height=0.09):
     """Create a composite figure hosting all the graphical elements for the observation
     display.
 
@@ -76,11 +78,16 @@ def composite_figure(wcs, obs_name=None, figsize=(18., 9.), left_pad=0.06,
     aspect_ratio = width / height
     display_width = height / width
     plot_width = 0.5 * (1. - display_width) - left_pad - right_pad
+    display_height = 1. - title_height
+    plot_height = 0.5 * display_height
     # Create the top-level figure.
     fig = plt.figure('Observation display (%s)' % obs_name, figsize=figsize)
+    # The axis for the title
+    ax_title = fig.add_axes((0., display_height, display_width, title_height))
+    plt.axis('off')
     # The axes for the event display---this is guaranteed to be square, and
     # placed right on the left of the figure, spanning its entire height.
-    ax_display = fig.add_axes((0., 0., display_width, 1.))
+    ax_display = fig.add_axes((0., 0., display_width, display_height))
     # Now the count map and the polarization axes on the top left of the figure.
     # Note these have a square aspect ratio, and will naturally place themselves
     # in the right place vertically.
@@ -102,7 +109,7 @@ def composite_figure(wcs, obs_name=None, figsize=(18., 9.), left_pad=0.06,
     rect = (display_width + left_pad, 0., plot_width, 0.5)
     ax_text = fig.add_axes(rect)
     plt.axis('off')
-    return fig, ax_display, ax_cmap, ax_cmap_colorbar, ax_polarization, ax_spectrum, ax_text
+    return fig, ax_title, ax_display, ax_cmap, ax_cmap_colorbar, ax_polarization, ax_spectrum, ax_text
 
 
 def polarization_analysis(q, u, energy, modf, aeff, mask):
@@ -202,7 +209,9 @@ def xpobsdisplay(**kwargs):
         mask *= energy_mask
         qn, un, dqn, dun, sig = polarization_analysis(q_data, u_data, energy_data, modf, aeff, mask)
 
-        #
+        # Since we are at it, we take advantage of the fact that the polarization
+        # analysis is re-done from the beginning every time to cache the event
+        # statistics.
         num_events = mask.sum()
         elapsed_time = met - time_data[0]
 
@@ -211,8 +220,15 @@ def xpobsdisplay(**kwargs):
         # damned thing within the event loop and destroy it at each event.
         # I am sure this is pointing at something fundamentally wrong in the
         # code and I should look at it in details...
-        fig, ax_display, ax_cmap, ax_cmap_colorbar, ax_polarization,\
+        fig, ax_title, ax_display, ax_cmap, ax_cmap_colorbar, ax_polarization,\
             ax_spectrum, ax_text = composite_figure(wcs_)
+        # Set the title.
+        plt.sca(ax_title)
+        title = 'Replay of a sample of events obtained by one of IXPE\'s three detectors'
+        subtitle = kwargs.get('subtitle')
+        plt.text(0.05, 0.7, title, size='x-large', va='center', ha='left')
+        if subtitle is not None:
+            plt.text(0.05, 0.3, '(%s)' % subtitle, size='large', va='center', ha='left')
         # Update the count map.
         plt.sca(ax_cmap)
         im = ax_cmap.imshow(cmap_data)
