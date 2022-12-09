@@ -30,48 +30,29 @@ from ixpeobssim.irf.ebounds import channel_to_energy, ENERGY_STEP
 from ixpeobssim.utils.logging_ import logger
 from ixpeobssim.utils.matplotlib_ import plt, setup_gca, residual_plot
 
+import sys
+if sys.flags.interactive:
+    plt.ion()
+
 
 # pylint: disable=invalid-name
 
-
-def smooth_PDF(PDF, artificial_grad = 1.e-6):
-    """Replaces the initial range (E<1keV) of the spline with a monothonic
-    function and adjusts the interval of negative values with an artificial
-    gradient.
-
-    Note that for very dramatically compromised spectral shapes this does not,
-    nor is intended to work, and we should work on the spline smoothing
-    parameter instead.
-    """
-    limit = 17 # E< keV
-    PDF[0:limit] = numpy.sort(PDF[0:limit])
-    is_zero_idx = numpy.where (PDF[0:limit] <= 0)
-    max_zero = numpy.max(is_zero_idx)
-    # turn negative numbers into zeros
-    for j in range (limit):
-        if PDF[j] < 0:
-            PDF[j] = 0
-    #We don't want to approach zero with a large derivative
-    for j in reversed(range(max_zero + 1)):
-        PDF[j] = PDF[j + 1] - artificial_grad
-    return PDF
-
-
 def create_backgound_template(phalist, ssmooth, outfile, emin=0.01):
-    """Create a background template model starting from a series of PHA1 background files.
+    """Create a background template model starting from a series of PHA1
+    background files.
 
-    The PHA1 files should be prepared from a dark field with a arbitrary shape that
-    have been cut from one or more files and have a BACKSCAL keyword defined.
+    The PHA1 files should be prepared from a dark field with a arbitrary shape
+    that have been cut from one or more files and have a BACKSCAL keyword defined.
 
-    This is suitable both for residual and total background, depending on the user
-    needs.
+    This is suitable both for residual and total background, depending on the
+    user needs.
 
-    The count spectrum, normalized by the backscal, the fiducial area of the detector
-    and by the bin width, is parametrized with a non interpolated spline and written
-    to file to be used later with an appropriate config file.
+    The count spectrum, normalized by the backscal, the fiducial area of the
+    detector and by the bin width, is parametrized with a non interpolated
+    spline and written to file to be used later with an appropriate config file.
 
-    The output file is written on a regular energy grid as a simple text file with
-    two columns---energy and background rate.
+    The output file is written on a regular energy grid as a simple text file
+    with two columns---energy and background rate.
     """
     logger.info ('Loading background spectra from %s...', phalist)
 
@@ -102,14 +83,16 @@ def create_backgound_template(phalist, ssmooth, outfile, emin=0.01):
             avg_spec += spec
         else:
             avg_spec = spec
-        plt.figure('Single file input spectra vs average')
-        plt.semilogy(channel_to_energy(spec.CHANNEL),spec.RATE / livetime, lw = 1)
-    plt.semilogy(channel_to_energy(avg_spec.CHANNEL),avg_spec.RATE / livetime_total,
-        linewidth = 4, label = 'mean')
-    plt.xlabel('Energy [keV]')
-    plt.ylabel('Background spectrum')
-    plt.grid(which='both')
-    plt.legend()
+        if sys.flags.interactive:
+            plt.figure('Single file input spectra vs average')
+            plt.semilogy(channel_to_energy(spec.CHANNEL),spec.RATE / livetime, lw = 1)
+    if sys.flags.interactive:
+        plt.semilogy(channel_to_energy(avg_spec.CHANNEL),avg_spec.RATE / livetime_total,
+            linewidth = 4, label = 'mean')
+        plt.xlabel('Energy [keV]')
+        plt.ylabel('Background spectrum')
+        plt.grid(which='both')
+        plt.legend()
 
     # Scale the single object for the overall livetime
     # Integrated signal / total livetime = rate again
@@ -131,7 +114,6 @@ def create_backgound_template(phalist, ssmooth, outfile, emin=0.01):
     logger.info('Writing output file to %s...', outfile)
     x = numpy.linspace(emin, energy.max(), 250)
     y = spline(x).clip(0.)
-    y = smooth_PDF(y)
 
     with open(outfile, 'w') as output_file:
         for _x, _y in zip(x, y):
@@ -139,13 +121,17 @@ def create_backgound_template(phalist, ssmooth, outfile, emin=0.01):
     logger.info('Done.')
 
     # Plotting stuff.
-    ax1, ax2 = residual_plot('background template')
-    plt.errorbar(energy, flux, flux_err, fmt='o', label='Background data (all DUs)')
-    spline.plot(zorder=1, label='Spline approximation')
-    setup_gca(ylabel='Background rate [cm$^{-2}$ s$^{-1}$ keV$^{-1}$]', logy=True,
+    if sys.flags.interactive:
+        ax1, ax2 = residual_plot('background template')
+        plt.errorbar(energy, flux, flux_err, fmt='o', label='Background data\
+            (all DUs)')
+        spline.plot(zorder=1, label='Spline approximation')
+        setup_gca(ylabel='Background rate [cm$^{-2}$ s$^{-1}$ keV$^{-1}$]',\
+            logy=True,
         grids=True, xmax=energy.max(), legend=True)
-    plt.sca(ax2)
-    plt.errorbar(energy, flux - spline(energy), flux_err, fmt='o')
-    dy = 5.e-3
-    setup_gca(xlabel='Energy [keV]', ymin=-dy, ymax=dy, grids=True, xmax=energy.max())
-    plt.show()
+        plt.sca(ax2)
+        plt.errorbar(energy, flux - spline(energy), flux_err, fmt='o')
+        dy = 5.e-3
+        setup_gca(xlabel='Energy [keV]', ymin=-dy, ymax=dy, grids=True,\
+            xmax=energy.max())
+        plt.show()
