@@ -650,7 +650,7 @@ class xDisplayArgumentParser(xArgumentParser):
         self.add_outfolder(default=IXPEOBSSIM_DATA)
         self.add_argument('--imgformat', type=str, default='png',
             help='the image format for the output files when autosave is True')
-        self.add_argument('--imgdpi', type=int, default=100,
+        self.add_argument('--imgdpi', type=int, default=225,
             help='resolution of the output image in dot per inches')
 
 
