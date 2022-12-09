@@ -196,6 +196,10 @@ def xpobsdisplay(**kwargs):
         mask *= energy_mask
         qn, un, dqn, dun, sig = polarization_analysis(q_data, u_data, energy_data, modf, aeff, mask)
 
+        #
+        num_events = mask.sum()
+        elapsed_time = met - time_data[0]
+
         # Create the composite panel---I can't seem to be able to understand why
         # the event display is not refreshed if I don't create and delete the
         # damned thing within the event loop and destroy it at each event.
@@ -235,6 +239,9 @@ def xpobsdisplay(**kwargs):
         plt.axvspan(emax, 12., alpha=0.25, color='gray')
         # Update the text card.
         plt.sca(ax_text)
+        # Update the cumulative statistics.
+        card.update_cumulative_statistics(elapsed_time, num_events, emin, emax)
+        # Update the event data.
         card.set_event_data(met, energy, ra, dec, q, u)
         card.draw(x0=0., y0=0.95, line_spacing=0.086)
         # And, finally, the actual event display---since this is blocking,

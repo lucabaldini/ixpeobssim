@@ -611,7 +611,7 @@ class xDisplayArgumentParser(xArgumentParser):
         self.add_file()
         self.add_argument('--evtlist', type=str,
             help='path to the auxiliary (Level-2 file) event list')
-        self.add_argument('--targetname', type=str, default=None,
+        self.add_argument('--targetname', type=str, default='N/A',
             help='name of the celestial target')
         self.add_ebounds()
         self.add_boolean('--clustering', True,
@@ -734,11 +734,17 @@ class xDisplayCard(xTextCard):
         """
         xTextCard.__init__(self)
         self.set_line('Target Name', target_name)
-        self.set_line('Observation ID', header['OBS_ID'])
         self.set_line('Observation Start', header['DATE-OBS'])
         self.set_line('Observation End', header['DATE-END'])
         self.set_line('Detector Unit', '%s (%s)' % (header['DETNAM'], header['DET_ID']))
         self.set_line('Spacer', None)
+
+    def update_cumulative_statistics(self, elapsed_time, num_events, emin, emax):
+        """Set the card line with the basic cumulative statistics info.
+        """
+        key = 'Accumulated statistics in %.1f-%.1f keV' % (emin, emax)
+        text = '%d event(s) in %.2f ks' % (num_events, elapsed_time / 1000.)
+        self.set_line(key, text)
 
     def set_event_data(self, met, energy, ra, dec, q, u):
         """Set the event data.
