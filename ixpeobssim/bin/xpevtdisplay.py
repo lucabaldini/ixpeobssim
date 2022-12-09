@@ -75,6 +75,12 @@ def composite_figure(obs_name=None, figsize=(12., 9.)):
 def xpevtdisplay(**kwargs):
     """Run the event display.
     """
+    # Set the random seed, if necessary.
+    random_seed = kwargs.get('seed')
+    if random_seed is not None:
+        logger.info('Setting random seed to %d...', random_seed)
+        numpy.random.seed(random_seed)
+
     file_path = kwargs.get('file')
     base_file_name = os.path.basename(file_path).replace('.fits', '')
     grid = xXpolGrid(cmap_name=kwargs.get('cmap'), cmap_offset=kwargs.get('cmapoffset'))

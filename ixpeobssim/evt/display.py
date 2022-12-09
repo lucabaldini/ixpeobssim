@@ -614,6 +614,7 @@ class xDisplayArgumentParser(xArgumentParser):
         self.add_argument('--targetname', type=str, default='N/A',
             help='name of the celestial target')
         self.add_ebounds()
+        self.add_seed(default=1)
         self.add_boolean('--clustering', True,
             help='run the DBscan clustering on the events')
         self.add_argument('--numclusters', type=int, default=2,
@@ -651,6 +652,7 @@ class xDisplayArgumentParser(xArgumentParser):
             help='the image format for the output files when autosave is True')
         self.add_argument('--imgdpi', type=int, default=100,
             help='resolution of the output image in dot per inches')
+
 
 
 

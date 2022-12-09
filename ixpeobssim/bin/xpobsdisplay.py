@@ -124,6 +124,12 @@ def xpobsdisplay(**kwargs):
     if not kwargs.get('evtlist'):
         raise RuntimeError('Please provide an event list...')
 
+    # Set the random seed, if necessary.
+    random_seed = kwargs.get('seed')
+    if random_seed is not None:
+        logger.info('Setting random seed to %d...', random_seed)
+        numpy.random.seed(random_seed)
+
     # Cache the global settings...
     file_path = kwargs.get('file')
     emin, emax = kwargs.get('emin'), kwargs.get('emax')
