@@ -745,17 +745,20 @@ class xDisplayCard(xTextCard):
         """Set the card line with the basic cumulative statistics info.
         """
         key = 'Accumulated statistics in %.1f-%.1f keV' % (emin, emax)
-        text = '%d event(s) in %.2f ks' % (num_events, elapsed_time / 1000.)
+        text = '%d event(s) in %.2f ks (wall time)' % (num_events, elapsed_time / 1000.)
         self.set_line(key, text)
 
-    def set_event_data(self, met, energy, ra, dec, q, u):
+    def set_event_data(self, met, energy, ra, dec, q, u, compact=True):
         """Set the event data.
         """
         self.set_line('Mission elsapsed time', met, '%.6f', 's')
         self.set_line('Energy', energy, '%.2f', 'keV')
-        self.set_line('Right ascention', ra, '%.3f', 'decimal degrees')
-        self.set_line('Declination', dec, '%.3f', 'decimal degrees')
-        self.set_line('Stokes parameters', '(%.4f, %.4f)' % (q, u))
+        if compact:
+            self.set_line('Sky position (R. A., Dec.)', '(%.3f, %.3f) decimal degrees' % (ra, dec))
+        else:
+            self.set_line('Right ascention', ra, '%.3f', 'decimal degrees')
+            self.set_line('Declination', dec, '%.3f', 'decimal degrees')
+        self.set_line('Stokes parameters (q, u)', '(%.4f, %.4f)' % (q, u))
 
 
 
