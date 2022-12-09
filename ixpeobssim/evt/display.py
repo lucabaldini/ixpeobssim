@@ -717,7 +717,9 @@ def load_event_list(file_path, pivot_energy=8., interactive=False, **kwargs):
         logger.info('Trimming down the L2 columns to the target autostop...')
         # We achieve this by trying and select events uniformly within the range.
         mask = numpy.zeros(len(met), dtype=bool)
-        idx = numpy.linspace(0, len(met) - 1, autostop, dtype=int).astype(int)
+        num_events = len(met)
+        start_event = num_events // autostop
+        idx = numpy.linspace(start_event, num_events - 1, autostop, dtype=int).astype(int)
         mask[idx] = True
         met, energy, ra, dec, q, u = [item[mask] for item in (met, energy, ra, dec, q, u)]
         logger.info('Done, %d event(s) left.', len(met))
