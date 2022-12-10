@@ -106,9 +106,10 @@ def composite_figure(wcs, obs_name=None, figsize=(18., 9.), left_pad=0.06,
     # The spectrum axes on the bottom-right corner.
     rect = (display_width + plot_width + 2. * left_pad, bot_pad, plot_width, 0.475 - bot_pad)
     ax_spectrum = fig.add_axes(rect)
-    rect = (display_width + left_pad, 0., plot_width, 0.5)
+    rect = (display_width, 0., plot_width * width / height, 0.5)
     ax_text = fig.add_axes(rect)
     plt.axis('off')
+    ax_text.set_aspect('equal')
     return fig, ax_title, ax_display, ax_cmap, ax_cmap_colorbar, ax_polarization, ax_spectrum, ax_text
 
 
@@ -278,10 +279,21 @@ def xpobsdisplay(**kwargs):
         # Update the text card.
         plt.sca(ax_text)
         # Update the cumulative statistics.
-        card.update_cumulative_statistics(num_events, total_events, emin, emax)
+        card.update_cumulative_statistics(num_events, emin, emax)
         # Update the event data.
         card.set_event_data(met, energy, ra, dec, q, u)
-        card.draw(x0=0., y0=0.95, line_spacing=0.086)
+        card.draw(x0=0.02, y0=0.99, line_spacing=0.08)
+        # Draw the small progress bar.
+        frac = num_events / total_events
+        radius = 0.085
+        pos = (radius + 0.025, 0.575)
+        plt.gca().pie([1. - frac, frac], wedgeprops={'width': 0.025}, startangle=90,
+            colors=['lightgray', color], center=pos, radius=radius)
+        plt.text(*pos, '%.1f%%' % (100. * frac), size='small', ha='center',
+            va='center', color='black')
+        # I am not sure why, but we do have to reset the canvas size to get the display right.
+        plt.gca().set_xlim(0., 1.)
+        plt.gca().set_ylim(0., 1.)
         # And, finally, the actual event display---since this is blocking,
         # it needs to go last.
         plt.sca(ax_display)

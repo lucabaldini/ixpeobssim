@@ -740,24 +740,24 @@ class xDisplayCard(xTextCard):
         """Constructor.
         """
         xTextCard.__init__(self)
-        self.set_line('Target Name', target_name)
+        self.set_line('Target Name', '%s (obs. %s)' % (target_name, header['OBS_ID']))
         self.set_line('Observation Start', header['DATE-OBS'])
         self.set_line('Observation End', header['DATE-END'])
         self.set_line('Detector Unit', '%s (%s)' % (header['DETNAM'], header['DET_ID']))
-        self.set_line('Spacer', None)
+        for i in range(5):
+            self.set_line('Spacer%d' % i, None)
 
-    def update_cumulative_statistics(self, current_events, total_events, emin, emax):
+    def update_cumulative_statistics(self, num_events, emin, emax):
         """Set the card line with the basic cumulative statistics info.
         """
         key = 'Accumulated statistics in %.1f-%.1f keV' % (emin, emax)
-        frac = current_events / total_events
-        text = '%d events (%.1f%% of the observation)' % (current_events, 100. * frac)
+        text = '%d events' % num_events
         self.set_line(key, text)
 
     def set_event_data(self, met, energy, ra, dec, q, u, compact=True):
         """Set the event data.
         """
-        self.set_line('Mission elsapsed time', met, '%.6f', 's')
+        self.set_line('Mission elapsed time', met, '%.6f', 's')
         self.set_line('Energy', energy, '%.2f', 'keV')
         if compact:
             self.set_line('Sky position (R. A., Dec.)', '(%.3f, %.3f) decimal degrees' % (ra, dec))
@@ -786,6 +786,9 @@ def display_event(event, grid, threshold, dbscan, file_name=None, padding=False,
         event.recon.draw_barycenter()
     if kwargs.get('direction'):
         event.recon.draw_track_direction()
+    # Draw the small ixpeobssim signature :-)
+    plt.text(0., 0.02, 'Powered by https://github.com/lucabaldini/ixpeobssim',
+        transform = plt.gca().transAxes, size='xx-small')
     if kwargs.get('autosave'):
         file_path = os.path.join(kwargs.get('outfolder'), file_name)
     else:
