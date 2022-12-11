@@ -4,6 +4,12 @@ Release notes
 =============
 
 
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/677
+* New xpobsdisplay to create animated displays with track images and
+  cumulative histograms out of Level-1 and Level-2 data files.
+* Single event display revamped.
+
+
 *ixpeobssim (29.6.0) - Thu, 01 Dec 2022 15:05:28 +0100*
 
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/673
