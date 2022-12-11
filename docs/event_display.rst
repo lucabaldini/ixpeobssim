@@ -116,5 +116,9 @@ being
 
 .. code-block::
 
-   ffmpeg -framerate 1/2 -i path_to_frames_%04d.png -c:v libx264 -r 30 \
+   ffmpeg -framerate 1 -i path_to_frames_%04d.png -c:v libx264  -s 1920x1080 -r 30 \
        -pix_fmt yuv420p animation.mp4
+
+For completeness, a succinct and yet informative resource about using ffmpeg
+to create slideshows is
+`here <https://hamelot.io/visualization/using-ffmpeg-to-convert-a-set-of-images-into-a-video/>`_.

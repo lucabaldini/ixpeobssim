@@ -55,6 +55,10 @@ PARSER.add_argument('--pdmax', type=float, default=0.2,
     help='maximum polarization degree for the Stokes plot')
 PARSER.add_argument('--pdstep', type=float, default=0.05,
     help='polarization degree step for the Stokes plot grid')
+PARSER.add_argument('--xref', type=float, default=None,
+                    help='the horizontal position of the image center')
+PARSER.add_argument('--yref', type=float, default=None,
+                    help='the vertical position of the image center')
 PARSER.add_argument('--npix', type=int, default=200,
     help='number of pixels per side for the count map in sky coordinates')
 PARSER.add_argument('--pixsize', type=float, default=None,
@@ -178,6 +182,10 @@ def xpobsdisplay(**kwargs):
     l2_file = xEventFile(kwargs.get('evtlist'))
     l2_first_met, l2_last_met = met_span(l2_file)
     xref, yref = l2_file.wcs_reference()
+    if kwargs.get('xref') is not None:
+        xref = kwargs.get('xref')
+    if kwargs.get('yref') is not None:
+        yref = kwargs.get('yref')
     wcs_kwargs = dict(xref=xref, yref=yref, npix=npix, pixsize=pixsize)
     wcs_ = xEventBinningBase._build_image_wcs(default_img_side=10., **wcs_kwargs)
     time_data = l2_file.time_data()
