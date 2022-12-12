@@ -26,7 +26,7 @@ from astropy.io import fits
 
 from ixpeobssim.core.fitsio import xPrimaryHDU, xBinTableHDUBase
 from ixpeobssim.core.hist import xGpdMap3d, xHistogramBase, xHistogram2d
-from ixpeobssim.instrument.gpd import FIDUCIAL_HALF_SIZE
+from ixpeobssim.instrument.gpd import GPD_PHYSICAL_HALF_SIDE_X, GPD_PHYSICAL_HALF_SIDE_Y
 from ixpeobssim.utils.logging_ import logger, abort
 
 
@@ -209,7 +209,7 @@ class xEnergyFluxCube(xGpdMap3d):
         """
         xGpdMap3d.__init__(self, nside, tedges, zlabel=zlabel, wlabel=wlabel)
         # Cache the pixel area, used to normalize the flux at fill() time.
-        self.pixel_area = (FIDUCIAL_HALF_SIZE * 2. / nside)**2.
+        self.pixel_area = (GPD_PHYSICAL_HALF_SIDE_X / nside) * (GPD_PHYSICAL_HALF_SIDE_Y / nside)
         self.__gain_data = None
         self.charging_map = None
 

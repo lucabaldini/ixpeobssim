@@ -4,6 +4,58 @@ Release notes
 =============
 
 
+*ixpeobssim (29.7.0) - Sun, 11 Dec 2022 10:12:24 +0100*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/677
+* New xpobsdisplay to create animated displays with track images and
+  cumulative histograms out of Level-1 and Level-2 data files.
+* Single event display revamped.
+
+
+*ixpeobssim (29.6.0) - Thu, 01 Dec 2022 15:05:28 +0100*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/673
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/674
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/675
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/676
+* Several new command-line switches added to xpdisplay.
+* Diagnostic events properly handled in the event display.
+* New xLorentzian model in ixpeobssim.core.modeling
+* New xpradialprofile.py application to help gauging the level of background
+  in a given observation.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/664
+      * https://github.com/lucabaldini/ixpeobssim/issues/665
+      * https://github.com/lucabaldini/ixpeobssim/issues/667
+
+
+*ixpeobssim (29.5.0) - Thu, 24 Nov 2022 13:20:07 +0100*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/666
+* Constants related to the GPD physical size and default fiducial size fully
+  revamped, passing from a square to a rectangle wherever appropriate.
+* Possibility for a radial dependence added to the instrumental background classes.
+* Large refactoring and cleanup.
+* Documentation updated.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/668
+      * https://github.com/lucabaldini/ixpeobssim/issues/663
+
+
+*ixpeobssim (29.4.0) - Thu, 17 Nov 2022 11:50:54 +0100*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/657
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/659
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/660
+* Fix in the error propagation in the histogram sum
+* Better handling of the parameter bounds when summing fitting models.
+* New interface to level-1 files and single-event display.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/639
+      * https://github.com/lucabaldini/ixpeobssim/issues/656
+      * https://github.com/lucabaldini/ixpeobssim/issues/658
+
+
 *ixpeobssim (29.3.1) - Thu, 06 Oct 2022 22:12:32 +0200*
 
 * Minor changes to the README file.

@@ -321,6 +321,20 @@ class xFitModelBase:
         xmin = min(m1.DEFAULT_PLOTTING_RANGE[0], m2.DEFAULT_PLOTTING_RANGE[0])
         xmax = max(m1.DEFAULT_PLOTTING_RANGE[1], m2.DEFAULT_PLOTTING_RANGE[1])
         name = '%s + %s' % (m1.__class__.__name__, m2.__class__.__name__)
+        # In order to correctly propagate the parameter boundaries of the two
+        # input models to their sum, we need to handle the case where one or
+        # both of them do not define their PARAMETER_DEFAULT_BOUNDS, relying
+        # on the base class default. In that case we simply repeat those
+        # default values for as many parameters as there are in that model.
+        lower_bounds = []
+        upper_bounds = []
+        for m in (m1, m2):
+            if m.bounds == xFitModelBase.PARAMETER_DEFAULT_BOUNDS:
+                lower_bounds += (len(m.parameters) * [m.bounds[0]])
+                upper_bounds += (len(m.parameters) * [m.bounds[1]])
+            else:
+                lower_bounds += m.bounds[0]
+                upper_bounds += m.bounds[1]
 
         class _model(xFitModelBase):
 
@@ -328,7 +342,7 @@ class xFitModelBase:
             PARAMETER_DEFAULT_VALUES = m1.PARAMETER_DEFAULT_VALUES + \
                                        m2.PARAMETER_DEFAULT_VALUES
             DEFAULT_PLOTTING_RANGE = (xmin, xmax)
-            PARAMETER_DEFAULT_BOUNDS = (-numpy.inf, numpy.inf)
+            PARAMETER_DEFAULT_BOUNDS = (lower_bounds, upper_bounds)
 
             def __init__(self):
                 self.__class__.__name__ = name
@@ -946,3 +960,31 @@ class xHat(xFitModelBase):
         if xHat.ASYMMETRY != 0:
             val *= 1. - xHat.ASYMMETRY * (x - x1) / dx
         return val
+
+
+class xLorentzian(xFitModelBase):
+
+    """Lorentzian function
+    """
+
+    PARAMETER_NAMES = ('Normalization', 'Peak', 'HWHM' )
+    PARAMETER_DEFAULT_VALUES = (1., 0., 1.)
+    PARAMETER_DEFAULT_BOUNDS = ([0., -numpy.inf, 0.], [numpy.inf, numpy.inf, numpy.inf])
+    DEFAULT_PLOTTING_RANGE = (-1., 1.)
+
+    @staticmethod
+    def value(x, normalization, peak, hwhm):
+        """Overloaded value() method.
+        """
+        return normalization * hwhm / ((x - peak)**2. + hwhm**2.)
+
+    @staticmethod
+    def jacobian(x, normalization, peak, hwhm):
+        """Overloaded jacobian() method.
+        """
+        d_x = x - peak
+        denom = d_x**2. + hwhm**2.
+        d_normalization = hwhm / denom
+        d_peak = 2. * normalization * hwhm * d_x / denom**2.
+        d_hwhm = normalization * (d_x**2.  - hwhm**2.)/ denom**2.
+        return numpy.array([d_normalization, d_peak, d_hwhm]).transpose()

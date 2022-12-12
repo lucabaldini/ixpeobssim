@@ -30,7 +30,8 @@ import scipy.stats
 import scipy.signal
 
 from ixpeobssim.core.fitting import fit_histogram, USE_ABSOLUTE_SIGMA
-from ixpeobssim.instrument.gpd import FIDUCIAL_HALF_SIZE
+from ixpeobssim.instrument.gpd import gpd_map_binning, GPD_PHYSICAL_HALF_SIDE_X,\
+    GPD_PHYSICAL_HALF_SIDE_Y
 from ixpeobssim.utils.matplotlib_ import plt, setup_gca, draggable_colorbar
 from ixpeobssim.utils.logging_ import logger
 
@@ -216,7 +217,7 @@ class xHistogramBase:
         hist = self.empty_copy()
         hist.set_content(self.content + other.content,
                          self.entries + other.entries,
-                         self.sumw2 + other.sumw2)
+                         numpy.sqrt(self.sumw2 + other.sumw2))
         return hist
 
     def __sub__(self, other):
@@ -225,7 +226,7 @@ class xHistogramBase:
         hist = self.empty_copy()
         hist.set_content(self.content - other.content,
                          self.entries + other.entries,
-                         self.sumw2 + other.sumw2)
+                         numpy.sqrt(self.sumw2 + other.sumw2))
         return hist
 
     def __mul__(self, value):
@@ -550,9 +551,9 @@ class xGpdMap2d(xHistogram2d):
     def __init__(self, nside=10, zlabel='Entries/bin'):
         """Constructor.
         """
-        edges = numpy.linspace(-FIDUCIAL_HALF_SIZE, FIDUCIAL_HALF_SIZE, nside + 1)
+        edges = gpd_map_binning(GPD_PHYSICAL_HALF_SIDE_X, GPD_PHYSICAL_HALF_SIDE_Y, nside)
         labels = ['x [mm]', 'y [mm]', zlabel]
-        xHistogram2d.__init__(self, edges, edges, *labels)
+        xHistogram2d.__init__(self, *edges, *labels)
 
 
 
@@ -578,5 +579,5 @@ class xGpdMap3d(xHistogram3d):
     def __init__(self, nside, zbins, zlabel='', wlabel='Entries/bin'):
         """Constructor.
         """
-        edges = numpy.linspace(-FIDUCIAL_HALF_SIZE, FIDUCIAL_HALF_SIZE, nside + 1)
-        xHistogram3d.__init__(self, edges, edges, zbins, 'x [mm]', 'y [mm]', zlabel, wlabel)
+        edges = gpd_map_binning(GPD_PHYSICAL_HALF_SIDE_X, GPD_PHYSICAL_HALF_SIDE_Y, nside)
+        xHistogram3d.__init__(self, *edges, zbins, 'x [mm]', 'y [mm]', zlabel, wlabel)

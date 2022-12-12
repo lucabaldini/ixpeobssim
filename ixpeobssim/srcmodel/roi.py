@@ -163,14 +163,21 @@ class xModelComponentBase:
         return numpy.random.uniform(-numpy.pi, numpy.pi, size)
 
     @staticmethod
-    def uniform_square(size, half_side=gpd.FIDUCIAL_HALF_SIZE):
+    def uniform_rectangle(size, half_side_x, half_side_y):
         """Return two arrays of a given size with random x and y coordinates
-        uniformly distributed within a square of a given half-side centered
+        uniformly distributed within a rectangle of a given half-sides centered
         in 0, 0.
         """
-        detx = numpy.random.uniform(-half_side, half_side, size)
-        dety = numpy.random.uniform(-half_side, half_side, size)
+        detx = numpy.random.uniform(-half_side_x, half_side_x, size)
+        dety = numpy.random.uniform(-half_side_y, half_side_y, size)
         return detx, dety
+
+    @staticmethod
+    def uniform_square(size, half_side):
+        """Specialized function generating random coordinates uniformly
+        distributed within a square.
+        """
+        return self.uniform_square(size, half_side, half_side)
 
     @classmethod
     def convolve_sky_direction(cls, mc_ra, mc_dec, parent_roi, psf):
@@ -1521,4 +1528,3 @@ class xChandraROIModel(xROIModel):
         text = 'Chandra FITS file: %s' % self.evt_file_path
         text += '\n    %s' % xROIModel.__str__(self)
         return text
-

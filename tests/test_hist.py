@@ -118,9 +118,11 @@ class TestHist(unittest.TestCase):
         ha = self.h1 + self.h1
         self.assertTrue(numpy.allclose(ha.entries, 2 * self.h1.entries))
         self.assertTrue(numpy.allclose(ha.content, 2 * self.h1.content))
+        self.assertTrue(numpy.allclose(ha.errors(), 2**0.5 * self.h1.errors()))
         hb = 2 * self.h1
         self.assertTrue(numpy.allclose(hb.entries, self.h1.entries))
         self.assertTrue(numpy.allclose(hb.content, ha.content))
+        self.assertTrue(numpy.allclose(hb.errors(), 2 * self.h1.errors()))
 
     def test_scatter_plot(self):
         """
