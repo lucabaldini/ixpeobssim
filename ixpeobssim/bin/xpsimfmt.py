@@ -81,7 +81,11 @@ def format_file(file_path, **kwargs):
     primary_header = hdu_list['PRIMARY'].header
     det_name = primary_header['DETNAM']
     det_id = primary_header['DET_ID']
-    du_id = det_name_to_du_id(det_name)
+    try:
+        du_id = det_name_to_du_id(det_name)
+    except RuntimeError:
+        du_id = 1
+        logger.warning('DET_ID header keyword is "%s", DU ID set to %d', det_id, du_id)
     # EVENTS extension...
     evt_header = hdu_list['EVENTS'].header
     evt_data = hdu_list['EVENTS'].data
@@ -101,12 +105,23 @@ def format_file(file_path, **kwargs):
         logger.info('Using reconstructed absorption point...')
         detx = evt_data['ABSX']
         dety = evt_data['ABSY']
-    # SC_DATA extension...
-    sc_header = hdu_list['SC_DATA'].header
-    ra_pnt = sc_header['RA_PNT']
-    dec_pnt = sc_header['DEC_PNT']
-    roll_angle = sc_header['ROLL']
-    sc_data = hdu_list['SC_DATA'].data
+    # SC_DATA extension: for files created with ixpesim via the photon list
+    # mechanism we should have all the pointing history available in the SC_DATA
+    # extension, but files created with the "standard" ixpesim mechanism (e.g.,
+    # those created for the purpose of generating response files) will miss this.
+    # In this case we set the sc_data local variable to None and we rely on this
+    # in the following to detect whether we need to set specific columns or not. 
+    try:
+        sc_header = hdu_list['SC_DATA'].header
+        ra_pnt = sc_header['RA_PNT']
+        dec_pnt = sc_header['DEC_PNT']
+        roll_angle = sc_header['ROLL']
+        sc_data = hdu_list['SC_DATA'].data
+    except KeyError as e:
+        logger.warning(e)
+        sc_data = None
+        roll_angle = 0.
+        logger.warning('Roll angle set to %.3f.' % roll_angle)
 
     # Calculate the missing columns and add them to the EVENTS extension.
     pha_model = load_pha_model(kwargs.get('auxversion', AUX_VERSION))
@@ -124,9 +139,10 @@ def format_file(file_path, **kwargs):
     phi = modulo_2pi(phi - 0.5 * numpy.pi)
     detq = xStokesAnalysis.stokes_q(phi, weights=None)
     detu = xStokesAnalysis.stokes_u(phi, weights=None)
-    ra, dec = gpd_to_sky(detx, dety, met, *pointing_direction(sc_data, met), du_id, roll_angle)
-    x, y = standard_radec_to_xy(ra, dec, ra_pnt, dec_pnt)
-    xkwargs, ykwargs = standard_xy_columns_kwargs(ra_pnt, dec_pnt)
+    if sc_data is not None:
+        ra, dec = gpd_to_sky(detx, dety, met, *pointing_direction(sc_data, met), du_id, roll_angle)
+        x, y = standard_radec_to_xy(ra, dec, ra_pnt, dec_pnt)
+        xkwargs, ykwargs = standard_xy_columns_kwargs(ra_pnt, dec_pnt)
 
     logger.info('Adding necessary columns...')
     cols = hdu_list['EVENTS'].data.columns
@@ -135,10 +151,11 @@ def format_file(file_path, **kwargs):
     cols += fits.Column(name='PI', format='E', array=pi)
     cols += fits.Column(name='ENERGY', format='E', array=rec_energy)
     cols += fits.Column(name='PHI', format='E', array=phi)
-    cols += fits.Column(name='RA', format='E', array=ra)
-    cols += fits.Column(name='DEC', format='E', array=dec)
-    cols += fits.Column(name='X', format='E', array=x, **xkwargs)
-    cols += fits.Column(name='Y', format='E', array=y, **ykwargs)
+    if sc_data is not None:
+        cols += fits.Column(name='RA', format='E', array=ra)
+        cols += fits.Column(name='DEC', format='E', array=dec)
+        cols += fits.Column(name='X', format='E', array=x, **xkwargs)
+        cols += fits.Column(name='Y', format='E', array=y, **ykwargs)
     cols += fits.Column(name='Q', format='E', array=detq)
     cols += fits.Column(name='U', format='E', array=detu)
     cols += fits.Column(name='W_MOM', format='E', array=weights)
@@ -147,7 +164,8 @@ def format_file(file_path, **kwargs):
     # Add the pointing information to the primary header, so that down the road
     # xpbin can make good use of it.
     logger.info('Updating headers...')
-    set_object_header_keywords(hdu_list['PRIMARY'], ra_pnt, dec_pnt)
+    if sc_data is not None:
+        set_object_header_keywords(hdu_list['PRIMARY'], ra_pnt, dec_pnt)
     for ext in ('PRIMARY', 'EVENTS', 'GTI'):
         header = hdu_list[ext].header
         header.set('DETNAM', det_name)
