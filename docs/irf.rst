@@ -35,7 +35,7 @@ IRFs, as illustrated below.
 IRF summary
 -----------
 
-This is a short, top level description of the version v11 of the default IXPE
+This is a short, top level description of the version v12 of the default IXPE
 response functions used by ixpeobssim. If you want to dig into all the gory details
 of the process of generating the response files, the section about :ref:`irfgen`
 is the place you want to start from.
@@ -67,7 +67,7 @@ we shall see in a second, the increase in the modulation factor drives the
 overall sensitivity slightly up.
 
 .. _figure-ixpe_effective_area:
-.. figure:: figures/irf/ixpe_effective_area_v11.*
+.. figure:: figures/irf/ixpe_effective_area_v12.*
    :width: 80%
 
    On-axis effective area as a function of the energy. The solid lines represent
@@ -93,20 +93,20 @@ contributions, namely:
 The plots below show the principal ingredients that go into the calculation.
 
 .. _figure-mma_effective_area:
-.. figure:: figures/irf/mma_effective_area_v11.*
+.. figure:: figures/irf/mma_effective_area_v12.*
    :width: 80%
 
    On-axis effective area as a function of the energy for three Mirror-Module
    Assemblies (MMA) and for a single module.
 
 .. _figure-uv_filter_transparency:
-.. figure:: figures/irf/uv_filter_transparency_v11.*
+.. figure:: figures/irf/uv_filter_transparency_v12.*
    :width: 80%
 
    Transparency of the UV filter as a function of the photon energy.
 
 .. _figure-gpd_quantum_efficiency:
-.. figure:: figures/irf/gpd_quantum_efficiency_v11.*
+.. figure:: figures/irf/gpd_quantum_efficiency_v12.*
    :width: 80%
 
    Quantum efficiency of the GPD as a function of the energy, broken up in its
@@ -119,7 +119,7 @@ based upon ray-trace simulations for a perfect mirror module assembly, and is
 relevant for the simulation of extended sources.
 
 .. _figure-mma_vignetting:
-.. figure:: figures/irf/mma_vignetting_v11.*
+.. figure:: figures/irf/mma_vignetting_v12.*
    :width: 80%
 
    Preliminary estimation of the vignetting of the optics as a function of
@@ -131,14 +131,14 @@ as shown in the following two plots. (Note that above 6 keV the drop of the
 effective area at the edge of the field of view is relatively more important.)
 
 .. _figure-field_of_view_at_3_kev:
-.. figure:: figures/irf/field_of_view_at_3_kev_v11.*
+.. figure:: figures/irf/field_of_view_at_3_kev_v12.*
    :width: 80%
 
    Relative exposure at 3 keV across the field of view for the set of three
    telescopes clocked in the IXPE configuration.
 
 .. _figure-field_of_view_at_8_kev:
-.. figure:: figures/irf/field_of_view_at_8_kev_v11.*
+.. figure:: figures/irf/field_of_view_at_8_kev_v12.*
    :width: 80%
 
    Relative exposure at 8 keV across the field of view for the set of three
@@ -161,7 +161,7 @@ which is essentially the content of the binary table in the ``MATRIX`` extension
 the rmf file.
 
 .. _figure-energy_dispersion:
-.. figure:: figures/irf/energy_dispersion_v11.*
+.. figure:: figures/irf/energy_dispersion_v12.*
    :width: 80%
 
    Representation of the GPD response matrix.
@@ -171,7 +171,7 @@ at a few fixed true energies (i.e., these are just vertical slices of the
 color plot above).
 
 .. _figure-energy_resolution:
-.. figure:: figures/irf/energy_resolution_v11.*
+.. figure:: figures/irf/energy_resolution_v12.*
    :width: 80%
 
    Energy dispersion (one-dimensional probability density function) at a set
@@ -195,7 +195,7 @@ described in `issue #158 <https://github.com/lucabaldini/ixpeobssim/issues/158>`
 
 
 .. _figure-psf_eef:
-.. figure:: figures/irf/psf_eef_v11.*
+.. figure:: figures/irf/psf_eef_v12.*
    :width: 80%
 
    Encircled energy fraction (EEF) for the PSF of the three IXPE telescopes.
@@ -214,7 +214,7 @@ Monte Carlo simulations, informed by the ground calibrations of the three
 detector units.
 
 .. _figure-ixpe_modulation_factor:
-.. figure:: figures/irf/ixpe_modulation_factor_v11.*
+.. figure:: figures/irf/ixpe_modulation_factor_v12.*
    :width: 80%
 
    Modulation factor as a function of the photon energy for the IXPE detectors.
@@ -244,7 +244,7 @@ performance plot below for each iteration of the response functions using
 source flux and the observing time.
 
 .. _figure-ixpe_mdp:
-.. figure:: figures/irf/ixpe_mdp_v11.*
+.. figure:: figures/irf/ixpe_mdp_v12.*
    :width: 80%
 
    IXPE Minimum Detectable Polarization (MDP) as a function of the source flux
