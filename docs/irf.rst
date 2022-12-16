@@ -36,9 +36,7 @@ IRF summary
 -----------
 
 This is a short, top level description of the version v12 of the default IXPE
-response functions used by ixpeobssim. If you want to dig into all the gory details
-of the process of generating the response files, the section about :ref:`irfgen`
-is the place you want to start from.
+response functions used by ixpeobssim.
 
 All the response functions are defined between 1 and 12 keV in steps of 40 eV,
 and are detector-unit based (the pulse-invariant channel space is defined

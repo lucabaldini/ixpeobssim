@@ -6,12 +6,6 @@ ixpesim interface
 If you have never heard about it, ``ixpesim`` (a C++ application living in the
 `gdpsw <https://bitbucket.org/ixpesw/gpdsw>`_ repository) is the IXPE full detector
 simulation based on the `Geant4 <https://geant4.web.cern.ch>`_ framework.
-The process described in :ref:`irfgen` owns much of the external, auxiliary
-information on (long) ``ixpesim`` simulations.
-
-.. seealso::
-
-   :ref:`irfgen`
 
 ``ixpesim`` is fundamentally different from ``ixpeobssim``, in that it follows the
 impinging photons one at a time, simulating the interaction with the detector
@@ -161,10 +155,7 @@ invariant.
 In real life level-1 files are processed by a series of tools, correcting
 for a number of effects (gain non-uniformity, secular gain variations,
 temperature effects, and charging). For simulated data we can use the same
-model that is used at the generation stage of the response functions, as
-described in the section about :ref:`irfgen`.
-
-.. seealso:: :ref:`irfgen`
+model that is used at the generation stage of the response functions.
 
 :ref:`reference-xpsimfmt` performs all the steps that are necessary to close the
 loop and have the ``ixpesim`` output inter-operate correctly with all the
