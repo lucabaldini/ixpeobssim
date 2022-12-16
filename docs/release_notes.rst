@@ -4,6 +4,8 @@ Release notes
 =============
 
 
+*ixpeobssim (29.7.1) - Fri, 16 Dec 2022 14:57:10 +0100*
+
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/679
 * xpsimfmt.py modified to support (again) the proper generation of reponse files.
 * Issue(s) closed:
