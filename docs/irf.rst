@@ -28,8 +28,8 @@ If you are familiar with basic spectral analysis in XSPEC, the .arf and
 .rmf files have exactly the meaning that you would expect, and can be in fact
 used in XSPEC; the .mrf files have the exact same format as the .arf files.
 
-ixpeobssim provides facilities for generating, reading displaying and using
-IRFs, as illustrated below.
+ixpeobssim provides facilities for reading, displaying and using IRFs, as
+illustrated below.
 
 
 IRF summary
@@ -47,13 +47,6 @@ point-spread function.
 Since the eight iteration of the response functions, all response files come
 in two distinct flavors---un-weighted and weighted. Accordingly, all the analysis
 tools support weights.
-
-.. warning::
-
-   At this point in test the analysis of IXPE data with weights has not been
-   thoroughly tested. While weight do allow for a measurable sensitivity
-   improvement, cross-checking your analysis using the plain, old, un-weighted
-   strategy is a sensible way to make sure everything is in order.
 
 
 Effective area
@@ -76,7 +69,7 @@ overall sensitivity slightly up.
 The effective-area curves for the three telescopes are within a few % from each
 other, the small differences being due to the slightly different mirror effective
 areas measured during the MMA calibration, as well as the different asymptotic
-pressure values for the three GPD at the focal plane.
+pressure values for the three GPDs at the focal plane.
 
 The effective-area calculation in ixpeobssim includes all the relevant
 contributions, namely:
@@ -231,6 +224,18 @@ detector units.
    interpreted with caution.
 
 
+Below is an alternative representation of the overall IXPE spectro-polarimetric
+response, combining the elements described above.
+
+.. _figure-ixpe_response:
+.. figure:: figures/irf/ixpe_response_v12.*
+   :width: 80%
+
+   Overall IXPE spectro-polarimetric response (all the elements are described in
+   the first part of this section).
+
+
+
 Minimum detectable polarization
 -------------------------------
 
@@ -351,6 +356,13 @@ Response file versioning
 This is a short description of the main features of different sets of response
 files that are useful for simulation and science analysis:
 
+* ``ixpe:obssim:v12``: compared to the previous iteration (``ixpe:obssim:v11``),
+  this version includes an updated parametrization of the effective area for
+  MMA 3, accounting for its thicker thermal shield (the effect is of a few % at
+  2 keV, and negligible above 4 keV, but has been shown to improve the spectral
+  residuals at low energy for bright sources), as well as a new set of weighted
+  response files with the SIMPLE prescription, that are necessary for a proper
+  weighted model-independent analysis.
 * ``ixpe:obssim:v11``: identical to ``ixpe:obssim:v10``, except that the PSF
   parametrization (used on the simulation side of things) has been improved to
   match the on-orbit radial dependence measured with point sources.
