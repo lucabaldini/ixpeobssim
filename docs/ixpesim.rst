@@ -3,6 +3,12 @@
 ixpesim interface
 =================
 
+.. warning::
+
+   This section deals with a piece of software that is not publicly distributed,
+   and is likely not of general interest---and yet is kept here for the
+   sake of IXPE collaborators, that do have access to full detector simulation.
+
 If you have never heard about it, ``ixpesim`` (a C++ application living in the
 `gdpsw <https://bitbucket.org/ixpesw/gpdsw>`_ repository) is the IXPE full detector
 simulation based on the `Geant4 <https://geant4.web.cern.ch>`_ framework.
