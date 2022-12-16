@@ -10,7 +10,6 @@ Release notes
       * https://github.com/lucabaldini/ixpeobssim/issues/678
 
 
-
 *ixpeobssim (29.7.0) - Sun, 11 Dec 2022 10:12:24 +0100*
 
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/677
