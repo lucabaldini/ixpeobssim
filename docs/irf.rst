@@ -43,7 +43,6 @@ and are detector-unit based (the pulse-invariant channel space is defined
 between 0 and 15 keV in steps of 40 eV). As such, there are differences between
 the three modules in terms of effective area, modulation factor and
 point-spread function.
-
 Since the eight iteration of the response functions, all response files come
 in two distinct flavors---un-weighted and weighted. Accordingly, all the analysis
 tools support weights.
@@ -175,14 +174,12 @@ Point-spread function
 
 The PSF model is derived from one of the early point-source observations, as
 described in `issue #158 <https://github.com/lucabaldini/ixpeobssim/issues/158>`_.
-
-.. note::
-  Starting with version 6 of the instrument response function each DU comes
-  with a different PSF scaling factor to account for the differences
-  measured during the mirror calibration. As shown in
-  `issue #387 <https://github.com/lucabaldini/ixpeobssim/issues/387>`_, MMA 1
-  has a significantly better PSF (less than 20 arcsec HPD) than MMAs 2 and 3
-  (running at more than 25 arcsec HPD).
+Starting with version 6 of the instrument response function each DU comes
+with a different PSF scaling factor to account for the differences
+measured during the mirror calibration. As shown in
+`issue #387 <https://github.com/lucabaldini/ixpeobssim/issues/387>`_, MMA 1
+has a significantly better PSF (less than 20 arcsec HPD) than MMAs 2 and 3
+(running at more than 25 arcsec HPD).
 
 
 .. _figure-psf_eef:
@@ -213,7 +210,7 @@ detector units.
    and weighted version, while the un-labeled dashed lines (admittedly, barely
    visible) represent the curve for each of the three detectors.
 
-.. warning::
+.. note::
    The noticeable edge around 9 keV is due to the K-edge of the copper,
    above which the extraction of photoelectrons from X-rays absorbed in the GEM
    becomes significantly more likely. This causes an increase of effective area,
@@ -365,7 +362,8 @@ files that are useful for simulation and science analysis:
   weighted model-independent analysis.
 * ``ixpe:obssim:v11``: identical to ``ixpe:obssim:v10``, except that the PSF
   parametrization (used on the simulation side of things) has been improved to
-  match the on-orbit radial dependence measured with point sources.
+  match the on-orbit radial dependence measured with point sources; all the other
+  response files are unchenged.
 * ``ixpe:obssim:v10``: this is the first iteration of the response files
   matching the structure of the actual CALDB, and the first that can be used
   with real data.
@@ -380,33 +378,9 @@ effective area, the response matrix and the modulation response function)
 have a definite, one-to-one correspondence between the two databases---meaning
 that they are `identical`, modulo a few header keywords.
 
-.. list-table::
-   :widths: 50 50
-   :header-rows: 1
-
-   * - Pseudo CALDB
-     - Real CALDB
-   * - gpd/cpf/arf/ixpe_d?_obssim_v010/011.arf
-     - gpd/cpf/arf/ixpe_d?_20170101_01.arf
-   * - gpd/cpf/arf/ixpe_d?_obssim_alpha075_v010/011.arf
-     - gpd/cpf/arf/ixpe_d?_20170101_alpha075_01.arf
-   * - gpd/cpf/rmf/ixpe_d?_obssim_v010/011.rmf
-     - gpd/cpf/rmf/ixpe_d?_20170101_01.rmf
-   * - gpd/cpf/rmf/ixpe_d?_obssim_alpha075_v010/011.rmf
-     - gpd/cpf/rmf/ixpe_d?_20170101_alpha075_01.rmf
-   * - gpd/cpf/mrf/ixpe_d?_obssim_v010/011.mrf
-     - gpd/cpf/mrf/ixpe_d?_20170101_01.mrf
-   * - gpd/cpf/mrf/ixpe_d?_obssim_alpha075_v010/011.mrf
-     - gpd/cpf/mrf/ixpe_d?_20170101_alpha075_01.mrf
-   * - gpd/cpf/modfact/ixpe_d?_obssim_mfact_v010/011.fits
-     - gpd/cpf/modfact/ixpe_d?_20170101_mfact_01.fits
-   * - gpd/cpf/modfact/ixpe_d?_obssim_alpha075_mfact_v010/011.fits
-     - gpd/cpf/modfact/ixpe_d?_20170101_mfact_alpha075_01.fits
-
-
-
-Differences with the real CALDB
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+* ``ixpe:obssim:v12`` maps to ``20170101_02``
+* ``ixpe:obssim:v11`` maps to ``20170101_01``
+* ``ixpe:obssim:v10`` maps to ``20170101_01``
 
 The structure of the ``ixpeobssim`` pseudo-CALDB is designed to match as closely
 as possible that of the real IXPE CALDB.
@@ -465,38 +439,42 @@ This is just an historical accident that, at this point, is not worth correcting
 Historical notes
 ----------------
 
+.. warning::
+
+   The links provided below are ultimately pointing to IXPE private repositories
+   to which only collaboration members have access.
+
 The release process and the differences with respect to the previous iterations
 are summarized on our issue tracker at:
 
-* `issue #580 <https://github.com/lucabaldini/ixpeobssim/issues/580>`_
+* ixpeirfgen `issue #10 <https://bitbucket.org/ixpesw/ixpeirfgen/issues/10>`_
+  (release of version 12);
+* ixpeobssim `issue #580 <https://github.com/lucabaldini/ixpeobssim/issues/580>`_
   (release of version 11);
-* `issue #496 <https://github.com/lucabaldini/ixpeobssim/issues/496>`_
+* ixpeobssim `issue #496 <https://github.com/lucabaldini/ixpeobssim/issues/496>`_
   (release of version 10);
-* `issue #460 <https://github.com/lucabaldini/ixpeobssim/issues/460>`_
+* ixpeobssim `issue #460 <https://github.com/lucabaldini/ixpeobssim/issues/460>`_
   (release of version 9);
-* `issue #402 <https://github.com/lucabaldini/ixpeobssim/issues/402>`_
+* ixpeobssim `issue #402 <https://github.com/lucabaldini/ixpeobssim/issues/402>`_
   (release of version 7);
-* `issue #333 <https://github.com/lucabaldini/ixpeobssim/issues/333>`_
+* ixpeobssim `issue #333 <https://github.com/lucabaldini/ixpeobssim/issues/333>`_
   (release of version 6);
-* `issue #344 <https://github.com/lucabaldini/ixpeobssim/issues/344>`_
+* ixpeobssim `issue #344 <https://github.com/lucabaldini/ixpeobssim/issues/344>`_
   (release of version 5);
-* `issue #294 <https://github.com/lucabaldini/ixpeobssim/issues/294>`_
+* ixpeobssim `issue #294 <https://github.com/lucabaldini/ixpeobssim/issues/294>`_
   (release of version 4);
-* `issue #258 <https://github.com/lucabaldini/ixpeobssim/issues/258>`_
+* ixpeobssim `issue #258 <https://github.com/lucabaldini/ixpeobssim/issues/258>`_
   (release of version 3);
-* `issue #161 <https://github.com/lucabaldini/ixpeobssim/issues/161>`_
+* ixpeobssim `issue #161 <https://github.com/lucabaldini/ixpeobssim/issues/161>`_
   (release of version 2 and differences with respect to version 1).
 
-In iterations of the response functions up to v3, ixpeobssim used
-to ship combined versions of the effective area and modulation factor, that
-were useful for back-of-the envelope sensitivity calculations. From
-version 4 onward this is no more the case, and all the relevant applications
-have been modified to make the appropriate loop over the three detector units
-where the combined response functions were used before.
+Version 8 of the response files is the first supporting XSPEC spectro-polarimetric
+analysis with weights. Version 9 is fairly similar, with a refined parametrization
+of the MMA effective area. Version 10 features a few new header keywords, and
+is the one on which the first version of the CALDB submitted to HEASARC is
+based.
 
-Likewise, all the non-standard versions of the response files (e.g., without
-the standard cuts or with the MMA alone) have been dropped altogether
-starting from version 4.
+Version 7 of the response files features the first non-diagonal response matrix.
 
 Version 6 of the response function is the first iteration taking full
 advantage of the flight DU calibration and the telescope end-to-end
@@ -510,10 +488,13 @@ spanning the 0--15 keV energy range in steps of 40 eV.
 (In previous iterations the PI spanned the very same energy interval used
 to define the response functions, i.e., 1--12 keV.)
 
-Version 7 of the response files features the first non-diagonal response matrix.
+All the non-standard versions of the response files (e.g., without
+the standard cuts or with the MMA alone) have been dropped altogether
+starting from version 4.
 
-Version 8 of the response files is the first supporting XSPEC spectro-polarimetric
-analysis with weights. Version 9 is fairly similar, with a refined parametrization
-of the MMA effective area. Version 10 features a few new header keywords, and
-is the one on which the first version of the CALDB submitted to HEASARC is
-based.
+In iterations of the response functions up to v3, ixpeobssim used
+to ship combined versions of the effective area and modulation factor, that
+were useful for back-of-the envelope sensitivity calculations. From
+version 4 onward this is no more the case, and all the relevant applications
+have been modified to make the appropriate loop over the three detector units
+where the combined response functions were used before.
