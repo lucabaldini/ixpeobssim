@@ -4,6 +4,8 @@ Release notes
 =============
 
 
+*ixpeobssim (30.0.0) - Sat, 17 Dec 2022 07:18:16 +0100*
+
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/680
 * New v12 response files shipped, and now default for simulation and analysis.
 * Docs updated.
