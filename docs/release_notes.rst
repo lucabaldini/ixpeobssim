@@ -4,6 +4,13 @@ Release notes
 =============
 
 
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/680
+* New v12 response files shipped, and now default for simulation and analysis.
+* Docs updated.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/669
+
+
 *ixpeobssim (29.7.1) - Fri, 16 Dec 2022 14:57:10 +0100*
 
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/679

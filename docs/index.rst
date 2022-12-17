@@ -118,7 +118,6 @@ is the most up-to-date reference.
    :hidden:
    :caption: Advanced topics
 
-   irfgen
    ixpesim
 
 .. toctree::
