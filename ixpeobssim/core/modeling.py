@@ -960,3 +960,31 @@ class xHat(xFitModelBase):
         if xHat.ASYMMETRY != 0:
             val *= 1. - xHat.ASYMMETRY * (x - x1) / dx
         return val
+
+
+class xLorentzian(xFitModelBase):
+
+    """Lorentzian function
+    """
+
+    PARAMETER_NAMES = ('Normalization', 'Peak', 'HWHM' )
+    PARAMETER_DEFAULT_VALUES = (1., 0., 1.)
+    PARAMETER_DEFAULT_BOUNDS = ([0., -numpy.inf, 0.], [numpy.inf, numpy.inf, numpy.inf])
+    DEFAULT_PLOTTING_RANGE = (-1., 1.)
+
+    @staticmethod
+    def value(x, normalization, peak, hwhm):
+        """Overloaded value() method.
+        """
+        return normalization * hwhm / ((x - peak)**2. + hwhm**2.)
+
+    @staticmethod
+    def jacobian(x, normalization, peak, hwhm):
+        """Overloaded jacobian() method.
+        """
+        d_x = x - peak
+        denom = d_x**2. + hwhm**2.
+        d_normalization = hwhm / denom
+        d_peak = 2. * normalization * hwhm * d_x / denom**2.
+        d_hwhm = normalization * (d_x**2.  - hwhm**2.)/ denom**2.
+        return numpy.array([d_normalization, d_peak, d_hwhm]).transpose()

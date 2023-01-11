@@ -25,6 +25,7 @@ from astropy.io import fits
 import numpy
 
 from ixpeobssim import IXPEOBSSIM_SRCMODEL
+from ixpeobssim.core.rand import xUnivariateGenerator
 from ixpeobssim.core.spline import xInterpolatedUnivariateSpline
 from ixpeobssim.evt.event import xEventList
 from ixpeobssim.evt.fmt import standard_radec_to_xy
@@ -34,7 +35,8 @@ from ixpeobssim.irfgen.gpd import GPD_FILL_TEMPERATURE, GPD_TYPICAL_ASYMTPTOTIC_
 from ixpeobssim.irfgen.gpd import xQeffDataInterface
 from ixpeobssim.instrument.gpd import phi_to_detphi
 from ixpeobssim.instrument import gpd
-from ixpeobssim.instrument.gpd import phi_to_detphi
+from ixpeobssim.instrument.gpd import phi_to_detphi, GPD_PHYSICAL_MAX_RADIUS,\
+    GPD_PHYSICAL_HALF_SIDE_X, GPD_PHYSICAL_HALF_SIDE_Y, within_gpd_physical_area
 from ixpeobssim.instrument.mma import gpd_to_sky, parse_dithering_kwargs, apply_dithering
 from ixpeobssim.srcmodel.polarization import constant
 from ixpeobssim.srcmodel.roi import xModelComponentBase
@@ -47,6 +49,134 @@ from ixpeobssim.utils.units_ import arcmin_to_degrees
 
 
 # pylint: disable=invalid-name, too-many-locals
+
+
+
+class xRadialBackgroundGenerator(xUnivariateGenerator):
+
+    """Univariate generator sampling the radial coordinate on the detector surface
+    for a background component whose radial distribution, normalized by the area,
+    depends linearly on the radius.
+
+    This was introduced in https://github.com/lucabaldini/ixpeobssim/issues/663
+
+    The need for an instrumental background component that is not uniform in
+    detector coordinates stems from the analysis of a number of observations.
+    Interestingly enough, the radial slope of the background counts per unit
+    area seems to be different for different observation.
+
+    .. warning::
+
+       While initially I was hoping to code this by sampling two independent
+       random variables, within the proper bounds, on the x and y coordinates,
+       it turned out that an azimuthally symmetric bivariate pdf cannot be
+       expressed as the product of two independent variables on a square, and
+       we had to resort to sampling r over a circle and trimming in the fiducial
+       rectangle after the fact. This is hugly, as we need to guess in advance
+       how much random numbers we have to throw so that we end up with enough
+       counts after the trimming, but so life goes.
+
+    This is essentially an univariate generator whose pdf is a slight generalization
+    of the function f(r) = 2r (for r = 1) that one would use to throw random
+    numbers uniformly distributed in a circle:
+
+    .. math::
+
+       p(r) = \\left( 1 - \\frac{\\alpha}{2}\\right) \\frac{r}{h} +
+       \\alpha \\left(\\frac{r}{h}\\right)^2
+
+    The radial slope alpha repesents the fractional half-excursion of the variation
+    across the size h of the fiducial rectangle. For alpha = 0 the detector
+    position are distributed uniformly over the fiducial rectangle. For alpha = 2
+    the radial dependence is maximal, and the density of events is zero at the
+    center of the detector. For alpha = -1 (and assuming a square fiducial region)
+    the pdf approaches zero at the boundary of the circle.
+
+    Arguments
+    ---------
+    radial_slope : float
+        The slope of the radial profile, that is, the fractional half-excursion
+        of the variation across the size of the fiducial rectangle.
+    """
+
+    HALF_SIDE = 0.5 * (GPD_PHYSICAL_HALF_SIDE_X + GPD_PHYSICAL_HALF_SIDE_Y)
+
+    def __init__(self, radial_slope, num_points=100):
+        """Constructor.
+        """
+        if radial_slope > 2. or radial_slope < -1.:
+            raise RuntimeError('Invalid background radial slope (%.3f)' % radial_slope)
+        self.radial_slope = radial_slope
+        r = numpy.linspace(0., GPD_PHYSICAL_MAX_RADIUS, num_points)
+        xUnivariateGenerator.__init__(self, r, self.pdf(r, self.radial_slope))
+
+    @staticmethod
+    def pdf(r, radial_slope):
+        """Small function encapsulating the underlying pdf for the random generator.
+
+        Note we are using the average physical size of the GPD along the x and
+        y directions as an effective value for the radial parametrization.
+        """
+        r = r / xRadialBackgroundGenerator.HALF_SIDE
+        return (1. - radial_slope / 2.) * r  + radial_slope * r**2.
+
+    @staticmethod
+    def polar_to_cartesian(r, phi):
+        """Convert an array of polar coordinates in the plane into the corresponding
+        cartesian coordinates.
+        """
+        x = r * numpy.cos(phi)
+        y = r * numpy.sin(phi)
+        return x, y
+
+    @staticmethod
+    def average_oversample_fraction(radial_slope):
+        """Return an heuristic for the average oversample fraction for a given
+        radial slope of the profile.
+
+        This is a purely geometric factor that is easy to calculate for a flat
+        profile (slope = 0), in which case it reads pi/2 but not trivial in the
+        general case. Our approach is to generate events within the smallest circle
+        ciscumscribed to the fiducial rectangle on a grid of radial slope values
+        and measure the fraction that ends up in the fiducial rectangle itself.
+        For completeness, this is calculated in tests/test_radial_bkg.py.
+
+        Note that this is accurate within a few % in the limit of infinite statistics.
+        """
+        return 1.56258183 + 0.29704984 * radial_slope - 0.05847132 * radial_slope**2.
+
+    def oversampled_size(self, size, radial_slope, safety_factor=1.2, min_size=1000):
+        """Return the oversampled size for a given target size and radial slope.
+
+        This is essentially the function that determines how many random numbers
+        we need to throw to be sure that, after trimming to the fiducial region,
+        we end up to enough events. This is purely heuristic and is based on the
+        average_oversample_fraction() function when the statistics is large enough,
+        with a minimum bound to be sure we are not killed by statistical fluctuation
+        in the small number regime.
+        """
+        size = safety_factor * size * self.average_oversample_fraction(radial_slope)
+        size = round(size)
+        return max(size, min_size)
+
+    def rvs_xy(self, size):
+        """Extract a set of arrays of coordinate detectors.
+        """
+        oversize = self.oversampled_size(size, self.radial_slope)
+        logger.info('Sampling the background radial profile...')
+        logger.info('Initial counts: %d, target counts %d', oversize, size)
+        r = self.rvs(oversize)
+        phi = 2. * numpy.pi * numpy.random.random(oversize)
+        x, y = self.polar_to_cartesian(r, phi)
+        mask = within_gpd_physical_area(x, y)
+        x = x[mask]
+        y = y[mask]
+        if len(x) < size:
+            raise RuntimeError('Not enough background counts after trimming.')
+        x = x[:size]
+        y = y[:size]
+        return x, y
+
 
 
 class xInstrumentalBkg(xModelComponentBase):
@@ -69,6 +199,9 @@ class xInstrumentalBkg(xModelComponentBase):
     photon_spectrum : callable
         The photon spectrum in photons cm-2/s-1/keV-1 for the bkg source.
 
+    radial_slope : float
+        The radial slope for the distribution in detector coordinates.
+
     identifier : int, optional
         The source identifier.
 
@@ -76,11 +209,13 @@ class xInstrumentalBkg(xModelComponentBase):
         Convolve the source spectrum with the energy dispersion (default is False).
     """
 
-    def __init__(self, name, photon_spectrum, identifier=None, convolve_energy=False):
+    def __init__(self, name, photon_spectrum, radial_slope=0., identifier=None,
+                 convolve_energy=False):
         """Constructor.
         """
         xModelComponentBase.__init__(self, name, identifier)
         self.photon_spectrum = photon_spectrum
+        self.radial_slope = radial_slope
         self._convolve_energy = convolve_energy
 
     def _energy_grid(self, irf_set, num_points=250, **kwargs):
@@ -175,7 +310,7 @@ class xInstrumentalBkg(xModelComponentBase):
         num_events = self.poisson(source_spectrum.build_light_curve().norm())
         # Multiply by the total number of events by the detector area.
         # Note the fiducial area must be converted from mm2 to cm2
-        num_events = int(num_events * gpd.FIDUCIAL_AREA / 100. + 0.5)
+        num_events = int(num_events * gpd.GPD_PHYSICAL_AREA / 100. + 0.5)
         logger.info('About to generate %d events...', num_events)
         # Extract the event time, sort the values and initialize the event list.
         time_ = source_spectrum.build_light_curve().rvs(num_events)
@@ -184,8 +319,10 @@ class xInstrumentalBkg(xModelComponentBase):
         time_, _ = kwargs.get('gti_list').filter_event_times(time_)
         # Extract the event energies.
         mc_energy = source_spectrum.rvs(time_)
-        # Extract the event positions
-        detx, dety = self.uniform_square(len(time_), gpd.FIDUCIAL_HALF_SIZE)
+        # Extract the event positions---note this was changed in response to
+        # https://github.com/lucabaldini/ixpeobssim/issues/663
+        # And we still need to handle the fiducial rectangle properly.
+        detx, dety = xRadialBackgroundGenerator(self.radial_slope).rvs_xy(len(time_))
         return time_, mc_energy, detx, dety
 
     def rvs_event_list(self, parent_roi, irf_set, **kwargs):
@@ -258,10 +395,11 @@ class xPowerLawInstrumentalBkg(xInstrumentalBkg):
     respectively.
     """
 
-    def __init__(self, norm=4.e-4, index=1.0):
+    def __init__(self, norm=4.e-4, index=1.0, radial_slope=0.):
         """Constructor.
         """
-        xInstrumentalBkg.__init__(self, 'Instrumental background', power_law(norm, index))
+        xInstrumentalBkg.__init__(self, 'Instrumental background', power_law(norm, index),
+            radial_slope)
         self.norm = norm
         self.index = index
 
@@ -274,12 +412,12 @@ class xTemplateInstrumentalBkg(xInstrumentalBkg):
 
     DEFAULT_PATH = os.path.join(IXPEOBSSIM_SRCMODEL, 'ascii', 'bkg_smcx1_01903701.txt')
 
-    def __init__(self, file_path=DEFAULT_PATH, emin=0.1, emax=15., k=1):
+    def __init__(self, file_path=DEFAULT_PATH, emin=0.1, emax=15., k=1, radial_slope=0.):
         """Constructor.
         """
         self.spline = load_spectral_spline(file_path, emin, emax, k=k)
         spec = lambda E, t=None: self.spline(E)
-        xInstrumentalBkg.__init__(self, 'Instrumental background', spec)
+        xInstrumentalBkg.__init__(self, 'Instrumental background', spec, radial_slope)
 
 
 

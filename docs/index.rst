@@ -90,6 +90,7 @@ is the most up-to-date reference.
    large_files
    irf
    orbit
+   background
 
 .. toctree::
    :hidden:
@@ -110,13 +111,13 @@ is the most up-to-date reference.
    magnetar_models
    extended_sources
    binary_systems
+   event_display
    sonification
 
 .. toctree::
    :hidden:
    :caption: Advanced topics
 
-   irfgen
    ixpesim
 
 .. toctree::

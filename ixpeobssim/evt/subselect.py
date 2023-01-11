@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright (C) 2015--2019, the ixpeobssim team.
+# Copyright (C) 2015--2022, the ixpeobssim team.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,7 +24,9 @@ from __future__ import print_function, division
 import numpy
 
 from ixpeobssim.evt.event import xEventFile
-from ixpeobssim.instrument.mma import FIDUCIAL_BACKSCAL
+from ixpeobssim.instrument.gpd import GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X,\
+    GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y
+from ixpeobssim.instrument.mma import fiducial_backscal
 from ixpeobssim.utils.astro import angular_separation
 from ixpeobssim.utils.logging_ import logger, abort
 from ixpeobssim.utils.units_ import degrees_to_arcmin, arcmin_to_arcsec
@@ -289,36 +291,8 @@ class xEventSelect:
         else:
             inner_area = numpy.pi * arcmin_to_arcsec(inner_radius)**2.
         if outer_radius is None:
-            outer_area = FIDUCIAL_BACKSCAL
-        else:
-            outer_area = numpy.pi * arcmin_to_arcsec(outer_radius)**2.
-        return outer_area - inner_area
-
-    @staticmethod
-    def _annulus_backscal(inner_radius=None, outer_radius=None):
-        """Calculate the value to be written in the BACKSCAL header keyword for
-        a given annulus selection.
-
-        This is essentially the area of the annulus in arcsec squared.
-
-        Arguments
-        ---------
-        inner_radius : float
-            The inner radius of the annulus in arcminutes.
-
-        outer_radius : float
-            The outer radius of the annulus in arcminutes.
-
-        Return
-        ------
-        The area of the annulus in arcsec squared.
-        """
-        if inner_radius is None:
-            inner_area = 0.
-        else:
-            inner_area = numpy.pi * arcmin_to_arcsec(inner_radius)**2.
-        if outer_radius is None:
-            outer_area = FIDUCIAL_BACKSCAL
+            outer_area = fiducial_backscal(GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X,
+                GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y)
         else:
             outer_area = numpy.pi * arcmin_to_arcsec(outer_radius)**2.
         return outer_area - inner_area
