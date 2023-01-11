@@ -3,6 +3,9 @@
 Release notes
 =============
 
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/682
+* from_future_import_annotations added to solve test_clustering and test_apps issue
+* https://github.com/lucabaldini/ixpeobssim/issues/681 issue closed
 
 *ixpeobssim (30.0.0) - Sat, 17 Dec 2022 07:18:16 +0100*
 
