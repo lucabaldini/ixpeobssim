@@ -303,6 +303,12 @@ class xEventBinningBase:
         return ['emin', 'emax', 'ebins', 'ebinalg', 'ebinning', 'ebinfile']
 
     @staticmethod
+    def _time_binning_kwargs():
+        """Return the list of valid keywords for the _build_image_wcs() method.
+        """
+        return ['tmin', 'tmax', 'tbins', 'tbinalg', 'tbinfile']
+
+    @staticmethod
     def make_energy_binning(bin_data=None, **kwargs):
         """Small convenience function for energy binning.
         """
@@ -311,6 +317,17 @@ class xEventBinningBase:
                 kwargs.get('ebinfile'))
         binning = xEventBinningBase.make_binning(*args)
         logger.info('Energy binning: %s', binning)
+        return binning
+
+    @staticmethod
+    def make_time_binning(bin_data=None, **kwargs):
+        """Small convenience function for time binning.
+        """
+        args = (kwargs.get('tbinalg'), kwargs.get('tmin'), kwargs.get('tmax'),
+                kwargs.get('tbins'), None, bin_data,
+                kwargs.get('tbinfile'))
+        binning = xEventBinningBase.make_binning(*args)
+        logger.info('Time binning: %s', binning)
         return binning
 
     @staticmethod
