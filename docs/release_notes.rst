@@ -3,6 +3,9 @@
 Release notes
 =============
 
+
+*ixpeobssim (30.0.1) - Wed, 11 Jan 2023 16:23:48 +0100*
+
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/682
 * `from_future_import_annotations` added to support the dataclasses in the
   evt/display with Python versions prior to 3.9
