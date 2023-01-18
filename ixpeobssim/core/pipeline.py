@@ -513,17 +513,30 @@ def xpxspec(*args, **kwargs):
     return _xpxspec(**_parse_args(XPXSPEC_PARSER, *args, **kwargs))
 
 
-def standard_ensamble_processing(file_list, mc=True):
-    """Standard processing routine.
+def stokes_spectra_ensamble_processing(file_list, normalized=False):
+    """Generate the Stokes spectra for a given file list.
     """
-    # Generate the Stokes spectra.
-    for algorithm in ['PHA1', 'PHA1Q', 'PHA1U', 'PHA1QN', 'PHA1UN']:
+    for algorithm in ['PHA1', 'PHA1Q', 'PHA1U']:
         xpbin(*file_list, algorithm=algorithm)
-    # Generate the modulation cubes, in both the standard and MC flavors.
-    kwargs = dict(emin=2., emax=8., ebins=1)
+    if normalized:
+        for algorithm in ['PHA1QN', 'PHA1UN']:
+            xpbin(*file_list, algorithm=algorithm)
+
+
+def pcube_ensamble_processing(file_list, mc=True, emin=2., emax=8., ebins=1):
+    """Generate the polarization cubes for a given input file list.
+    """
+    kwargs = dict(emin=emin, emax=emax, ebins=ebins)
     xpbin(*file_list, algorithm='PCUBE', **kwargs)
     if mc:
         xpbin(*file_list, algorithm='PCUBE', mc=True, suffix='mc_pcube', **kwargs)
+
+
+def standard_ensamble_processing(file_list, mc=True):
+    """Standard processing routine.
+    """
+    stokes_spectra_ensamble_processing(file_list, normalized=True)
+    pcube_ensamble_processing(file_list, mc)
 
 
 def generate_ensamble(size=10, start_seed=0, processing_function=standard_ensamble_processing,
