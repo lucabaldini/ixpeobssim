@@ -16,6 +16,11 @@
 
 """Small benchmark program to verify the correctness of the estimated uncertainities
 on the Stokes spectra used for the spectro-polarimetric fits in xspec.
+
+Note that we are only testing the unweighted case, as ixpeobssim is not equipped
+to simulate track weights. A full test of the weighted code path requires a
+full Geant 4 simulation, and is impractical on a large number of independent
+realizations.
 """
 
 
@@ -33,28 +38,34 @@ from ixpeobssim.utils.matplotlib_ import plt, setup_gca
 
 
 
-def generate(size=100, duration=20000.):
+def _process(file_list):
+    """Custom processing function.
+    """
+    for algorithm in ['PHA1', 'PHA1Q', 'PHA1U']:
+        pipeline.xpbin(*file_list, algorithm=algorithm)
+
+
+def generate(size=100, duration=25000.):
     """Generate an ensamble of realizations.
     """
-    pipeline.generate_ensamble(size=size, duration=duration,
-        processing_function=stokes_spectra_ensamble_processing)
-
-
-def test_assemble(size=10, length=5):
-    """
-    """
-    rate = numpy.zeros(length)
-    for seed in range(size):
-        rate = numpy.vstack((rate, numpy.full(length, seed + 1)))
-    average_rate = numpy.mean(rate, axis=0)
-    print(rate)
-    print(average_rate)
-    print(rate - average_rate)
-    print(rate[:,0])
+    pipeline.generate_ensamble(size=size, duration=duration, processing_function=_process)
 
 
 def _load_pulls(alg='pha1', size=100, aggregate=True):
     """Load the spectral pulls from the PHA1* files.
+
+    Note that this is less straightforward than it might naively seems, as the
+    pulls needs to be accumulated on a DU by DU basis---since the three DUs
+    have different effective areas, one cannot average the rates across DUs
+    to calculate the pulls.
+
+    Arguments
+    ---------
+    size : int
+        The number of random seeds to read in.
+
+    aggregate : bool
+        If True, aggregare the pulls for the three DUs at the end.
     """
     rate = {}
     stat_err = {}
@@ -79,7 +90,8 @@ def _load_pulls(alg='pha1', size=100, aggregate=True):
 
 
 def post_process(size=100, emin=2., emax=8.):
-    """
+    """Read back the binned count spectra and create the relevant histograms
+    of the pulls.
     """
     chmin = int(energy_to_channel(emin))
     chmax = int(energy_to_channel(emax)) + 1
@@ -102,7 +114,7 @@ def post_process(size=100, emin=2., emax=8.):
 
 
 def run():
-    """
+    """Default entry point.
     """
     pass
 
