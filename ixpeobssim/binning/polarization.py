@@ -91,8 +91,10 @@ class xEventBinningPHA1Base(xEventBinningBase):
         # Stokes weights, i.e., I, Q or U?
         if stokes_weights is None:
             stokes_weights = numpy.full(pi.shape, 1.)
-        # Event weights.
-        event_weights = self.weight_data()
+        # Event weights---note the explicit cast to float is a workaround for the
+        # infamous bug in numpy 1.22 described in
+        # https://github.com/lucabaldini/ixpeobssim/issues/608
+        event_weights = self.weight_data().astype(float)
         # Full weights.
         weights = stokes_weights * event_weights
         # Accumulate the necessary histograms.
