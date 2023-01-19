@@ -4,6 +4,32 @@ Release notes
 =============
 
 
+*ixpeobssim (30.0.1) - Wed, 11 Jan 2023 16:23:48 +0100*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/682
+* `from_future_import_annotations` added to support the dataclasses in the
+  evt/display with Python versions prior to 3.9
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/681
+
+
+*ixpeobssim (30.0.0) - Sat, 17 Dec 2022 07:18:16 +0100*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/680
+* New v12 response files shipped, and now default for simulation and analysis.
+* Docs updated.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/669
+
+
+*ixpeobssim (29.7.1) - Fri, 16 Dec 2022 14:57:10 +0100*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/679
+* xpsimfmt.py modified to support (again) the proper generation of reponse files.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/678
+
+
 *ixpeobssim (29.7.0) - Sun, 11 Dec 2022 10:12:24 +0100*
 
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/677

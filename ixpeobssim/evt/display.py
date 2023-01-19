@@ -21,6 +21,8 @@ This module provides a simple, top-level interface to track images in IXPE
 level-1 files.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 import os
 

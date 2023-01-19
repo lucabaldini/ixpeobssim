@@ -42,7 +42,8 @@ __DU_MODEL = {1: 'DU_FM2', 2: 'DU_FM3', 3: 'DU_FM4'}
 def du_rotation_angle(du_id, roll_angle=0., modulo=True):
     """Return the rotation angle for a given DU (modulo 2 pi).
     """
-    assert du_id in DU_IDS
+    if not du_id in DU_IDS:
+        raise RuntimeError('Invalid DU ID (%d)' % du_id)
     angle = __DU_ROTATION_ANGLE[du_id] + numpy.radians(roll_angle)
     if modulo:
         angle = modulo_2pi(angle)
@@ -53,7 +54,8 @@ def du_logical_name(du_id):
     """Return the logical name for a given DU (i.e., the content of the DETNAME
     header keyword).
     """
-    assert du_id in DU_IDS
+    if not du_id in DU_IDS:
+        raise RuntimeError('Invalid DU ID (%d)' % du_id)
     return 'DU%d' % du_id
 
 
@@ -61,12 +63,14 @@ def du_physical_name(du_id):
     """Return the physical name for a given DU (i.e., the content of the DET_ID
     header keyword).
     """
-    assert du_id in DU_IDS
+    if not du_id in DU_IDS:
+        raise RuntimeError('Invalid DU ID (%d)' % du_id)
     return __DU_MODEL[du_id]
 
 
 def det_name_to_du_id(det_name):
     """Convert the logical name of a given DU to the actual DU ID.
     """
-    assert det_name.startswith('DU')
+    if not det_name.startswith('DU'):
+        raise RuntimeError('Invalid detector name ("%s")' % det_name)
     return int(det_name[-1])
