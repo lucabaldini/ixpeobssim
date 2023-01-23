@@ -135,9 +135,10 @@ def _strip_hdu_list_l2(hdu_list):
     """
     config_dict = {
         'EVENTS': ('TIME', 'PI', 'W_MOM', 'X', 'Y', 'Q', 'U'),
+        'MONTE_CARLO': ()
         }
     _strip_hdu_list_base(hdu_list, config_dict)
-    for ext_name in ('MONTE_CARLO', 'SC_DATA'):
+    for ext_name in ('SC_DATA',):
         logger.info('Removing %s extension...', ext_name)
         hdu_list.pop(ext_name)
 
