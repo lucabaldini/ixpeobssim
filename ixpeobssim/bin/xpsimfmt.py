@@ -110,7 +110,7 @@ def _strip_hdu_list_l2(hdu_list):
     """Filter an HDU list in the L2 mode.
     """
     config_dict = {
-        'EVENTS': ('TRG_ID', 'TIME', 'STATUS', 'STATUS2', 'PI', 'W_MOM', 'X', 'Y', 'Q', 'U'),
+        'EVENTS': ('TIME', 'PI', 'W_MOM', 'X', 'Y', 'Q', 'U'),
         'MONTE_CARLO': ('ENERGY',)
         }
     _strip_hdu_list_base(hdu_list, config_dict)
