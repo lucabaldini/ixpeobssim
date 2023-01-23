@@ -75,6 +75,19 @@ PARSER.add_argument('--stripmode', choices=STRIP_MODES, default=DEFAULT_STRIP_MO
 PARSER.add_overwrite()
 
 
+def _remove_wcs_keywords(header, index):
+    """Remove all the WCS-related header keywords at a given index.
+    """
+    logger.debug('Removing WCS header keywords at index %d...', index)
+    for key in ('TCTYP', 'TCUNI', 'TCRPX', 'TCRVL', 'TCDLT'):
+        key = '%s%d' % (key, index)
+        if key not in header:
+            logger.warning('Could not find key %s...', key)
+        else:
+            logger.info('Removing key %s...', key)
+            header.remove(key)
+
+
 def _strip_hdu(hdu, *col_names):
     """Strip down a HDU selecting a subset of the columns.
 
@@ -86,9 +99,20 @@ def _strip_hdu(hdu, *col_names):
     col_names : iterable
         The column names to be retained in the filtered HDU.
     """
-    logger.info('Stripping down %s---selecting %s...', hdu.name, col_names)
+    logger.info('Stripping down %s extension...', hdu.name)
     cols = [col for col in hdu.data.columns if col.name in col_names]
-    return fits.BinTableHDU.from_columns(cols, header=hdu.header)
+    # At this point we have the additional complication that, depending on
+    # whether the SC_DATA extension is present in the original ixpesim file,
+    # we might have the WCS information set for the X and Y columns that we just
+    # added, and we need to remove them in order not to have *two* WCS defined
+    # in the final file. Not even worth mentioning how horrible this hack is.
+    header = hdu.header
+    if hdu.name == 'EVENTS':
+        _col_names = [col.name for col in hdu.data.columns]
+        for _col in ('X', 'Y'):
+            if _col in _col_names:
+                _remove_wcs_keywords(header, _col_names.index(_col) + 1)
+    return fits.BinTableHDU.from_columns(cols, header=header)
 
 
 def _strip_hdu_list_base(hdu_list, config_dict):
@@ -217,6 +241,10 @@ def format_file(file_path, **kwargs):
     cols += fits.Column(name='U', format='E', array=detu)
     cols += fits.Column(name='W_MOM', format='E', array=weights)
     hdu = fits.BinTableHDU.from_columns(cols, header=evt_header)
+    # Now that we have added all the columns, we need to update the EVENTS extension
+    # in the underlying HDU list, so that the processing can continue in the
+    # proper fashion.
+    hdu_list['EVENTS'] = hdu
 
     # Add the pointing information to the primary header, so that down the road
     # xpbin can make good use of it.
@@ -227,19 +255,21 @@ def format_file(file_path, **kwargs):
         header = hdu_list[ext].header
         header.set('DETNAM', det_name)
         header.set('DET_ID', det_id)
-    # Add TLMIN and TLMAX for the X and Y columns, which is necessary, e.g.,
-    # for the file to be properly displayed in ds9. Note this needs to
-    # pick up the proper column numbers, and so needs to be done *after* all the
-    # relevant columns have been added.
-    set_standard_xy_header_limits(hdu)
-    set_wcs_header_keywords(hdu)
-    hdu_list['EVENTS'] = hdu
 
     # Strip the un-necessary columns, if needed.
     if kwargs.get('stripmode') == 'L2':
         _strip_hdu_list_l2(hdu_list)
     elif kwargs.get('stripmode') == 'IRFGEN':
         _strip_hdu_list_irfgen(hdu_list)
+
+    # Add TLMIN and TLMAX for the X and Y columns, which is necessary, e.g.,
+    # for the file to be properly displayed in ds9. Note this needs to
+    # pick up the proper column numbers, and so needs to be done *after* all the
+    # relevant columns have been added.
+    hdu = hdu_list['EVENTS']
+    set_standard_xy_header_limits(hdu)
+    set_wcs_header_keywords(hdu)
+    hdu_list['EVENTS'] = hdu
 
     # Write the processed output file.
     logger.info('Writing processed file to %s...', output_file_path)
