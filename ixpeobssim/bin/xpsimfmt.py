@@ -26,7 +26,7 @@ Phrased in a slightly different way, this is tranforming the rough equivalent
 of Level-1 files produced by ixpesim into the rough equivalent of Level-2 files.
 
 This is adding all the necessary keywords to the relevant headers, as well as
-a few columns in the EVENTS extensiona that are necessary for the
+a few columns in the EVENTS extensions that are necessary for the
 spectro-polarimetric analysis in XSPEC, most notably:
 - PI
 - Q
@@ -34,6 +34,18 @@ spectro-polarimetric analysis in XSPEC, most notably:
 - RA, DEC
 - X, Y
 - W_MOM
+
+Additionally, the script allows to strip off useless columns, producing smaller
+output files that easier to exchange in several different context. This
+functionality is controlled by the --stripmode command-line switch and, more
+specifically:
+
+* --stripmode FULL preserves the entire content of the ixpesim output files;
+* --stripmode L2 produces a smaller file that is genermane to Level 2 files and
+  can be effectively used to test a spectro-polarimetric analysis with the
+  photon-list workflow;
+* --stripmode IRFGEN produces the smallest possible output files that can be
+  used for generating response files.
 
 Note this requires the input files to be processed with a recent enough gpdsw
 version (13.10.0 or later) in order for the conversion to be supported.
