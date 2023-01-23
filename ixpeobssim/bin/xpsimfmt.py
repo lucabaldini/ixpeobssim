@@ -22,6 +22,8 @@ from __future__ import print_function, division
 __description__ = \
 """Format reconstructed event lists generated with ixpesim to make them
 interoperable with ixpeobssim (e.g., for spectro-polarimetric fits in XSPEC).
+Phrased in a slightly different way, this is tranforming the rough equivalent
+of Level-1 files produced by ixpesim into the rough equivalent of Level-2 files.
 
 This is adding all the necessary keywords to the relevant headers, as well as
 a few columns in the EVENTS extensiona that are necessary for the
@@ -57,6 +59,10 @@ from ixpeobssim.utils.os_ import check_output_file
 
 #pylint: disable=invalid-name, too-many-locals, no-member
 
+STRIP_MODES = ('FULL', 'IRFGEN', 'L2')
+DEFAULT_STRIP_MODE = 'FULL'
+
+
 PARSER = xArgumentParser(description=__description__)
 PARSER.add_filelist()
 PARSER.add_suffix('simfmt')
@@ -65,8 +71,59 @@ PARSER.add_auxversion()
 PARSER.add_mc()
 PARSER.add_argument('--detphiname', type=str, default='DETPHI2',
     help='The column name for the azimuthal angle')
+PARSER.add_argument('--stripmode', choices=STRIP_MODES, default=DEFAULT_STRIP_MODE)
 PARSER.add_overwrite()
 
+
+def _strip_hdu(hdu, *col_names):
+    """Strip down a HDU selecting a subset of the columns.
+
+    Arguments
+    ---------
+    hdu : FitsHDU instance
+        The original HDU to be filtered.
+
+    col_names : iterable
+        The column names to be retained in the filtered HDU.
+    """
+    logger.info('Stripping down %s---selecting %s...', hdu.name, col_names)
+    cols = [col for col in hdu.data.columns if col.name in col_names]
+    return fits.BinTableHDU.from_columns(cols, header=hdu.header)
+
+
+def _strip_hdu_list_base(hdu_list, config_dict):
+    """Strip a list of HDUs based on a configuration dictionary.
+
+    Arguments
+    ---------
+    hdu_list : FitsHDUList instance
+        The original HDU list to be filtered.
+
+    config_dict : dict
+        The configuration dictionary, in the form {extension_name: colum_list}
+    """
+    for ext_name, col_names in config_dict.items():
+        hdu_list[ext_name] = _strip_hdu(hdu_list[ext_name], *col_names)
+
+
+def _strip_hdu_list_l2(hdu_list):
+    """Filter an HDU list in the L2 mode.
+    """
+    config_dict = {
+        'EVENTS': ('TRG_ID', 'TIME', 'STATUS', 'STATUS2', 'PI', 'W_MOM', 'X', 'Y', 'Q', 'U'),
+        'MONTE_CARLO': ('ENERGY',)
+        }
+    _strip_hdu_list_base(hdu_list, config_dict)
+
+
+def _strip_hdu_list_irfgen(hdu_list):
+    """Filter an HDU list in the IRFGEN mode.
+    """
+    config_dict = {
+        'EVENTS': ('TIME', 'PHA', 'DETPHI1', 'DETPHI2', 'TRK_M2L', 'TRK_M2T'),
+        'MONTE_CARLO': ('ENERGY', 'ABS_Z', 'PE_PHI')
+        }
+    _strip_hdu_list_base(hdu_list, config_dict)
 
 
 def format_file(file_path, **kwargs):
@@ -177,6 +234,12 @@ def format_file(file_path, **kwargs):
     set_standard_xy_header_limits(hdu)
     set_wcs_header_keywords(hdu)
     hdu_list['EVENTS'] = hdu
+
+    # Strip the un-necessary columns, if needed.
+    if kwargs.get('stripmode') == 'L2':
+        _strip_hdu_list_l2(hdu_list)
+    elif kwargs.get('stripmode') == 'IRFGEN':
+        _strip_hdu_list_irfgen(hdu_list)
 
     # Write the processed output file.
     logger.info('Writing processed file to %s...', output_file_path)
