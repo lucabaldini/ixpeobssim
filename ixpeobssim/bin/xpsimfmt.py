@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright (C) 2021--2022, the ixpeobssim team.
+# Copyright (C) 2021--2023, the ixpeobssim team.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -55,7 +55,7 @@ from ixpeobssim.utils.logging_ import logger, abort
 from ixpeobssim.utils.math_ import modulo_2pi
 from ixpeobssim.utils.os_ import check_output_file
 
-#pylint: disable=invalid-name, too-many-locals
+#pylint: disable=invalid-name, too-many-locals, no-member
 
 PARSER = xArgumentParser(description=__description__)
 PARSER.add_filelist()
@@ -110,7 +110,7 @@ def format_file(file_path, **kwargs):
     # extension, but files created with the "standard" ixpesim mechanism (e.g.,
     # those created for the purpose of generating response files) will miss this.
     # In this case we set the sc_data local variable to None and we rely on this
-    # in the following to detect whether we need to set specific columns or not. 
+    # in the following to detect whether we need to set specific columns or not.
     try:
         sc_header = hdu_list['SC_DATA'].header
         ra_pnt = sc_header['RA_PNT']
@@ -121,7 +121,7 @@ def format_file(file_path, **kwargs):
         logger.warning(e)
         sc_data = None
         roll_angle = 0.
-        logger.warning('Roll angle set to %.3f.' % roll_angle)
+        logger.warning('Roll angle set to %.3f.', roll_angle)
 
     # Calculate the missing columns and add them to the EVENTS extension.
     pha_model = load_pha_model(kwargs.get('auxversion', AUX_VERSION))
