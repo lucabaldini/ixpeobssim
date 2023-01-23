@@ -4,6 +4,13 @@ Release notes
 =============
 
 
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/686
+* New command-line switches added to xpsimfmt to create smaller output files,
+  facilitating the photon-list and IRF generation code paths.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/685
+
+
 *ixpeobssim (30.0.1) - Wed, 11 Jan 2023 16:23:48 +0100*
 
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/682
