@@ -4,6 +4,11 @@ Release notes
 =============
 
 
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/687
+* IRFGEN stripmode removed from xpsimfmt, in order to avoid any interaction
+  with the ixpeirfgen package.
+
+
 *ixpeobssim (30.1.0) - Mon, 23 Jan 2023 17:27:34 +0100*
 
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/686

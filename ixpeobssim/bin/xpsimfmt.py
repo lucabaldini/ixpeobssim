@@ -44,8 +44,6 @@ specifically:
 * --stripmode L2 produces a smaller file that is genermane to Level 2 files and
   can be effectively used to test a spectro-polarimetric analysis with the
   photon-list workflow;
-* --stripmode IRFGEN produces the smallest possible output files that can be
-  used for generating response files.
 
 Note this requires the input files to be processed with a recent enough gpdsw
 version (13.10.0 or later) in order for the conversion to be supported.
@@ -71,7 +69,7 @@ from ixpeobssim.utils.os_ import check_output_file
 
 #pylint: disable=invalid-name, too-many-locals, no-member
 
-STRIP_MODES = ('FULL', 'IRFGEN', 'L2')
+STRIP_MODES = ('FULL', 'L2')
 DEFAULT_STRIP_MODE = 'FULL'
 
 
@@ -144,25 +142,24 @@ def _strip_hdu_list_base(hdu_list, config_dict):
 
 def _strip_hdu_list_l2(hdu_list):
     """Filter an HDU list in the L2 mode.
+
+    Here we only keep the columns of the EVENTS extension that are present in
+    Level-2 files and, in addition, we preserve the header of the MONTE_CARLO
+    extension, which contains some useful meta-data.
     """
     config_dict = {
         'EVENTS': ('TIME', 'PI', 'W_MOM', 'X', 'Y', 'Q', 'U'),
         'MONTE_CARLO': ()
         }
     _strip_hdu_list_base(hdu_list, config_dict)
+    # If the file has been produce through the photon-list mechanism, we can
+    # safely remove the SC_DATA extension, which is not necessary in the L2 output.
     for ext_name in ('SC_DATA',):
-        logger.info('Removing %s extension...', ext_name)
-        hdu_list.pop(ext_name)
-
-
-def _strip_hdu_list_irfgen(hdu_list):
-    """Filter an HDU list in the IRFGEN mode.
-    """
-    config_dict = {
-        'EVENTS': ('TIME', 'PHA', 'DETPHI1', 'DETPHI2', 'TRK_M2L', 'TRK_M2T'),
-        'MONTE_CARLO': ('ENERGY', 'ABS_Z', 'PE_PHI')
-        }
-    _strip_hdu_list_base(hdu_list, config_dict)
+        try:
+            hdu_list.pop(ext_name)
+            logger.info('%s extension wiped out...', ext_name)
+        except KeyError:
+            pass
 
 
 def format_file(file_path, **kwargs):
@@ -274,8 +271,6 @@ def format_file(file_path, **kwargs):
     # Strip the un-necessary columns, if needed.
     if kwargs.get('stripmode') == 'L2':
         _strip_hdu_list_l2(hdu_list)
-    elif kwargs.get('stripmode') == 'IRFGEN':
-        _strip_hdu_list_irfgen(hdu_list)
 
     # Add TLMIN and TLMAX for the X and Y columns, which is necessary, e.g.,
     # for the file to be properly displayed in ds9. Note this needs to
