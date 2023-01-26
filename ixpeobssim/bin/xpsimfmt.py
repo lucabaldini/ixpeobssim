@@ -67,7 +67,7 @@ from ixpeobssim.utils.logging_ import logger, abort
 from ixpeobssim.utils.math_ import modulo_2pi
 from ixpeobssim.utils.os_ import check_output_file
 
-#pylint: disable=invalid-name, too-many-locals, no-member
+#pylint: disable=invalid-name, too-many-locals, no-member, consider-using-f-string
 
 STRIP_MODES = ('FULL', 'L2')
 DEFAULT_STRIP_MODE = 'FULL'
