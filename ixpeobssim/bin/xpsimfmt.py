@@ -52,7 +52,7 @@ version (13.10.0 or later) in order for the conversion to be supported.
 from astropy.io import fits
 import numpy
 
-from ixpeobssim.core.fitsio import read_hdu_list_in_memory
+from ixpeobssim.core.fitsio import read_hdu_list_in_memory, set_tlbounds
 from ixpeobssim.evt.fmt import standard_radec_to_xy, standard_xy_columns_kwargs, \
     set_standard_xy_header_limits, set_object_header_keywords, set_wcs_header_keywords
 from ixpeobssim.evt.kislat2015 import xStokesAnalysis
@@ -60,14 +60,14 @@ from ixpeobssim.instrument.du import det_name_to_du_id
 from ixpeobssim.instrument.gpd import detphi_to_phi
 from ixpeobssim.instrument.mma import gpd_to_sky
 from ixpeobssim.instrument.sc import pointing_direction
-from ixpeobssim.irf.ebounds import channel_to_energy
+from ixpeobssim.irf.ebounds import channel_to_energy, TLMIN, TLMAX
 from ixpeobssim.irfgen.auxiliary import load_pha_model, event_weights, AUX_VERSION
 from ixpeobssim.utils.argparse_ import xArgumentParser
 from ixpeobssim.utils.logging_ import logger, abort
 from ixpeobssim.utils.math_ import modulo_2pi
 from ixpeobssim.utils.os_ import check_output_file
 
-#pylint: disable=invalid-name, too-many-locals, no-member
+#pylint: disable=invalid-name, too-many-locals, no-member, consider-using-f-string
 
 STRIP_MODES = ('FULL', 'L2')
 DEFAULT_STRIP_MODE = 'FULL'
@@ -279,6 +279,9 @@ def format_file(file_path, **kwargs):
     hdu = hdu_list['EVENTS']
     set_standard_xy_header_limits(hdu)
     set_wcs_header_keywords(hdu)
+    # And also, after issue https://github.com/lucabaldini/ixpeobssim/issues/688
+    # we need to add the TLMIN and TLMAX header keywords for the PI column.
+    set_tlbounds(hdu, 'PI', TLMIN, TLMAX)
     hdu_list['EVENTS'] = hdu
 
     # Write the processed output file.

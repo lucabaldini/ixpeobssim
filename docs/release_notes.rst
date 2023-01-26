@@ -4,6 +4,15 @@ Release notes
 =============
 
 
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/689
+* Explicitly setting TLMIN and TLMAX for the PI column in both the event
+  files output by xpobssim and the files formatted by xpsimfmt---this is to
+  ensure interoperability with the FTOOLS environment.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/688
+      * https://github.com/lucabaldini/ixpeobssim/issues/588
+
+
 *ixpeobssim (30.1.1) - Tue, 24 Jan 2023 15:40:53 +0100*
 
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/687

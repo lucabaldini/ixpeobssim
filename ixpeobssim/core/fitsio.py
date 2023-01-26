@@ -41,38 +41,37 @@ from ixpeobssim.utils.matplotlib_ import draggable_colorbar
 
 
 
-# pylint: disable=invalid-name, too-many-arguments
+# pylint: disable=invalid-name, too-many-arguments, no-member, consider-using-f-string
 
 
-"""
-From https://heasarc.gsfc.nasa.gov/docs/software/fitsio/c/c_user/node20.html
-Codes for the data type of binary table columns and/or for the
-data type of variables when reading or writing keywords or data:
 
-                              DATATYPE               TFORM CODE
-  #define TBIT          1  /*                            'X' */
-  #define TBYTE        11  /* 8-bit unsigned byte,       'B' */
-  #define TLOGICAL     14  /* logicals (int for keywords     */
-                           /*  and char for table cols   'L' */
-  #define TSTRING      16  /* ASCII string,              'A' */
-  #define TSHORT       21  /* signed short,              'I' */
-  #define TLONG        41  /* signed long,                   */
-  #define TLONGLONG    81  /* 64-bit long signed integer 'K' */
-  #define TFLOAT       42  /* single precision float,    'E' */
-  #define TDOUBLE      82  /* double precision float,    'D' */
-  #define TCOMPLEX     83  /* complex (pair of floats)   'C' */
-  #define TDBLCOMPLEX 163  /* double complex (2 doubles) 'M' */
-
-  The following data type codes are also supported by CFITSIO:
-  #define TINT         31  /* int                            */
-  #define TSBYTE       12  /* 8-bit signed byte,         'S' */
-  #define TUINT        30  /* unsigned int               'V' */
-  #define TUSHORT      20  /* unsigned short             'U'  */
-  #define TULONG       40  /* unsigned long                  */
-
-  The following data type code is only for use with fits_get_coltype
-  #define TINT32BIT    41  /* signed 32-bit int,         'J' */
-"""
+# From https://heasarc.gsfc.nasa.gov/docs/software/fitsio/c/c_user/node20.html
+# Codes for the data type of binary table columns and/or for the
+# data type of variables when reading or writing keywords or data:
+#
+#                               DATATYPE               TFORM CODE
+#   #define TBIT          1  /*                            'X' */
+#   #define TBYTE        11  /* 8-bit unsigned byte,       'B' */
+#   #define TLOGICAL     14  /* logicals (int for keywords     */
+#                            /*  and char for table cols   'L' */
+#   #define TSTRING      16  /* ASCII string,              'A' */
+#   #define TSHORT       21  /* signed short,              'I' */
+#   #define TLONG        41  /* signed long,                   */
+#   #define TLONGLONG    81  /* 64-bit long signed integer 'K' */
+#   #define TFLOAT       42  /* single precision float,    'E' */
+#   #define TDOUBLE      82  /* double precision float,    'D' */
+#   #define TCOMPLEX     83  /* complex (pair of floats)   'C' */
+#   #define TDBLCOMPLEX 163  /* double complex (2 doubles) 'M' */
+#
+#   The following data type codes are also supported by CFITSIO:
+#   #define TINT         31  /* int                            */
+#   #define TSBYTE       12  /* 8-bit signed byte,         'S' */
+#   #define TUINT        30  /* unsigned int               'V' */
+#   #define TUSHORT      20  /* unsigned short             'U'  */
+#   #define TULONG       40  /* unsigned long                  */
+#
+#   The following data type code is only for use with fits_get_coltype
+#   #define TINT32BIT    41  /* signed 32-bit int,         'J' */
 
 
 FITS_TO_NUMPY_TYPE_DICT = {
@@ -113,6 +112,45 @@ def read_hdu_list_in_memory(file_path, extension='fits'):
     with fits.open(file_path, lazy_load_hdus=False, mmap=False) as hdu_list:
         hdu_list = copy_hdu_list(hdu_list)
     return hdu_list
+
+
+
+def find_column_index(hdu, col_name):
+    """Return the index corresponding to a given column name within a binary table,
+    and None when the column does not exists.
+
+    Arguments
+    ---------
+    hdu : fits.BinTableHDU instance
+        The underlying HDU
+
+    col_name : str
+        The name of the target column.
+    """
+    col_names = [col.name for col in hdu.data.columns]
+    try:
+        return col_names.index(col_name)
+    except ValueError:
+        logger.warning('Could not find column %s in extension %s.', col_name, hdu.name)
+        return None
+
+
+
+def set_tlbounds(hdu, col_name, min_, max_):
+    """Set the proper TLMIN and TLMAX header keywords for a given column in a
+    given HDU.
+    """
+    if not isinstance(hdu, fits.BinTableHDU):
+        raise RuntimeError('HDU %s is not a binary table.' % hdu.name)
+    index = find_column_index(hdu, col_name)
+    if index is None:
+        logger.error('Cannot set TLMIN/TLMAX for column %s in extension %s', col_name, hdu.name)
+        return
+    col_index = index + 1
+    logger.info('Updating bounds for column %s in extension %s...', col_name, hdu.name)
+    for key, value in zip(('TLMIN%d' % col_index, 'TLMAX%d' % col_index), (min_, max_)):
+        logger.info('Setting %s -> %d', key, value)
+        hdu.header.set(key, value)
 
 
 
