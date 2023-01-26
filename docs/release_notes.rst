@@ -3,6 +3,9 @@
 Release notes
 =============
 
+
+*ixpeobssim (30.2.1) - Thu, 26 Jan 2023 12:31:20 +0100*
+
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/689
 * Fixing the generation of documentation on readthedocs.
 * Issue(s) closed:
