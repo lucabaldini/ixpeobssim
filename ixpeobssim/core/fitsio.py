@@ -116,6 +116,45 @@ def read_hdu_list_in_memory(file_path, extension='fits'):
 
 
 
+def find_column_index(hdu, col_name):
+    """Return the index corresponding to a given column name within a binary table,
+    and None when the column does not exists.
+
+    Arguments
+    ---------
+    hdu : fits.BinTableHDU instance
+        The underlying HDU
+
+    col_name : str
+        The name of the target column.
+    """
+    col_names = [col.name for col in hdu.data.columns]
+    try:
+        return col_names.index(col_name)
+    except ValueError:
+        logger.warning('Could not find column %s in extension.', col_name, hdu.name)
+        return None
+
+
+
+def set_tlbounds(hdu, col_name, min_, max_):
+    """Set the proper TLMIN and TLMAX header keywords for a given column in a
+    given HDU.
+    """
+    if not isinstance(hdu, fits.BinTableHDU):
+        raise RuntimeError('HDU %s is not a binary table.' % hdu.name)
+    index = find_column_index(hdu, col_name)
+    if index is None:
+        logger.error('Cannot set TLMIN/TLMAX for column %s in extension %s', col_name, hdu.name)
+        return
+    col_index = index + 1
+    logger.info('Updating bounds for column %s in extension %s...', col_name, hdu.name)
+    for key, value in zip(('TLMIN%d' % col_index, 'TLMAX%d' % col_index), (min_, max_)):
+        logger.info('Setting %s -> %d', key, value)
+        hdu.header.set(key, value)
+
+
+
 class xHDUBase:
 
     """Base class for FITS HDU.
