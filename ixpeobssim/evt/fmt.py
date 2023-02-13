@@ -117,6 +117,7 @@ def set_wcs_header_keywords(hdu):
     logger.info('Updating WCS header keywords for the %s HDU...', hdu.name)
     header = hdu.header
     for key, val, _ in _WCS_HEADER_KEYWORDS:
+        logger.debug('Setting %s -> %s', key, val)
         header.set(key, val)
 
 

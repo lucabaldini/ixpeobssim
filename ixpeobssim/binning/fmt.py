@@ -20,7 +20,7 @@
 from __future__ import print_function, division
 
 from ixpeobssim.core.fitsio import xBinTableHDUBase
-from ixpeobssim.irf.ebounds import NUM_CHANNELS
+from ixpeobssim.irf.ebounds import TLMIN, TLMAX
 
 
 # pylint: disable=invalid-name, too-many-ancestors
@@ -39,8 +39,8 @@ class xBinTableHDUPHA1(xBinTableHDUBase):
         ('HDUCLAS3', 'RATE'),
         ('CHANTYPE', 'PI'),
         ('HDUVERS' , '1.2.1', 'OGIP version number'),
-        ('TLMIN1'  , 0, 'first channel number'),
-        ('TLMAX1'  , NUM_CHANNELS - 1, 'last channel number'),
+        ('TLMIN1'  , TLMIN, 'first channel number'),
+        ('TLMAX1'  , TLMAX, 'last channel number'),
         ('CORRSCAL', 1., 'scaling for correction file'),
         ('POISSERR', False, 'use statistical errors'),
         ('BACKFILE', ''),

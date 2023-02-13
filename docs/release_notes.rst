@@ -4,6 +4,41 @@ Release notes
 =============
 
 
+*ixpeobssim (30.2.1) - Thu, 26 Jan 2023 12:31:20 +0100*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/689
+* Fixing the generation of documentation on readthedocs.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/683
+
+
+*ixpeobssim (30.2.0) - Thu, 26 Jan 2023 11:52:59 +0100*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/689
+* Explicitly setting TLMIN and TLMAX for the PI column in both the event
+  files output by xpobssim and the files formatted by xpsimfmt---this is to
+  ensure interoperability with the FTOOLS environment.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/688
+      * https://github.com/lucabaldini/ixpeobssim/issues/588
+
+
+*ixpeobssim (30.1.1) - Tue, 24 Jan 2023 15:40:53 +0100*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/687
+* IRFGEN stripmode removed from xpsimfmt, in order to avoid any interaction
+  with the ixpeirfgen package.
+
+
+*ixpeobssim (30.1.0) - Mon, 23 Jan 2023 17:27:34 +0100*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/686
+* New command-line switches added to xpsimfmt to create smaller output files,
+  facilitating the photon-list and IRF generation code paths.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/685
+
+
 *ixpeobssim (30.0.1) - Wed, 11 Jan 2023 16:23:48 +0100*
 
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/682

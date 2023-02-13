@@ -26,7 +26,7 @@ from astropy import wcs
 import numpy
 
 from ixpeobssim.utils.logging_ import logger, abort
-from ixpeobssim.core.fitsio import FITS_TO_NUMPY_TYPE_DICT
+from ixpeobssim.core.fitsio import FITS_TO_NUMPY_TYPE_DICT, set_tlbounds
 from ixpeobssim.core.hist import xHistogram2d, xScatterPlot
 from ixpeobssim.evt.fmt import set_telescope_header_keywords, set_time_header_keywords,\
     set_object_header_keywords, set_version_keywords
@@ -40,7 +40,7 @@ from ixpeobssim.instrument.charging import xEnergyFluxCube, read_charging_parame
 from ixpeobssim.instrument.charging import read_charging_map, create_charging_map_extension
 from ixpeobssim.instrument.gpd import within_fiducial_rectangle
 from ixpeobssim.instrument.mma import parse_dithering_kwargs
-from ixpeobssim.irf.ebounds import NUM_CHANNELS, channel_to_energy
+from ixpeobssim.irf.ebounds import NUM_CHANNELS, channel_to_energy, TLMIN, TLMAX
 from ixpeobssim.utils.astro import read_ds9, ds9_region_filter_sky, angular_separation
 from ixpeobssim.utils.os_ import check_input_file
 from ixpeobssim.utils.profile import timing
@@ -689,6 +689,9 @@ class xEventList(xBaseEventList):
         # Create the EVENTS extension.
         event_hdu = xBinTableHDUEvents(roi_model.ra, roi_model.dec, self)
         _update_header(event_hdu)
+        # And, as we discovered in issue https://github.com/lucabaldini/ixpeobssim/issues/688
+        # we do need to set TLMIN and TLMAX for the PI column.
+        set_tlbounds(event_hdu, 'PI', TLMIN, TLMAX)
         # Support for pseudo-Lv1a files for interoperability with the official
         # IXPE charging correction tool, see
         # https://bitbucket.org/ixpesw/ixpeobssim/issues/392

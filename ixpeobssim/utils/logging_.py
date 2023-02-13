@@ -102,7 +102,7 @@ def startmsg():
     from ixpeobssim.__version__ import TAG, BUILD_DATE
     print('\n    Welcome to ixpeobssim %s (built on %s).\n' %\
               (TAG, BUILD_DATE))
-    print('    Copyright (C) 2015--2022, the ixpeobssim team.\n\n    ixpeobssim comes with ABSOLUTELY NO WARRANTY.\n    This is free software, and you are welcome to redistribute it under certain\n    conditions. See the LICENSE file for details.\n\n    Visit https://bitbucket.org/ixpesw/ixpeobssim for more information.\n')
+    print('    Copyright (C) 2015--2023, the ixpeobssim team.\n\n    ixpeobssim comes with ABSOLUTELY NO WARRANTY.\n    This is free software, and you are welcome to redistribute it under certain\n    conditions. See the LICENSE file for details.\n\n    Visit https://bitbucket.org/ixpesw/ixpeobssim for more information.\n')
 
 
 
