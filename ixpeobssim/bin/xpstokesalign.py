@@ -105,6 +105,7 @@ def xpstokesalign(**kwargs):
         suffix = kwargs.get('suffix')
         if suffix is not None:
             outfile = outfile.replace('.fits', '_%s.fits' % suffix)
+        outlist.append(outfile)
         if os.path.exists(outfile) and not kwargs.get('overwrite'):
             logger.info('Output file %s already exists.', outfile)
             logger.info('Remove it or set "overwrite = True" to overwite it.')
@@ -139,7 +140,6 @@ def xpstokesalign(**kwargs):
         # And we're ready to write the output file!
         logger.info('Writing output file %s', outfile)
         input_file.hdu_list.writeto(outfile, overwrite=True)
-        outlist.append(outfile)
     return outlist
 
 
