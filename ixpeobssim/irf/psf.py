@@ -100,7 +100,7 @@ def gauss_king_eef_at_infinity(W, sigma, N, r_c, eta):
 
 
 
-class xPointSpreadFunctionBase:
+class xPointSpreadFunctionBase(xResponseBase):
 
     """Base virtual class for the PSF data structures.
 
@@ -110,22 +110,20 @@ class xPointSpreadFunctionBase:
        (azimuthally symmetric and including the position resolution of the GPD)
        and the new-style PSF necessary to study the Stokes cross-talk
        (non azimuthally symmetric and limited to the X-ray optics).
-
-    This class holds a single boolean flag inficating whether the GPD position
-    resolution is included in the PSF. Sub-classes should reimplement the
-    delta() hook, returning random arrays of (ra, dec) offsets.
-
-    Arguments
-    ---------
-    gpd : bool
-        Boolean flag indicating whether a given PSF includes the effect of the
-        GPD position resolution.
     """
 
-    def __init__(self, gpd):
+    REQUIRED_EXT_NAMES = ()
+
+    def __init__(self, file_path):
         """Constructor.
         """
-        self.__gpd = gpd
+        xResponseBase.__init__(self, file_path, 'fits')
+        logger.info('Checking required extensions in the input file...')
+        ext_names = [hdu.name for hdu in self.hdu_list]
+        for ext_name in self.REQUIRED_EXT_NAMES:
+            if ext_name not in ext_names:
+                raise RuntimeError('Cannot find extension %s for class %s.' %\
+                    (ext_name, self.__class__.__name__))
 
     def delta(self, size=1):
         """Return an array of random offset (ra, dec) due to the PSF.
@@ -146,7 +144,7 @@ class xPointSpreadFunctionBase:
 
 
 
-class xPointSpreadFunction(xResponseBase, xInterpolatedUnivariateSpline, xPointSpreadFunctionBase):
+class xPointSpreadFunction(xInterpolatedUnivariateSpline, xPointSpreadFunctionBase):
 
     """Class describing a (simplified, energy independent) PSF.
 
@@ -164,13 +162,15 @@ class xPointSpreadFunction(xResponseBase, xInterpolatedUnivariateSpline, xPointS
     <http://arxiv.org/abs/1403.7200>`_, table 2.
     """
 
+    PSF_EXT_NAME = 'PSF'
+    REQUIRED_EXT_NAMES = (PSF_EXT_NAME, )
     MAX_RADIUS = 480.
     PARAM_NAMES = ['W', 'sigma', 'N', 'r_c', 'eta']
 
     def __init__(self, file_path):
         """Constructor.
         """
-        xResponseBase.__init__(self, file_path, 'fits')
+        xPointSpreadFunctionBase.__init__(self, file_path)
         data = self.hdu_list['PSF'].data
         W = data['W']
         sigma = data['SIGMA']
@@ -249,60 +249,42 @@ class xPointSpreadFunction(xResponseBase, xInterpolatedUnivariateSpline, xPointS
 
 
 
-class xPointSpreadFunction2d(xFITSImage, xPointSpreadFunctionBase):
+class xPointSpreadFunction2d(xPointSpreadFunctionBase):
 
     """Two-dimensional version (i.e., non azimuthally symmetric) version of the PSF.
-
-    Arguments
-    ---------
-    file_path : str
-        The file path for the PSF image
     """
 
-    def build_eef(self):
-        """Calculate the (azimuthally averaged) encircled energy fraction as a function of r.
+    IMG_2D_EXT_NAME = 'IMG_2D'
+    REQUIRED_EXT_NAMES = (xPointSpreadFunction.PSF_EXT_NAME, IMG_2D_EXT_NAME)
+
+    def __init__(self, file_path):
+        """Constructor.
         """
-        # Calculate the distance from the center for all the pixels in the image
-        # in physical units (arcsec).
-        w, h = self.data.shape
-        x0, y0 = w // 2, h // 2
-        x, y = numpy.ogrid[:w, :h]
-        r  = degrees_to_arcsec(numpy.sqrt((x - x0)**2. + (y - y0)**2.) * self.cdelt2())
-        # Ravel the radius array and sort it, keeping track of the indices.
-        r = r.ravel()
-        idx = numpy.argsort(r)
-        r = r[idx]
-        # Reorder the probability values according to the distance of the pixel
-        # from the center, and calculate the cumulative sum, normalize to the
-        # entire image content. (Note the latter is typically close to 1, but
-        # for consistency we normalize anyway).
-        #
-        # Note the explicit cast to float is to accommodate a regression in
-        # numpy 1.22, see  https://bitbucket.org/ixpesw/ixpeobssim/issues/608
-        prob = self.data.astype(float).ravel()[idx].cumsum() / self.data.sum()
-        # Now, in order to build a spline we have to ensure that the values on the
-        # x axis are unique.
-        r, idx = numpy.unique(r, return_index=True)
-        prob = prob[idx]
-        # Finally: we add an offset of half a pixel to the radii and prepend
-        # a 0 to both the radii and the probability values, so that the cumulative
-        # function starts from (0., 0.)---there is no way to do this correctly
-        # starting from a square grid, but this should be good enough.
-        r += 0.5 * degrees_to_arcsec(self.cdelt2())
-        r = numpy.concatenate(([0.], r))
-        prob = numpy.concatenate(([0.], prob))
-        # Cache the approximate value of the half-energy window.
-        hew = 2. * r[numpy.searchsorted(prob, 0.5)]
-        # Create the actual spline, and we're good to go!
-        fmt = dict(xlabel='r [arcsec]', ylabel='PSF EEF')
-        return xInterpolatedUnivariateSpline(r, prob, k=1, **fmt), hew
+        xPointSpreadFunctionBase.__init__(self, file_path)
+        img_hdu = self.hdu_list[self.IMG_2D_EXT_NAME]
+        self.psf_image = xFITSImage(img_hdu)
 
     def delta(self, size=1):
         """Return an array of random offset (in ra, dec) due to the PSF.
         """
-        delta_ra, delta_dec = self.rvs_coordinates(size)
+        delta_ra, delta_dec = self.psf_image.rvs_coordinates(size)
         # Note that, since the WCS is centered in (0, 0) negative ra values
         # get carried away near 360 degrees, so we have to fold them back
         # explicitly.
         delta_ra[delta_ra > 180.] -= 360.
         return delta_ra, delta_dec
+
+
+
+class xPointSpreadFunction4d(xPointSpreadFunction2d):
+
+    """Glorious, 4-dimensional PSF containing an approximate scaling of the
+    radius with energy and off-axis angle.
+    """
+
+    REQUIRED_EXT_NAMES = ('PSF', 'IMG_2D', 'EGRID', 'TGRID', 'RGRID', 'PSFRSCAL')
+
+    def __init__(self, file_path):
+        """Constructor.
+        """
+        xPointSpreadFunction2d.__init__(self, file_path)
