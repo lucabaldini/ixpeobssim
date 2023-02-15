@@ -33,12 +33,20 @@ from ixpeobssim.core.fitsio import xFITSImageBase
 class xFITSImage(xFITSImageBase):
 
     """Class describing a FITS image equipped to extract random coordinates.
+
+    Arguments
+    ---------
+    source : string or fits.hdu.image.ImageHDU
+        The path to the FITS file containing the image or the HDU with the image.
+
+    ext_name : str
+        The name of the file extension in case the source is a file.
     """
 
-    def __init__(self, file_path):
+    def __init__(self, source, ext_name='PRIMARY'):
         """Constructor.
         """
-        xFITSImageBase.__init__(self, file_path)
+        xFITSImageBase.__init__(self, source, ext_name)
         self.cdf = self._build_cdf()
 
     def _build_cdf(self):
@@ -85,8 +93,8 @@ class xFITSImage(xFITSImageBase):
         ra, dec = world_coords[:, 0], world_coords[:, 1]
         # If needed, add some randomization.
         if randomize:
-            delta_ra = 0.5 * self.primary_hdu.header['CDELT1']
-            delta_dec = 0.5 * self.primary_hdu.header['CDELT2']
+            delta_ra = 0.5 * self.hdu.header['CDELT1']
+            delta_dec = 0.5 * self.hdu.header['CDELT2']
             ra += numpy.random.uniform(-delta_ra, delta_ra, size)
             dec += numpy.random.uniform(-delta_dec, delta_dec, size)
         return ra, dec

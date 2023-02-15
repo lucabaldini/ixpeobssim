@@ -339,20 +339,26 @@ class xFITSImageBase:
 
     Arguments
     ---------
-    file_path : string
-        The path to the FITS file containing the image.
+    source : str or fits.hdu.image.ImageHDU
+        The path to the FITS file containing the image or the HDU with the image.
+
+    ext_name : str
+        The name of the file extension in case the source is a file.
     """
 
     DEFAULT_RECT = (0.1, 0.1, 0.8, 0.8)
 
-    def __init__(self, file_path):
+    def __init__(self, source, ext_name='PRIMARY'):
         """Constructor.
         """
-        self.hdu_list = read_hdu_list_in_memory(file_path)
-        self.hdu_list.info()
-        self.primary_hdu = self.hdu_list['PRIMARY'].copy()
-        self.wcs = wcs.WCS(self.primary_hdu.header)
-        self.data = self.primary_hdu.data
+        if isinstance(source, fits.hdu.image.ImageHDU):
+            self.hdu = source
+        else:
+            self.hdu_list = read_hdu_list_in_memory(source)
+            self.hdu_list.info()
+            self.hdu = self.hdu_list[ext_name].copy()
+        self.wcs = wcs.WCS(self.hdu.header)
+        self.data = self.hdu.data
 
     def __iadd__(self, other):
         """Support for image addition.
@@ -368,7 +374,7 @@ class xFITSImageBase:
     def get(self, keyword, default=None):
         """Retrieve the value of a primary header keyword.
         """
-        return self.primary_hdu.header.get(keyword, default)
+        return self.hdu.header.get(keyword, default)
 
     def shape(self):
         """Return the shape of the image.
