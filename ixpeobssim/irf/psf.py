@@ -112,18 +112,10 @@ class xPointSpreadFunctionBase(xResponseBase):
        (non azimuthally symmetric and limited to the X-ray optics).
     """
 
-    REQUIRED_EXT_NAMES = ()
-
     def __init__(self, file_path):
         """Constructor.
         """
         xResponseBase.__init__(self, file_path, 'fits')
-        logger.info('Checking required extensions in the input file...')
-        ext_names = [hdu.name for hdu in self.hdu_list]
-        for ext_name in self.REQUIRED_EXT_NAMES:
-            if ext_name not in ext_names:
-                raise RuntimeError('Cannot find extension %s for class %s.' %\
-                    (ext_name, self.__class__.__name__))
 
     def delta(self, size=1):
         """Return an array of random offset (ra, dec) due to the PSF.
@@ -162,8 +154,6 @@ class xPointSpreadFunction(xInterpolatedUnivariateSpline, xPointSpreadFunctionBa
     <http://arxiv.org/abs/1403.7200>`_, table 2.
     """
 
-    PSF_EXT_NAME = 'PSF'
-    REQUIRED_EXT_NAMES = (PSF_EXT_NAME, )
     MAX_RADIUS = 480.
     PARAM_NAMES = ['W', 'sigma', 'N', 'r_c', 'eta']
 
@@ -254,14 +244,11 @@ class xPointSpreadFunction2d(xPointSpreadFunctionBase):
     """Two-dimensional version (i.e., non azimuthally symmetric) version of the PSF.
     """
 
-    IMG_2D_EXT_NAME = 'IMG_2D'
-    REQUIRED_EXT_NAMES = (xPointSpreadFunction.PSF_EXT_NAME, IMG_2D_EXT_NAME)
-
     def __init__(self, file_path):
         """Constructor.
         """
         xPointSpreadFunctionBase.__init__(self, file_path)
-        img_hdu = self.hdu_list[self.IMG_2D_EXT_NAME]
+        img_hdu = self.hdu_list['IMG_2D']
         self.psf_image = xFITSImage(img_hdu)
 
     def delta(self, size=1):
@@ -281,8 +268,6 @@ class xPointSpreadFunction4d(xPointSpreadFunction2d):
     """Glorious, 4-dimensional PSF containing an approximate scaling of the
     radius with energy and off-axis angle.
     """
-
-    REQUIRED_EXT_NAMES = ('PSF', 'IMG_2D', 'EGRID', 'TGRID', 'RGRID', 'PSFRSCAL')
 
     def __init__(self, file_path):
         """Constructor.

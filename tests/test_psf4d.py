@@ -63,10 +63,10 @@ class TestIxpePsf4d(unittest.TestCase):
         """Make sure that for the IRF v12 the 2d and 4d PSF cannot be loaded.
         """
         for du_id in DU_IDS:
-            with self.assertRaises(RuntimeError) as context:
+            with self.assertRaises(KeyError) as context:
                 psf = xPointSpreadFunction2d(irf_file_path(irf_name, du_id, 'psf'))
             logger.info(context.exception)
-            with self.assertRaises(RuntimeError) as context:
+            with self.assertRaises(KeyError) as context:
                 psf = xPointSpreadFunction4d(irf_file_path(irf_name, du_id, 'psf'))
             logger.info(context.exception)
 
