@@ -4,6 +4,8 @@ Release notes
 =============
 
 
+*ixpeobssim (30.2.2) - Wed, 15 Feb 2023 10:22:34 +0100*
+
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/692
 * Minor fix in the population of the output file list for xpstokesalign.
 * Issue(s) closed:
