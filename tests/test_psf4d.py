@@ -87,6 +87,34 @@ class TestIxpePsf4d(unittest.TestCase):
             h.plot(logz=True)
             plt.gca().set_aspect('equal')
 
+    def test_4d_rscaling(self, irf_name='ixpe:obssim:v14'):
+        """Test the PSF 4D.
+        """
+        r = numpy.linspace(0., 400., 401)
+        for du_id in DU_IDS:
+            psf = xPointSpreadFunction4d(irf_file_path(irf_name, du_id, 'psf'))
+            plt.figure('PSF 4d radial scaling %s DU %d' % (irf_name, du_id))
+            for theta in (0., 2., 5.):
+                for energy in (1., 2., 8., 12.):
+                    scale = psf.rscale_interpolator((theta, energy, r))
+                    label = '%.1f arcmin, %.2f keV' % (theta, energy)
+                    plt.plot(r, scale, label=label)
+            setup_gca(grids=True, legend=True)
+
+    def test_4d_sampling(self, irf_name='ixpe:obssim:v14', num_samples=1000000, half_size=0.1):
+        """Sample the 4-dimensional PSF.
+        """
+        for du_id in DU_IDS:
+            psf = xPointSpreadFunction4d(irf_file_path(irf_name, du_id, 'psf'))
+            binning = numpy.linspace(-half_size, half_size, 250)
+            for theta, energy in ((0., 2.), (3., 6.)):
+                x, y = psf.delta(energy, theta, num_samples)
+                h = xHistogram2d(binning, binning, xlabel='Delta R. A.', ylabel='Delta Dec.').fill(x, y)
+                plt.figure('PSF 4D sampling %s DU %d, %.1f arcsec, %.2f keV' %\
+                    (irf_name, du_id, theta, energy))
+                h.plot(logz=True)
+                plt.gca().set_aspect('equal')
+
 
 
 if __name__ == '__main__':

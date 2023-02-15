@@ -22,12 +22,14 @@ from __future__ import print_function, division
 from astropy.io import fits
 import numpy
 from scipy.ndimage.filters import gaussian_filter
+from scipy.interpolate import RegularGridInterpolator
 
 from ixpeobssim.irf.base import xResponseBase
 from ixpeobssim.core.fitsio import xFITSImageBase
 from ixpeobssim.core.spline import xInterpolatedUnivariateSpline
 from ixpeobssim.core.rand import xUnivariateGenerator
 from ixpeobssim.srcmodel.img import xFITSImage
+from ixpeobssim.utils.astro import angular_separation
 from ixpeobssim.utils.logging_ import logger
 from ixpeobssim.utils.matplotlib_ import plt, labeled_marker
 from ixpeobssim.utils.units_ import arcsec_to_degrees, degrees_to_arcsec
@@ -273,3 +275,22 @@ class xPointSpreadFunction4d(xPointSpreadFunction2d):
         """Constructor.
         """
         xPointSpreadFunction2d.__init__(self, file_path)
+        self.rscale_interpolator = self._build_rscale_interpolator()
+
+    def _build_rscale_interpolator(self):
+        """Build the interpolator object to calculate the proper scaling factor
+        for the radius as a function of energy and off-axis angle.
+        """
+        egrid = self.hdu_list['EGRID'].data['ENERGY']
+        tgrid = self.hdu_list['TGRID'].data['THETA']
+        rgrid = self.hdu_list['RGRID'].data['R']
+        rscaling = self.hdu_list['PSFRSCAL'].data
+        return RegularGridInterpolator((tgrid, egrid, rgrid), rscaling, 'linear')
+
+    def delta(self, energy, theta, size=1):
+        """Return an array of random offset (in ra, dec) due to the PSF.
+        """
+        delta_ra, delta_dec = xPointSpreadFunction2d.delta(self, size)
+        r = degrees_to_arcsec(angular_separation(delta_ra, delta_dec, 0., 0.))
+        scale = self.rscale_interpolator((theta, energy, r))
+        return delta_ra * scale, delta_dec * scale
