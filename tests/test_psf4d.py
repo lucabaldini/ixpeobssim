@@ -70,8 +70,11 @@ class TestIxpePsf4d(unittest.TestCase):
                 psf = xPointSpreadFunction4d(irf_file_path(irf_name, du_id, 'psf'))
             logger.info(context.exception)
 
-    def test_2d(self, irf_name='ixpe:obssim:v14', num_samples=1000000, half_size = 0.1):
+    def test_2d(self, irf_name='ixpe:obssim:v14', num_samples=1000000, half_size=0.1):
         """Test the PSF 2D.
+
+        This is plotting the underlying image and sampling the corresponding
+        distribution.
         """
         for du_id in DU_IDS:
             psf = xPointSpreadFunction2d(irf_file_path(irf_name, du_id, 'psf'))
