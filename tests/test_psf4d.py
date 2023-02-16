@@ -101,20 +101,46 @@ class TestIxpePsf4d(unittest.TestCase):
                     plt.plot(r, scale, label=label)
             setup_gca(grids=True, legend=True)
 
-    def test_4d_sampling(self, irf_name='ixpe:obssim:v14', num_samples=1000000, half_size=0.1):
+    @unittest.skip('Under development')
+    def test_4d_sampling(self, irf_name='ixpe:obssim:v14', num_samples=10000000, half_size=8.029536666666667):
         """Sample the 4-dimensional PSF.
         """
         for du_id in DU_IDS:
             psf = xPointSpreadFunction4d(irf_file_path(irf_name, du_id, 'psf'))
-            binning = numpy.linspace(-half_size, half_size, 250)
-            for theta, energy in ((0., 2.), (3., 6.)):
+            binning = numpy.linspace(-half_size, half_size, 722)
+            reference_profile = None
+            for theta, energy in ((0., 2.29), (0., 4.51), (0., 6.4)):
                 x, y = psf.delta(energy, theta, num_samples)
-                h = xHistogram2d(binning, binning, xlabel='Delta R. A.', ylabel='Delta Dec.').fill(x, y)
+                h = xHistogram2d(binning, binning, xlabel='Delta R. A.', ylabel='Delta Dec.')
+                h.fill(degrees_to_arcmin(x), degrees_to_arcmin(y))
+                # Normalized map
+                h_norm = h * (1. / h.sum())
                 plt.figure('PSF 4D sampling %s DU %d, %.1f arcsec, %.2f keV' %\
                     (irf_name, du_id, theta, energy))
-                h.plot(logz=True)
+                h_norm.plot(logz=True, vmin=1.e-5, vmax=1.e-2)
+                plt.xlim((-4., 4.))
+                plt.ylim((-4., 4.))
                 plt.gca().set_aspect('equal')
-
+                # Radial profile
+                r_bins = numpy.linspace(0., 10., 101)
+                x, y = h.bin_centers(axis=0), h.bin_centers(axis=1)
+                vals = []
+                radii = []
+                for r_low, r_up in zip(r_bins[:-1], r_bins[1:]):
+                    r = 0.5 * (r_low + r_up)
+                    mask = (x**2 + y**2 >= r_low**2) * (x**2 + y**2 < r_up**2)
+                    radii.append(r)
+                    vals.append(numpy.sum(h.content[mask]))
+                vals = numpy.array(vals)
+                if (theta, energy) == (0., 2.29):
+                    reference_profile = numpy.array(vals)
+                errs = numpy.sqrt(vals) / reference_profile
+                vals /= reference_profile
+                plt.figure('radial profile MMA %d' % du_id)
+                plt.errorbar(radii, vals, yerr=errs, fmt='o--',
+                             label='%.1f arcsec, %.2f keV' % (theta, energy))
+                setup_gca(grids=True, legend=True, xlabel='radius [arcmin]',
+                          ylabel='Radial profile / reference')
 
 
 if __name__ == '__main__':
