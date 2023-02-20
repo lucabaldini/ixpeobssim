@@ -102,7 +102,7 @@ class TestIxpePsf4d(unittest.TestCase):
             setup_gca(grids=True, legend=True)
 
     @unittest.skip('Under development')
-    def test_4d_sampling(self, irf_name='ixpe:obssim:v14', num_samples=10000000, half_size=8.029536666666667):
+    def test_4d_sampling(self, irf_name='ixpe:obssim:v14', num_samples=1000000, half_size=8.029536666666667):
         """Sample the 4-dimensional PSF.
         """
         for du_id in DU_IDS:
@@ -117,10 +117,21 @@ class TestIxpePsf4d(unittest.TestCase):
                 h_norm = h * (1. / h.sum())
                 plt.figure('PSF 4D sampling %s DU %d, %.1f arcsec, %.2f keV' %\
                     (irf_name, du_id, theta, energy))
-                h_norm.plot(logz=True, vmin=1.e-5, vmax=1.e-2)
+                h_norm.plot(logz=True, vmin=1.e-6, vmax=1.e-3)
                 plt.xlim((-4., 4.))
                 plt.ylim((-4., 4.))
                 plt.gca().set_aspect('equal')
+                # Histogram projection
+                slices = h.vslices()
+                h_proj_x = sum(slices, slices[0].empty_copy())
+                slices = h.hslices()
+                h_proj_y = sum(slices, slices[0].empty_copy())
+                plt.figure('proj x, MMA %d' % du_id)
+                h_proj_x.errorbar(label=hdu_name, fmt='.--')
+                setup_gca(grids=True, logy=True, legend=True)
+                plt.figure('proj y, MMA %d' % du_id)
+                h_proj_y.errorbar(label=hdu_name, fmt='.--')
+                setup_gca(grids=True, logy=True, legend=True)
                 # Radial profile
                 r_bins = numpy.linspace(0., 10., 101)
                 x, y = h.bin_centers(axis=0), h.bin_centers(axis=1)
