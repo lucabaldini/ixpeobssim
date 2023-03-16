@@ -111,9 +111,6 @@ _TARGET_DATA = {
 #
 # Note that we explicitly left out the fields for the TWG, as well as the
 # internal and external data release.
-#
-# For the observations that have been planned but not executed, yet, the start and
-# stop columns are missing the hours, minutes and seconds information.
 _Y1_ARTL_DATA = (
     ('Cas A', 11.57, 1001301, '2022-01-11T11:45', '2022-01-29T12:34', ''),
     ('Cen X-3',	1.16, 1006501, '2022-01-29T13:10', '2022-01-31T07:10', ''),
