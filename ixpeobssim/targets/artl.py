@@ -52,7 +52,8 @@ class xTarget:
     def __init__(self, name, ra, dec, twg):
         """Constructor.
         """
-        assert twg in TWG_LIST
+        if twg is not None:
+            assert twg in TWG_LIST
         self.name = name
         self.ra = ra
         self.dec = dec
