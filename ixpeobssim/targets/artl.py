@@ -220,6 +220,8 @@ class xARTL(dict):
             'Sgr A complex': dict(ha='right'),
             'Vela Pulsar': dict(va='top'),
             'XTE J1701-462': dict(ha='left'),
+            'PSR B0540-69' : dict(va='bottom'),
+            'LMC X-1' : dict(va='top'),
             }
         self._plot_coordinates('IXPE ARTL equatorial', xTarget.plot_equatorial_pos, **pos_kwargs)
 
@@ -248,6 +250,8 @@ class xARTL(dict):
             'Vela Pulsar': dict(va='top', ha='left'),
             'Vela X-1': dict(ha='left'),
             'XTE J1701-462': dict(va='top', ha='right', rotation=25),
+            'PSR B0540-69' : dict(va='top'),
+            'LMC X-1' : dict(va='bottom'),
         }
         self._plot_coordinates('IXPE ARTL galactic', xTarget.plot_galactic_pos, **pos_kwargs)
 
