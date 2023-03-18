@@ -4,6 +4,8 @@ Release notes
 =============
 
 
+*ixpeobssim (30.2.3) - Sat, 18 Mar 2023 10:58:48 +0100*
+
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/695
 * As run target list rendering for year 1 final update.
 
