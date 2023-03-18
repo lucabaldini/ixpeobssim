@@ -52,7 +52,8 @@ class xTarget:
     def __init__(self, name, ra, dec, twg):
         """Constructor.
         """
-        assert twg in TWG_LIST
+        if twg is not None:
+            assert twg in TWG_LIST
         self.name = name
         self.ra = ra
         self.dec = dec
@@ -219,6 +220,8 @@ class xARTL(dict):
             'Sgr A complex': dict(ha='right'),
             'Vela Pulsar': dict(va='top'),
             'XTE J1701-462': dict(ha='left'),
+            'PSR B0540-69' : dict(va='bottom'),
+            'LMC X-1' : dict(va='top'),
             }
         self._plot_coordinates('IXPE ARTL equatorial', xTarget.plot_equatorial_pos, **pos_kwargs)
 
@@ -247,6 +250,8 @@ class xARTL(dict):
             'Vela Pulsar': dict(va='top', ha='left'),
             'Vela X-1': dict(ha='left'),
             'XTE J1701-462': dict(va='top', ha='right', rotation=25),
+            'PSR B0540-69' : dict(va='top'),
+            'LMC X-1' : dict(va='bottom'),
         }
         self._plot_coordinates('IXPE ARTL galactic', xTarget.plot_galactic_pos, **pos_kwargs)
 
@@ -277,7 +282,7 @@ class xARTL(dict):
                     x0 = 0.5 * (start + end)
                     ax.text(x0, y0, '%s' % target_name, color='white', ha='center', va='center', size='small')
 
-    def plot_inset(self, start_date, end_date, x, y, dy=0.15, xscale=0.0075):
+    def plot_inset(self, start_date, end_date, x, y, dy=0.15, xscale=0.0061):
         """Plot a timeline inset.
         """
         _start = date2num(numpy.datetime64(start_date))
@@ -311,9 +316,10 @@ class xARTL(dict):
         plt.tight_layout()
         self.plot_inset('2022-01-29 12:35', '2022-03-23 01:43', 0.0075, 0.85)
         self.plot_inset('2022-03-24 01:58', '2022-05-14 12:27', 0.0075, 0.25)
-        self.plot_inset('2022-05-14 12:28', '2022-06-21 21:04', 0.38, 0.65)
-        self.plot_inset('2022-07-07 00:00', '2022-09-19 05:00', 0.40, 0.05)
-        self.plot_inset('2022-09-19 05:00', '2022-10-11 13:13', 0.68, 0.85)
+        self.plot_inset('2022-05-14 12:28', '2022-06-21 21:04', 0.31, 0.65)
+        self.plot_inset('2022-07-07 00:00', '2022-09-19 05:00', 0.32, 0.05)
+        self.plot_inset('2022-09-19 05:00', '2022-11-27T13:10', 0.54, 0.85)
+        self.plot_inset('2022-11-27T13:10', '2022-12-29T17:45', 0.78, 0.25)
         plt.gca().legend(handles=SOURCE_LEGEND_HANDLES, loc=(0.05, 0.025))
 
     def __str__(self):
