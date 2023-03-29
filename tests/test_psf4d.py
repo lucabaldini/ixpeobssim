@@ -70,6 +70,7 @@ class TestIxpePsf4d(unittest.TestCase):
                 psf = xPointSpreadFunction4d(irf_file_path(irf_name, du_id, 'psf'))
             logger.info(context.exception)
 
+    @unittest.skip('Under development')
     def test_2d(self, irf_name='ixpe:obssim:v14', num_samples=1000000, half_size=0.1):
         """Test the PSF 2D.
 
@@ -87,6 +88,7 @@ class TestIxpePsf4d(unittest.TestCase):
             h.plot(logz=True)
             plt.gca().set_aspect('equal')
 
+    @unittest.skip('Under development')
     def test_4d_rscaling(self, irf_name='ixpe:obssim:v14'):
         """Test the PSF 4D.
         """
@@ -101,39 +103,44 @@ class TestIxpePsf4d(unittest.TestCase):
                     plt.plot(r, scale, label=label)
             setup_gca(grids=True, legend=True)
 
-    @unittest.skip('Under development')
-    def test_4d_sampling(self, irf_name='ixpe:obssim:v14', num_samples=1000000, half_size=8.029536666666667):
+    #@unittest.skip('Under development')
+    def test_4d_sampling(self, irf_name='ixpe:obssim:v14', num_samples=2000000,
+                         half_size=8.029536666666667):
         """Sample the 4-dimensional PSF.
         """
         for du_id in DU_IDS:
             psf = xPointSpreadFunction4d(irf_file_path(irf_name, du_id, 'psf'))
             binning = numpy.linspace(-half_size, half_size, 722)
             reference_profile = None
-            for theta, energy in ((0., 2.29), (0., 4.51), (0., 6.4)):
+            for theta, energy in ((0., 2.29), (2., 2.29), (2., 4.51), (2., 6.4)):
+                label = '%s DU %d, %.1f arcsec, %.2f keV' %\
+                        (irf_name, du_id, theta, energy)
                 x, y = psf.delta(energy, theta, num_samples)
-                h = xHistogram2d(binning, binning, xlabel='Delta R. A.', ylabel='Delta Dec.')
+                h = xHistogram2d(binning, binning,
+                                 xlabel='Delta R. A.', ylabel='Delta Dec.')
                 h.fill(degrees_to_arcmin(x), degrees_to_arcmin(y))
                 # Normalized map
                 h_norm = h * (1. / h.sum())
-                plt.figure('PSF 4D sampling %s DU %d, %.1f arcsec, %.2f keV' %\
-                    (irf_name, du_id, theta, energy))
-                h_norm.plot(logz=True, vmin=1.e-6, vmax=1.e-3)
-                plt.xlim((-4., 4.))
-                plt.ylim((-4., 4.))
-                plt.gca().set_aspect('equal')
+                #plt.figure('PSF 4D sampling %s' % label)
+                #h_norm.plot(logz=True, vmin=1.e-6, vmax=1.e-3)
+                #plt.xlim((-4., 4.))
+                #plt.ylim((-4., 4.))
+                #plt.gca().set_aspect('equal')
+
                 # Histogram projection
                 slices = h.vslices()
                 h_proj_x = sum(slices, slices[0].empty_copy())
                 slices = h.hslices()
                 h_proj_y = sum(slices, slices[0].empty_copy())
-                plt.figure('proj x, MMA %d' % du_id)
-                h_proj_x.errorbar(label=hdu_name, fmt='.--')
-                setup_gca(grids=True, logy=True, legend=True)
-                plt.figure('proj y, MMA %d' % du_id)
-                h_proj_y.errorbar(label=hdu_name, fmt='.--')
-                setup_gca(grids=True, logy=True, legend=True)
+                #plt.figure('proj x, MMA %d' % du_id)
+                #h_proj_x.errorbar(label=label, fmt='.--')
+                #setup_gca(grids=True, logy=True, legend=True)
+                #plt.figure('proj y, MMA %d' % du_id)
+                #h_proj_y.errorbar(label=label, fmt='.--')
+                #setup_gca(grids=True, logy=True, legend=True)
+
                 # Radial profile
-                r_bins = numpy.linspace(0., 10., 101)
+                r_bins = numpy.linspace(0., 10., 21)
                 x, y = h.bin_centers(axis=0), h.bin_centers(axis=1)
                 vals = []
                 radii = []
@@ -148,8 +155,7 @@ class TestIxpePsf4d(unittest.TestCase):
                 errs = numpy.sqrt(vals) / reference_profile
                 vals /= reference_profile
                 plt.figure('radial profile MMA %d' % du_id)
-                plt.errorbar(radii, vals, yerr=errs, fmt='o--',
-                             label='%.1f arcsec, %.2f keV' % (theta, energy))
+                plt.errorbar(radii, vals, yerr=errs, fmt='o--', label=label)
                 setup_gca(grids=True, legend=True, xlabel='radius [arcmin]',
                           ylabel='Radial profile / reference')
 
