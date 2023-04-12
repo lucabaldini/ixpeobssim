@@ -27,6 +27,7 @@ import sys
 import unittest
 
 import numpy
+from scipy.stats import gmean
 
 from ixpeobssim import IXPEOBSSIM_IRFGEN_DATA
 from ixpeobssim.core.hist import xHistogram1d, xHistogram2d
@@ -70,7 +71,6 @@ class TestIxpePsf4d(unittest.TestCase):
                 psf = xPointSpreadFunction4d(irf_file_path(irf_name, du_id, 'psf'))
             logger.info(context.exception)
 
-    @unittest.skip('Under development')
     def test_2d(self, irf_name='ixpe:obssim:v14', num_samples=1000000, half_size=0.1):
         """Test the PSF 2D.
 
@@ -88,7 +88,6 @@ class TestIxpePsf4d(unittest.TestCase):
             h.plot(logz=True)
             plt.gca().set_aspect('equal')
 
-    @unittest.skip('Under development')
     def test_4d_rscaling(self, irf_name='ixpe:obssim:v14'):
         """Test the PSF 4D.
         """
@@ -103,60 +102,50 @@ class TestIxpePsf4d(unittest.TestCase):
                     plt.plot(r, scale, label=label)
             setup_gca(grids=True, legend=True)
 
-    #@unittest.skip('Under development')
-    def test_4d_sampling(self, irf_name='ixpe:obssim:v14', num_samples=2000000,
+    def test_4d_sampling(self, irf_name='ixpe:obssim:v14', num_samples=1000000,
                          half_size=8.029536666666667):
         """Sample the 4-dimensional PSF.
         """
+        x_binning = numpy.linspace(-half_size, half_size, 722)
+        r_bins = numpy.logspace(-1.3, 1.1, 21)
+
         for du_id in DU_IDS:
             psf = xPointSpreadFunction4d(irf_file_path(irf_name, du_id, 'psf'))
-            binning = numpy.linspace(-half_size, half_size, 722)
-            reference_profile = None
-            for theta, energy in ((0., 2.29), (2., 2.29), (2., 4.51), (2., 6.4)):
-                label = '%s DU %d, %.1f arcsec, %.2f keV' %\
-                        (irf_name, du_id, theta, energy)
+
+            def make_2d_hist(energy, theta):
                 x, y = psf.delta(energy, theta, num_samples)
-                h = xHistogram2d(binning, binning,
+                h = xHistogram2d(x_binning, x_binning,
                                  xlabel='Delta R. A.', ylabel='Delta Dec.')
                 h.fill(degrees_to_arcmin(x), degrees_to_arcmin(y))
-                # Normalized map
                 h_norm = h * (1. / h.sum())
-                #plt.figure('PSF 4D sampling %s' % label)
-                #h_norm.plot(logz=True, vmin=1.e-6, vmax=1.e-3)
-                #plt.xlim((-4., 4.))
-                #plt.ylim((-4., 4.))
-                #plt.gca().set_aspect('equal')
+                return h_norm
 
-                # Histogram projection
-                slices = h.vslices()
-                h_proj_x = sum(slices, slices[0].empty_copy())
-                slices = h.hslices()
-                h_proj_y = sum(slices, slices[0].empty_copy())
-                #plt.figure('proj x, MMA %d' % du_id)
-                #h_proj_x.errorbar(label=label, fmt='.--')
-                #setup_gca(grids=True, logy=True, legend=True)
-                #plt.figure('proj y, MMA %d' % du_id)
-                #h_proj_y.errorbar(label=label, fmt='.--')
-                #setup_gca(grids=True, logy=True, legend=True)
-
-                # Radial profile
-                r_bins = numpy.linspace(0., 10., 21)
+            def radial_profile(h):
                 x, y = h.bin_centers(axis=0), h.bin_centers(axis=1)
                 vals = []
                 radii = []
+                errs = []
                 for r_low, r_up in zip(r_bins[:-1], r_bins[1:]):
-                    r = 0.5 * (r_low + r_up)
                     mask = (x**2 + y**2 >= r_low**2) * (x**2 + y**2 < r_up**2)
-                    radii.append(r)
-                    vals.append(numpy.sum(h.content[mask]))
-                vals = numpy.array(vals)
-                if (theta, energy) == (0., 2.29):
-                    reference_profile = numpy.array(vals)
-                errs = numpy.sqrt(vals) / reference_profile
+                    radii.append(gmean([r_low, r_up]))
+                    counts = numpy.sum(h.entries[mask])
+                    norm_counts = numpy.sum(h.content[mask])
+                    vals.append(norm_counts)
+                    errs.append(numpy.sqrt(counts) * norm_counts / counts)
+                return numpy.array(radii), numpy.array(vals), numpy.array(errs)
+
+            ref_h = make_2d_hist(2.29, 0.)
+            _, reference_profile, _ = radial_profile(ref_h)
+            for theta, energy in ((0., 2.29), (0., 4.51), (0., 6.4), (4., 6.4)):
+                label = '%s DU %d, %.1f arcsec, %.2f keV' %\
+                        (irf_name, du_id, theta, energy)
+                r, vals, errs = radial_profile(make_2d_hist(energy,theta))
                 vals /= reference_profile
+                errs /= reference_profile
                 plt.figure('radial profile MMA %d' % du_id)
-                plt.errorbar(radii, vals, yerr=errs, fmt='o--', label=label)
-                setup_gca(grids=True, legend=True, xlabel='radius [arcmin]',
+                plt.errorbar(r, vals, yerr=errs, fmt='o--', label=label)
+                setup_gca(grids=True, logx=True, legend=True,
+                          xlabel='radius [arcmin]',
                           ylabel='Radial profile / reference')
 
 
