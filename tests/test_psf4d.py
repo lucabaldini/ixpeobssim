@@ -100,7 +100,8 @@ class TestIxpePsf4d(unittest.TestCase):
                     scale = psf.rscale_interpolator((theta, energy, r))
                     label = '%.1f arcmin, %.2f keV' % (theta, energy)
                     plt.plot(r, scale, label=label)
-            setup_gca(grids=True, legend=True)
+            setup_gca(grids=True, legend=True, xlabel='radius [arcsec]',
+                      ylabel='EEF scaling')
 
     def test_4d_sampling(self, irf_name='ixpe:obssim:v14', num_samples=1000000,
                          half_size=8.029536666666667):
