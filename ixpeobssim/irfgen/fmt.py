@@ -122,6 +122,17 @@ class xBinTableHDUSPECRESPBase(xBinTableHDUBase):
 
 
 
+class xBinTableHDUSPECRESPQE(xBinTableHDUSPECRESPBase):
+
+    """Binary table descriptor for the GPD quantum efficiency.
+    """
+
+    DATA_SPECS = xBinTableHDUSPECRESPBase.EBOUND_SPECS + [
+        ('QE', 'E', '')
+    ]
+
+
+
 class xBinTableHDUSPECRESPARF(xBinTableHDUSPECRESPBase):
 
     """Binary table descriptor for effective area and modulation response files.
