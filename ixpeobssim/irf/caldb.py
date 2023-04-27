@@ -35,6 +35,7 @@ __CALDB_FOLDER_DICT = {
     'rmf' : ('gpd', 'cpf', 'rmf'),
     'mrf' : ('gpd', 'cpf', 'mrf'),
     'modf': ('gpd', 'cpf', 'modfact'),
+    'qe'  : ('gpd', 'bcf', 'qe'),
     'psf' : ('xrt', 'bcf', 'psf'),
     'vign': ('xrt', 'bcf', 'vign')
     }
