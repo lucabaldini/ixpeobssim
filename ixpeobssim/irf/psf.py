@@ -297,18 +297,5 @@ class xPointSpreadFunction4d(xPointSpreadFunction2d):
         """
         delta_ra, delta_dec = xPointSpreadFunction2d.delta(self, size)
         r = degrees_to_arcsec(angular_separation(delta_ra, delta_dec, 0., 0.))
-        #theta_grid, e_grid, r_grid = self.rscale_interpolator.grid
-        #print(theta_grid, e_grid, r_grid)
-        #theta_min, theta_max = theta_grid[0], theta_grid[-1]
-        #e_min, e_max = e_grid[0], e_grid[-1]
-        #r_min, r_max = r_grid[0], r_grid[-1]
-        #print(theta_min, theta_max, e_min, e_max, r_min, r_max)
-        #mask = (theta >= theta_min) * (theta <= theta_max) *\
-        #       (energy >= e_min) * (energy <= e_max) *\
-        #       (r >= r_min) * (r <= r_max)
-        #print(mask)
-        #input()
-        #print(len(energy), mask.sum())
-        #print(energy[~mask], theta[~mask], theta[~mask])
         scale = self.rscale_interpolator((theta, energy, r))
         return delta_ra * scale, delta_dec * scale
