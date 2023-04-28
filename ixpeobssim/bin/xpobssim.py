@@ -68,6 +68,7 @@ PARSER.add_trajectory()
 PARSER.add_on_orbit_calibration()
 PARSER.add_timeline()
 PARSER.add_sc_data()
+PARSER.add_psftype()
 PARSER.add_boolean('--lv1a', False, help='create a pseudo-Lv1a file')
 PARSER.add_argument('--lv1version', type=int, default=5,
     help='version number for the pseudo-Lv1a support')
@@ -220,7 +221,7 @@ def xpobssim(**kwargs):
         numpy.random.seed(_seed)
         # Load the response functions.
         logger.info('Loading the instrument response functions...')
-        irf_set = load_irf_set(kwargs.get('irfname'), du_id)
+        irf_set = load_irf_set(kwargs.get('irfname'), du_id, psf_type=kwargs['psftype'])
         logger.info('Done %s.', chrono)
         # Run the actual simulation.
         logger.info('Generating the photon list...')

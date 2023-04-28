@@ -180,11 +180,12 @@ class xModelComponentBase:
         return self.uniform_square(size, half_side, half_side)
 
     @classmethod
-    def convolve_sky_direction(cls, mc_ra, mc_dec, parent_roi, psf):
+    def convolve_sky_direction(cls, mc_ra, mc_dec, parent_roi, psf,
+                               energy=None, theta=None):
         """Smear the sky position with the PSF and calculate the corresponding
         digitized x and y values.
         """
-        ra, dec = psf.smear(mc_ra, mc_dec)
+        ra, dec = psf.smear(mc_ra, mc_dec, energy, theta)
         x, y = standard_radec_to_xy(ra, dec, parent_roi.ra, parent_roi.dec)
         return ra, dec, x, y
 
@@ -481,12 +482,14 @@ class xCelestialModelComponentBase(xModelComponentBase):
         mc_ra, mc_dec = event_list.mc_sky_coordinates()
         # Convolve the energy with the energy dispersion.
         energy, pha, pi = irf_set.edisp.convolve_energy(mc_energy)
-        # Smear the sky position with the PSF.
-        ra, dec, x, y = cls.convolve_sky_direction(mc_ra, mc_dec, parent_roi, irf_set.psf)
         time_ = event_list.time()
         # Apply the dithering effect to the pointing direction (if needed).
         dither_params = parse_dithering_kwargs(**kwargs)
         ra_pnt, dec_pnt = apply_dithering(time_, parent_roi.ra, parent_roi.dec, dither_params)
+        # Smear the sky position with the PSF.
+        mc_off_axis_angle = degrees_to_arcmin(angular_separation(mc_ra, mc_dec, ra_pnt, dec_pnt))
+        ra, dec, x, y = cls.convolve_sky_direction(mc_ra, mc_dec, parent_roi, irf_set.psf,
+                                                   mc_energy, mc_off_axis_angle)
         # Project the sky positions onto the gpd reference frame.
         detx, dety = sky_to_gpd(ra, dec, time_, ra_pnt, dec_pnt, irf_set.du_id, kwargs.get('roll'))
         # Fill the actual event list.
@@ -525,12 +528,14 @@ class xCelestialModelComponentBase(xModelComponentBase):
         photon_list = xPhotonList(time_, self.identifier)
         energy = count_spectrum.rvs(time_)
         mc_ra, mc_dec = self.rvs_sky_coordinates(num_events)
-        # Smear the sky position with the PSF.
-        ra, dec, _, _ = self.convolve_sky_direction(mc_ra, mc_dec, parent_roi, irf_set.psf)
         # Apply the dithering effect to the pointing direction (if needed).
         dither_params = parse_dithering_kwargs(**kwargs)
         roll_angle = kwargs.get('roll')
         ra_pnt, dec_pnt = apply_dithering(time_, parent_roi.ra, parent_roi.dec, dither_params)
+        # Smear the sky position with the PSF.
+        mc_off_axis_angle = degrees_to_arcmin(angular_separation(mc_ra, mc_dec, ra_pnt, dec_pnt))
+        ra, dec, _, _ = self.convolve_sky_direction(mc_ra, mc_dec, parent_roi, irf_set.psf,
+                                                    mc_energy, mc_off_axis_angle)
         # Project the sky positions onto the gpd reference frame.
         detx, dety = sky_to_gpd(ra, dec, time_, ra_pnt, dec_pnt, irf_set.du_id, roll_angle)
         pol_deg = self.polarization_degree(energy, time_, mc_ra, mc_dec)
@@ -693,13 +698,15 @@ class xPeriodicPointSource(xPointSource):
         photon_list = xPhotonList(time_, self.identifier)
         energy = count_spectrum.rvs(phase)
         mc_ra, mc_dec = self.rvs_sky_coordinates(num_events)
-        # Smear the sky position with the PSF.
-        ra, dec, _, _ = self.convolve_sky_direction(mc_ra, mc_dec, parent_roi, irf_set.psf)
         # Project the sky positions onto the gpd reference frame and apply the
         # dithering effect (if any)
         dither_params = parse_dithering_kwargs(**kwargs)
         roll_angle = kwargs.get('roll')
         ra_pnt, dec_pnt = apply_dithering(time_, parent_roi.ra, parent_roi.dec, dither_params)
+        # Smear the sky position with the PSF.
+        mc_off_axis_angle = degrees_to_arcmin(angular_separation(mc_ra, mc_dec, ra_pnt, dec_pnt))
+        ra, dec, _, _ = self.convolve_sky_direction(mc_ra, mc_dec, parent_roi, irf_set.psf,
+                                                    energy, mc_off_axis_angle)
         # Project the sky positions onto the gpd reference frame.
         detx, dety = sky_to_gpd(ra, dec, time_, ra_pnt, dec_pnt, irf_set.du_id, roll_angle)
         pol_deg = self.polarization_degree(energy, phase, mc_ra, mc_dec)
@@ -1223,13 +1230,15 @@ class xChandraObservation(xModelComponentBase):
         if num_events == 0:
             return xPhotonList()
         photon_list = xPhotonList(time_, self.identifier)
-        # Smear the sky position with the PSF.
-        ra, dec, _, _ = self.convolve_sky_direction(mc_ra, mc_dec, parent_roi, irf_set.psf)
         # Project the sky positions onto the gpd reference frame and apply the
         # dithering effect (if any)
         dither_params = parse_dithering_kwargs(**kwargs)
         roll_angle = kwargs.get('roll')
         ra_pnt, dec_pnt = apply_dithering(time_, parent_roi.ra, parent_roi.dec, dither_params)
+        # Smear the sky position with the PSF.
+        mc_off_axis_angle = degrees_to_arcmin(angular_separation(mc_ra, mc_dec, ra_pnt, dec_pnt))
+        ra, dec, _, _ = self.convolve_sky_direction(mc_ra, mc_dec, parent_roi, irf_set.psf,
+                                                    mc_energy, mc_off_axis_angle)
         # Project the sky positions onto the gpd reference frame.
         detx, dety = sky_to_gpd(ra, dec, time_, ra_pnt, dec_pnt, irf_set.du_id, roll_angle)
         pol_deg = self.polarization_degree(mc_energy, time_, mc_ra, mc_dec)

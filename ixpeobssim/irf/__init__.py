@@ -44,7 +44,8 @@ from ixpeobssim.irf.caldb import irf_file_path
 from ixpeobssim.irf.legacy import _LEGACY_IRF_NAME_DICT
 from ixpeobssim.irf.modf import xModulationFactor
 from ixpeobssim.irf.mrf import xModulationResponse
-from ixpeobssim.irf.psf import xPointSpreadFunction
+from ixpeobssim.irf.psf import xPointSpreadFunction, xPointSpreadFunction2d,\
+                               xPointSpreadFunction4d
 from ixpeobssim.irf.rmf import xEnergyDispersion
 from ixpeobssim.irf.vign import xVignetting
 from ixpeobssim.utils.logging_ import logger, abort
@@ -61,6 +62,10 @@ DEFAULT_IRF_NAME = 'ixpe:obssim:v12'
 # Private dictionary to cache the objects that have already been loaded.
 __CACHE = {}
 
+# Dictionary of class names for the different PSF types
+PSF_CLASSES = {'1d' : xPointSpreadFunction,
+               '2d' : xPointSpreadFunction2d,
+               '4d' : xPointSpreadFunction4d}
 
 # pylint: disable=inconsistent-return-statements
 def peek_irf_type(file_path):
@@ -124,10 +129,11 @@ def load_vign(irf_name=DEFAULT_IRF_NAME, du_id=1, caldb_path=None, cache=True):
     return _load_irf_base(xVignetting, 'vign', irf_name, du_id, caldb_path, cache)
 
 
-def load_psf(irf_name=DEFAULT_IRF_NAME, du_id=1, caldb_path=None, cache=True):
+def load_psf(irf_name=DEFAULT_IRF_NAME, du_id=1, caldb_path=None, cache=True,
+             psf_type='1d'):
     """Facility to load the point-spread function for a given IRF set.
     """
-    return _load_irf_base(xPointSpreadFunction, 'psf', irf_name, du_id, caldb_path, cache)
+    return _load_irf_base(PSF_CLASSES[psf_type], 'psf', irf_name, du_id, caldb_path, cache)
 
 
 def load_modf(irf_name=DEFAULT_IRF_NAME, du_id=1, caldb_path=None, cache=True):
@@ -156,7 +162,8 @@ class xIRFSet:
 
     # pylint: disable=too-few-public-methods
 
-    def __init__(self, irf_name, du_id, caldb_path=None, cache=True):
+    def __init__(self, irf_name, du_id, caldb_path=None, cache=True,
+                 psf_type='1d'):
         """Constructor.
         """
         self.irf_name = irf_name
@@ -165,13 +172,14 @@ class xIRFSet:
         self.aeff = load_arf(*args)
         self.vign = load_vign(*args)
         self.edisp = load_rmf(*args)
-        self.psf = load_psf(*args)
+        self.psf = load_psf(*args, psf_type)
         self.modf = load_modf(*args)
         self.mrf = load_mrf(*args)
 
 
 
-def load_irf_set(irf_name=DEFAULT_IRF_NAME, du_id=1, caldb_path=None, cache=True):
+def load_irf_set(irf_name=DEFAULT_IRF_NAME, du_id=1, caldb_path=None, cache=True,
+                 psf_type='1d'):
     """Load a set of instrument response functions.
     """
-    return xIRFSet(irf_name, du_id, caldb_path, cache=cache)
+    return xIRFSet(irf_name, du_id, caldb_path, cache=cache, psf_type=psf_type)

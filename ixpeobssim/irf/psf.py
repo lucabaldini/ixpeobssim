@@ -119,22 +119,27 @@ class xPointSpreadFunctionBase(xResponseBase):
         """
         xResponseBase.__init__(self, file_path, 'fits')
 
-    def delta(self, size=1):
+    def delta(self, size=1, energy=None, theta=None):
         """Return an array of random offset (ra, dec) due to the PSF.
         """
         raise NotImplementedError
 
-    def smear(self, ra, dec):
+    def smear(self, ra, dec, energy=None, theta=None):
         """Smear a pair of arrays of coordinates.
         """
         assert ra.size == dec.size
-        delta_ra, delta_dec = self.delta(ra.size)
+        delta_ra, delta_dec = self.delta(ra.size, energy=energy, theta=theta)
         return ra + delta_ra / numpy.cos(numpy.radians(dec)), dec + delta_dec
 
-    def smear_single(self, ra, dec, size=1):
+    def smear_single(self, ra, dec, size=1, energy=None, theta=None):
         """Smear a single pair of coordinates for an arbitrary number of times.
         """
-        return self.smear(numpy.full(size, ra), numpy.full(size, dec))
+        if energy is not None:
+            energy = numpy.full(size, energy)
+        if theta is not None:
+            theta = numpy.full(size, theta)
+        return self.smear(numpy.full(size, ra), numpy.full(size, dec),
+                          energy, theta)
 
 
 
@@ -213,7 +218,7 @@ class xPointSpreadFunction(xInterpolatedUnivariateSpline, xPointSpreadFunctionBa
         plt.grid(which='both')
         plt.legend()
 
-    def delta(self, size=1):
+    def delta(self, size=1, energy=None, theta=None):
         """Return an array of random offset (in ra, dec or L, B) due to the PSF.
 
         Note the output is converted in degrees.
@@ -253,7 +258,7 @@ class xPointSpreadFunction2d(xPointSpreadFunctionBase):
         img_hdu = self.hdu_list['IMG_2D']
         self.psf_image = xFITSImage(img_hdu)
 
-    def delta(self, size=1):
+    def delta(self, size=1, energy=None, theta=None):
         """Return an array of random offset (in ra, dec) due to the PSF.
         """
         delta_ra, delta_dec = self.psf_image.rvs_coordinates(size)
@@ -287,10 +292,23 @@ class xPointSpreadFunction4d(xPointSpreadFunction2d):
         rscaling = self.hdu_list['PSFRSCAL'].data
         return RegularGridInterpolator((tgrid, egrid, rgrid), rscaling, 'linear')
 
-    def delta(self, energy, theta, size=1):
+    def delta(self, size=1, energy=None, theta=None):
         """Return an array of random offset (in ra, dec) due to the PSF.
         """
         delta_ra, delta_dec = xPointSpreadFunction2d.delta(self, size)
         r = degrees_to_arcsec(angular_separation(delta_ra, delta_dec, 0., 0.))
+        #theta_grid, e_grid, r_grid = self.rscale_interpolator.grid
+        #print(theta_grid, e_grid, r_grid)
+        #theta_min, theta_max = theta_grid[0], theta_grid[-1]
+        #e_min, e_max = e_grid[0], e_grid[-1]
+        #r_min, r_max = r_grid[0], r_grid[-1]
+        #print(theta_min, theta_max, e_min, e_max, r_min, r_max)
+        #mask = (theta >= theta_min) * (theta <= theta_max) *\
+        #       (energy >= e_min) * (energy <= e_max) *\
+        #       (r >= r_min) * (r <= r_max)
+        #print(mask)
+        #input()
+        #print(len(energy), mask.sum())
+        #print(energy[~mask], theta[~mask], theta[~mask])
         scale = self.rscale_interpolator((theta, energy, r))
         return delta_ra * scale, delta_dec * scale

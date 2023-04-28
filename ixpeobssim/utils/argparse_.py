@@ -457,6 +457,13 @@ class xArgumentParser(argparse.ArgumentParser):
         self.add_argument('--objname', type=str, default=None,
                           help='name of the observed object')
 
+    def add_psftype(self, psf_types=['1d', '2d', '4d'], default='1d'):
+        """
+        """
+        self.add_argument('--psftype', choices=psf_types,
+                          default=default,
+                          help='psf type specification. 2d and 4d PSF are only'
+                          'available starting from irf version 14.')
 
 
 class xSourceModelArgumentParser(xArgumentParser):
