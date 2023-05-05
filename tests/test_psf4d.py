@@ -114,7 +114,7 @@ class TestIxpePsf4d(unittest.TestCase):
             psf = xPointSpreadFunction4d(irf_file_path(irf_name, du_id, 'psf'))
 
             def make_2d_hist(energy, theta):
-                x, y = psf.delta(energy, theta, num_samples)
+                x, y = psf.delta(len(energy), energy, theta, num_samples)
                 h = xHistogram2d(x_binning, x_binning,
                                  xlabel='Delta R. A.', ylabel='Delta Dec.')
                 h.fill(degrees_to_arcmin(x), degrees_to_arcmin(y))
