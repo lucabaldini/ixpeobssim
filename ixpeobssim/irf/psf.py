@@ -269,7 +269,6 @@ class xPointSpreadFunction2d(xPointSpreadFunctionBase):
         return delta_ra, delta_dec
 
 
-
 class xPointSpreadFunction4d(xPointSpreadFunction2d):
 
     """Glorious, 4-dimensional PSF containing an approximate scaling of the
