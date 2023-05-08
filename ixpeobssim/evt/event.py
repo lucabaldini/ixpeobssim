@@ -1439,6 +1439,12 @@ class xEventFileFriend:
                 values =  numpy.append(values, fl2.event_data[val])
         return values
 
+    def l1_paths(self):
+        return [f1.file_path() for f1 in self.file_list1]
+
+    def l2_paths(self):
+        return [f2.file_path() for f2 in self.file_list2]
+
     def energy_data(self, mc=False):
         """Wrap xEventFile.energy_data() appending values for all the LV2 files
         """
@@ -1473,3 +1479,6 @@ class xEventFileFriend:
             ra  = numpy.append(ra, val1)
             dec = numpy.append(dec, val2)
         return ra, dec
+
+    def wcs_reference(self):
+        return [f.wcs_reference() for f in self.file_list2]
