@@ -57,6 +57,7 @@ from xpphase import xpphase as _xpphase, PARSER as XPPHASE_PARSER
 from xppicorr import xppicorr as _xppicorr, PARSER as XPPICORR_PARSER
 from xpphotonlist import xpphotonlist as _xpphotonlist, PARSER as XPPHOTONLIST_PARSER
 from xppimms import xppimms as _xppimms, PARSER as XPPIMMS_PARSER
+from xpradialprofile import xpradialprofile as _xpradialprofile, PARSER as XPRADIALPROFILE_PARSER
 from xpselect import xpselect as _xpselect, PARSER as XPSELECT_PARSER
 from xpsimfmt import xpsimfmt as _xpsimfmt, PARSER as XPSIMFMT_PARSER
 from xpsonify import xpsonify as _xpsonify, PARSER as XPSONIFY_PARSER
@@ -451,6 +452,12 @@ def xppimms(**kwargs):
     """App wrapper.
     """
     return _xppimms(**_parse_args(XPPIMMS_PARSER, **kwargs))
+
+
+def xpradialprofile(**kwargs):
+    """App wrapper.
+    """
+    return _xpradialprofile(**_parse_args(XPRADIALPROFILE_PARSER, **kwargs))
 
 
 def xpselect(*args, **kwargs):

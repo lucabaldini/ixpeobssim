@@ -9,19 +9,19 @@ Event Display
    with publicly distributed the level-1 files.
 
 As of version 29.4.0 ixpeobssim include a new small application,
-:ref:`reference-xpdisplay`, that allows to display the track images shipped with
+:ref:`reference-xpevtdisplay`, that allows to display the track images shipped with
 the standard IXPE level-1 publicily distributed through HEASARC.
 
 .. _figure-ixpe_track_display:
 .. figure:: figures/misc/ixpe_track_display.*
-   :width: 80%
+   :width: 100%
 
    Sample display of a track image---note that mileage may vary depending on the
-   setting (i.e., command-line switches) used in :ref:`reference-xpdisplay`.
+   setting (i.e., command-line switches) used in :ref:`reference-xpevtdisplay`.
 
 While the help coming with the program should be largely self-explaining, a few
 remarks are in order, here.
-First of all, :ref:`reference-xpdisplay` operates on level-1 files, which are the
+First of all, :ref:`reference-xpevtdisplay` operates on level-1 files, which are the
 only ones containing the track images by default, and whom most user are
 probably not terribly familiar with. In constrast to the more widely used level-2
 files, level-1 files are significantly larger (which means: do not be surprised
@@ -33,20 +33,20 @@ just firing up the event display on a level-1 file
 
 .. code-block::
 
-   xpdisplay path_to_my_level1_file
+   xpevtdisplay path_to_my_level1_file
 
 is not terribly useful, in general: you have no control on which events you are
 actually displaying---that is, they might very well be from one of the onboard
 calibration sources, rather than from the celestial source being observed.
 
-For this very reason, :ref:`reference-xpdisplay` features a ``--evtlist`` command
+For this very reason, :ref:`reference-xpevtdisplay` features a ``--evtlist`` command
 line flag that allows to feed into the application a level-2 file `in addition`
 to the level-1 main file (it goes without saying, the two generally need to
 correspond to the same observation).
 
 .. code-block::
 
-   xpdisplay path_to_my_level1_file --evtlist path_to_the_fellow_level2_file
+   xpevtdisplay path_to_my_level1_file --evtlist path_to_the_fellow_level2_file
 
 When you pass this additional file to the event display, a few things happen
 behind the scenes, namely:
@@ -75,12 +75,50 @@ variety of event topologies.
 
 .. warning::
 
-   The current version of the event display comes with at least two limitations that
-   will be taken care of in the future:
+   Be mindful that, since the event time is the only quantity that we can use
+   to keep in synch level-2 and level-1 data, the event list functionality does
+   not play well with any analysis tool (e.g., the barycorr FTOOL) that change
+   the event time---for the purpose of the event display you want to use event
+   file as distributed, without further processing.
 
-   * all the pixels above user-defined zero suppression thresholds are shown,
-     i.e., there is currently no way to apply the clustering stage that is performed
-     in real life to remove the noise hits, see https://github.com/lucabaldini/ixpeobssim/issues/665;
-   * diagnostic events are not handled properly (if you occasionally see a track
-     that is all red don't panic: this is a feature of the display and not
-     an issue with the data), see https://github.com/lucabaldini/ixpeobssim/issues/664.
+   Also, when reading a Level-1 files and passing at the same time an event list
+   in the form of a Level-2 file, you should make sure that the former covers
+   the entire time span of the latter, otherwise the MET bisection will fail.
+   If the Level-2 file covers a longer time span wrt. the Level-1 file, you can
+   simply trim the former with the standard tools.
+
+
+Observation animations
+----------------------
+
+Building on top of the single event display, ixpeobssim provides a separate application,
+:ref:`reference-xpobsdisplay`, that allows to create complex animations starting
+from the standard observation products distributed through HEASARC by jut adding
+to the track images accumulating histograms of the relevant science quantities:
+energy, sky position, and Stokes parameters.
+
+The :ref:`reference-xpobsdisplay` is fairly similar to that of
+:ref:`reference-xpevtdisplay`. We won't describe the meaning of all the command-line
+switches here, but the following command
+
+.. code-block::
+
+   xpobsdisplay path_to_my_level1_file --evtlist path_to_the_fellow_level2_file \
+       --resample 2 --autostop 200 --targetname "The name of the source" --autosave True \
+       --imgdpi 200 --batch True
+
+will read in the target files and write to file 200 still track images in batch
+mode (i.e., no matplotlib canvas will be displayed on the screen).
+
+The user can then combine the still frames into an actual animation by using
+any of the countless tools available on the market, one possible example
+being
+
+.. code-block::
+
+   ffmpeg -framerate 1 -i path_to_frames_%04d.png -c:v libx264  -s 1920x1080 -r 30 \
+       -pix_fmt yuv420p animation.mp4
+
+For completeness, a succinct and yet informative resource about using ffmpeg
+to create slideshows is
+`here <https://hamelot.io/visualization/using-ffmpeg-to-convert-a-set-of-images-into-a-video/>`_.

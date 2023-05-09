@@ -22,6 +22,7 @@ level-1 files.
 """
 
 from dataclasses import dataclass
+import os
 
 from astropy.io import fits
 import numpy
@@ -30,8 +31,12 @@ import matplotlib
 from matplotlib.patches import RegularPolygon
 from matplotlib.collections import PatchCollection
 
+from ixpeobssim import IXPEOBSSIM_DATA
+from ixpeobssim.evt.clustering import region_query_factory
+from ixpeobssim.evt.event import xEventFile
 from ixpeobssim.utils.logging_ import logger
-from ixpeobssim.utils.matplotlib_ import plt
+from ixpeobssim.utils.argparse_ import xArgumentParser
+from ixpeobssim.utils.matplotlib_ import plt, xStatBox, xTextCard
 
 
 XPOL_LAYOUT = 'ODD_R'
@@ -99,6 +104,31 @@ class xRegionOfInterest:
         row = numpy.repeat(self.row_indices(), self.num_cols)
         return col, row
 
+    def serial_readout_indices(self):
+        """Return a two-dimensional array containing the readout index for
+        each pixel of the ROI.
+
+        The ASIC serial readout starts from the top-left corner and proceeds
+        one row at a time, i.e., for a toy 5 x 5 window starting at <0, 0> the
+        readout indices look like
+        +--------------------
+        |   0   1   2   3   4
+        |
+        |   5   6   7   8   9
+        |
+        |  10  11  12  13  14
+        |
+        |  15  16  17  18  19
+        |
+        |  20  21  22  23  24
+
+        It is worth noting that, provided that one loops over the row indices
+        first and column indices last, the readout index can be determined by
+        just accumulating a counter. This function is useful as it provides the
+        right answer for any position in the event window, no matter what the
+        loop order is."""
+        return numpy.arange(self.size).reshape(self.shape)
+
     def coordinates_in_rot(self, col, row):
         """Return a boolean mask indicaing whether elements of the (col, row)
         arrays lie into the ROT area.
@@ -108,6 +138,17 @@ class xRegionOfInterest:
             col <= self.max_col - XPOL_HORIZONTAL_PADDING,
             row >= self.min_row + XPOL_VERTICAL_PADDING,
             row <= self.max_row - XPOL_VERTICAL_PADDING
+        ))
+
+    def coordinates_in_roi(self, col, row):
+        """Return a boolean mask indicaing whether elements of the (col, row)
+        arrays lie into the ROT area.
+        """
+        return numpy.logical_and.reduce((
+            col >= self.min_col,
+            col <= self.max_col,
+            row >= self.min_row,
+            row <= self.max_row
         ))
 
 
@@ -128,10 +169,11 @@ class Recon:
     def _annotate_point(x, y, text, xoffset=125, yoffset=75, color='black'):
         """Small convenience function to annotate a point.
         """
-        plt.plot(x, y, 'o', color=color)
+        plt.plot(x, y, 'o', color=color, markersize=9.)
         arrowprops=dict(arrowstyle='-', connectionstyle='angle3', color=color)
         kwargs = dict(xycoords='data', textcoords='offset points', arrowprops=arrowprops,
-            backgroundcolor='white', color=color, ha='center')
+            backgroundcolor='white', color=color, ha='center',
+            bbox=dict(boxstyle='square,pad=0.', fc='white', ec='none'))
         plt.gca().annotate(text, xy=(x, y), xytext=(xoffset, yoffset), **kwargs)
 
     def draw_absorption_point(self):
@@ -158,7 +200,8 @@ class Recon:
         plt.plot([x0, x0 - length_ratio * dx], [y0, y0 - length_ratio * dy],
             lw=line_width, color='black', ls='dashed')
         plt.gca().annotate('', xy=(x0 + dx, y0 + dy), xytext=(x0, y0),
-            arrowprops=dict(arrowstyle='->, head_width=0.25, head_length=0.5', lw=line_width))
+            arrowprops=dict(arrowstyle='->, head_width=0.4, head_length=0.65',
+            lw=line_width))
 
 
 @dataclass
@@ -174,6 +217,9 @@ class xL1Event(xRegionOfInterest):
     corresponding EVENTS extension in the underlying FITS files.
     """
 
+    _DIAGNOSTIC_DU_STATUS_BIT = 1
+    _DIAGNOSTIC_OFFSET = 256
+
     pha : numpy.array
     trigger_id : int = 0
     seconds : int = 0
@@ -188,7 +234,19 @@ class xL1Event(xRegionOfInterest):
         """Post-init hook implementation.
         """
         super().__post_init__()
+        # Handle diagnostic events.
+        if (self.du_status >> self._DIAGNOSTIC_DU_STATUS_BIT) & 0x1:
+            self.pha -= self._DIAGNOSTIC_OFFSET
         self.pha = self.pha.reshape(self.shape)
+        self.cluster_id = numpy.zeros(self.shape, dtype=int)
+
+    def run_clustering(self, engine):
+        """Run the clustering on the track image.
+        """
+        region_query = region_query_factory(self)
+        cluster_id = self.cluster_id.flatten()
+        engine.run(self.pha.flatten(), cluster_id, region_query)
+        self.cluster_id = cluster_id.reshape(self.shape)
 
     def highest_pixel(self, absolute=True):
         """Return the coordinates (col, row) of the highest pixel.
@@ -249,7 +307,11 @@ class xL1EventFile:
     def value(self, col_name):
         """Return the value of a given column for a given extension for the current event.
         """
-        return self.hdu_list[self.EVT_EXT_NAME].data[col_name][self.__index]
+        try:
+            return self.hdu_list[self.EVT_EXT_NAME].data[col_name][self.__index]
+        except IndexError as e:
+            logger.warning(e)
+            return None
 
     def _recon(self):
         """Retrieve the reconstructed quantities.
@@ -384,6 +446,19 @@ class xHexagonalGrid:
         y = self.yoffset - row * self.secondary_pitch
         return x, y
 
+    def roi_center(self, roi):
+        """Return the world coordinates of the physical center of a given ROI.
+
+        Note the small offsets that we apply serves the purpose of taking into
+        account the fact that pixels are staggered in one direction.
+        """
+        col = (roi.min_col + roi.max_col + 1) // 2
+        row = (roi.min_row + roi.max_row + 1) // 2
+        x, y = self.pixel_to_world(col, row)
+        x -= 0.75 * self.pitch
+        y += 0.5 * self.secondary_pitch
+        return x, y
+
     def pha_to_colors(self, pha, zero_sup_threshold=None):
         """Convert the pha values to colors for display purposes.
         """
@@ -393,6 +468,13 @@ class xHexagonalGrid:
             values[values <= zero_sup_threshold + self.color_map_offset] = -1.
         values = values / float(values.max())
         return self.color_map(values)
+
+    def default_roi_side(self, roi, min_side, pad=0.1):
+        """Return the default physical size of the canvas necessary to fully
+        contain a given ROI.
+        """
+        return pad + max(self.pitch * roi.num_cols, self.secondary_pitch * roi.num_rows,
+            min_side)
 
     # pylint: disable = too-many-arguments, too-many-locals
     def draw_roi(self, roi, offset=(0., 0.), indices=True, padding=True, **kwargs):
@@ -439,7 +521,7 @@ class xHexagonalGrid:
         r, g, b, _ = color.T
         return (299 * r + 587 * g + 114 * b) / 1000
 
-    def draw_event(self, event, offset=(0., 0.), canvas_side=2.0, indices=True,
+    def draw_event(self, event, num_clusters=1, offset=(0., 0.), min_canvas_side=2.0, indices=True,
                    padding=True, zero_sup_threshold=None, values=False, **kwargs):
         """Draw an actual event int the parent hexagonal grid.
 
@@ -447,8 +529,17 @@ class xHexagonalGrid:
         event part.
         """
         # pylint: disable = invalid-name
+        # Create a copy of the PHA vector and set to zero all the pixels not
+        # belonging to the target cluster.
+        pha = event.pha.copy()
+        # Note that negative numbers are used for orphan pixels, and if we want to
+        # plot the first n clusters, we want the cluster id associated to the
+        # pixel to be between 0 and n - 1.
+        mask = numpy.logical_and(event.cluster_id >= 0, event.cluster_id < num_clusters)
+        pha[numpy.logical_not(mask)] = 0
+        # We're good to go!
         collection = self.draw_roi(event, offset, indices, padding, **kwargs)
-        face_color = self.pha_to_colors(event.pha, zero_sup_threshold)
+        face_color = self.pha_to_colors(pha, zero_sup_threshold)
         collection.set_facecolor(face_color)
         if values:
             # Draw the pixel values---note that we use black or white for the text
@@ -458,25 +549,38 @@ class xHexagonalGrid:
             text_color = numpy.tile(black, len(face_color)).reshape(face_color.shape)
             text_color[self.brightness(face_color) < 0.5] = white
             fmt = dict(ha='center', va='center', fontsize='xx-small')
-            for x, y, value, color in zip(collection.x, collection.y, event.pha.flatten(),
+            for x, y, value, color in zip(collection.x, collection.y, pha.flatten(),
                 text_color):
                 if value > zero_sup_threshold:
                     plt.text(x, y, f'{value}', color=color, **fmt)
-        if canvas_side is not None:
-            x0, y0 = event.recon.barycenter
-            pad = 0.5 * canvas_side
-            plt.gca().set_xlim(x0 - pad, x0 + pad)
-            plt.gca().set_ylim(y0 - pad, y0 + pad)
+        canvas_side = self.default_roi_side(event, min_canvas_side)
+        # We want to center the display of the geometrical center of the ROI.
+        x0, y0 = self.roi_center(event)
+        dx, dy = offset
+        x0 += dx
+        y0 += dy
+        half_side = 0.5 * canvas_side
+        plt.gca().set_xlim(x0 - half_side, x0 + half_side)
+        plt.gca().set_ylim(y0 - half_side, y0 + half_side)
         return collection
 
     @staticmethod
-    def show_display():
+    def show_display(file_path=None, dpi=100, batch=False):
         """Convenience function to setup the matplotlib canvas for an event display.
+
+        Arguments
+        ---------
+        file_path : str
+            Optional file path to save the image immediately before the plt.show() call.
         """
         plt.gca().set_aspect('equal')
         plt.axis('off')
-        logger.info('Showing event display, close the window to move to the next one...')
-        plt.show()
+        if file_path is not None:
+            logger.info('Saving event display to %s...', file_path)
+            plt.savefig(file_path, dpi=dpi)
+        if not batch:
+            logger.info('Showing event display, close the window to move to the next one...')
+            plt.show()
 
 
 
@@ -489,3 +593,204 @@ class xXpolGrid(xHexagonalGrid):
         """Constructor.
         """
         super().__init__(*XPOL_SIZE, XPOL_PITCH, **kwargs)
+
+
+
+class xDisplayArgumentParser(xArgumentParser):
+
+    """Specialized argument parser for the event display and related facilities.
+
+    This is placed here because if needs to be used by both the single-event
+    display and the observation carousel.
+    """
+
+    def __init__(self, description):
+        """Constructor.
+        """
+        xArgumentParser.__init__(self, description)
+        self.add_file()
+        self.add_argument('--evtlist', type=str,
+            help='path to the auxiliary (Level-2 file) event list')
+        self.add_argument('--targetname', type=str, default='N/A',
+            help='name of the celestial target')
+        self.add_ebounds()
+        self.add_seed(default=1)
+        self.add_boolean('--clustering', True,
+            help='run the DBscan clustering on the events')
+        self.add_argument('--numclusters', type=int, default=2,
+            help='the number of clusters to be displayed for each event')
+        self.add_argument('--clumindensity', type=int, default=5,
+            help='the minimum density point for the DBscan clustering')
+        self.add_argument('--cluminsize', type=int, default=6,
+            help='the minimum cluster size for the DBscan clustering')
+        self.add_argument('--resample', type=float, default=None,
+            help='the power-law index for resampling events in energy')
+        self.add_boolean('--absorption', True,
+            help='draw the reconstructed absorption_point')
+        self.add_boolean('--barycenter', True,
+            help='draw the reconstructed barycenter')
+        self.add_boolean('--direction', True,
+            help='draw the reconstructed track direction')
+        self.add_boolean('--pixpha', False,
+            help='indicate the pixel PHA values')
+        self.add_boolean('--indices', False,
+            help='draw the row and column indices of the readout matrix')
+        self.add_argument('--cmap', type=str, default='Reds',
+            help='the color map for the pixel values')
+        self.add_argument('--cmapoffset', type=int, default=10,
+            help='the PHA offset for the color map')
+        self.add_argument('--minaxside', type=float, default=2.,
+            help='the axis side for the event display')
+        self.add_argument('--autostop', type=int, default=None,
+            help='stop automatically after a given number of events')
+        self.add_boolean('--batch', default=False,
+            help='run in batch mode')
+        self.add_boolean('--autosave', False,
+            help='save the event displays automatically')
+        self.add_outfolder(default=IXPEOBSSIM_DATA)
+        self.add_argument('--imgformat', type=str, default='png',
+            help='the image format for the output files when autosave is True')
+        self.add_argument('--imgdpi', type=int, default=250,
+            help='resolution of the output image in dot per inches')
+
+
+
+
+def load_event_list(file_path, pivot_energy=8., interactive=False, **kwargs):
+    """Load the event data from the Level-2 event list for the purpose of the
+    event display---these include, in order: mission elapsed time, energy,
+    sky position and Stokes parameters.
+
+    This function has a few other functionalities, other than just loadinf the
+    relevant colums from the the Level-2 files, and particularly:
+
+    * resample the input events with a given power-law spectral function;
+    * trimming the resampled colums to a target number of events preserving the
+      time ordering and covering evengly the entire time span.
+
+    Arguments
+    ---------
+    file_path : str
+        The path to the input Level-2 file.
+
+    pivot_energy : float
+        The pivot energy for the resampling of the count spectrum.
+
+    interactive : bool
+        If True, show some debug plot with the output (resampled) spectrum.
+
+    kwargs : dict
+        The keyword arguments from the xDisplayArgumentParser.
+    """
+    event_file = xEventFile(file_path)
+    logger.info('Total good time in the Level-2 file: %.3f', event_file.total_good_time())
+    logger.info('Livetime in the Level-2 file: %.3f', event_file.livetime())
+    logger.info('Livetime correction: %.3f', event_file.deadtime_correction())
+    resample_index = kwargs.get('resample')
+    emin = kwargs.get('emin')
+    emax = kwargs.get('emax')
+    logger.info('Loading event list from %s...', file_path)
+    energy = event_file.energy_data()
+    logger.info('Selecting energies in %.2f--%.2f keV...', emin, emax)
+    mask = numpy.logical_and(energy >= emin, energy < emax)
+    logger.info('Done, %d event(s) out of %d remaining.', mask.sum(), len(mask))
+    energy = energy[mask]
+    met = event_file.time_data()[mask]
+    ra, dec = event_file.sky_position_data()
+    ra = ra[mask]
+    dec = dec[mask]
+    q, u = event_file.stokes_data()
+    q = q[mask]
+    u = u[mask]
+    if resample_index is not None:
+        logger.info('Resampling input level-2 data with index %.3f', resample_index)
+        mask = numpy.random.uniform(size=len(energy)) <= (energy /  pivot_energy)**resample_index
+        logger.info('Done, %d event(s) out of %s remaining.', mask.sum(), len(mask))
+        met, energy, ra, dec, q, u = [item[mask] for item in (met, energy, ra, dec, q, u)]
+    if interactive:
+        # Debug plot for the input energy spectrum.
+        plt.figure('Input energy spectrum')
+        h = xHistogram1d(numpy.linspace(2., 8., 20)).fill(energy)
+        h.plot()
+    autostop = kwargs.get('autostop')
+    if autostop is not None and autostop < len(met):
+        logger.info('Trimming down the L2 columns to the target autostop...')
+        # We achieve this by trying and select events uniformly within the range.
+        mask = numpy.zeros(len(met), dtype=bool)
+        num_events = len(met)
+        start_event = num_events // autostop
+        idx = numpy.linspace(start_event, num_events - 1, autostop, dtype=int).astype(int)
+        mask[idx] = True
+        met, energy, ra, dec, q, u = [item[mask] for item in (met, energy, ra, dec, q, u)]
+        logger.info('Done, %d event(s) left.', len(met))
+    return met, energy, ra, dec, q, u
+
+
+
+class xDisplayCard(xTextCard):
+
+    """Specialize text card to display event information.
+
+    The basic idea, here, is that one initializes the card with the EVENTS
+    header of a Level-2 file, and then updates the information on an event-by-event
+    basis using the set_event_data() hook.
+    """
+
+    def __init__(self, target_name, header):
+        """Constructor.
+        """
+        xTextCard.__init__(self)
+        self.set_line('Target Name', '%s (obs. %s)' % (target_name, header['OBS_ID']))
+        self.set_line('Observation Start', header['DATE-OBS'])
+        self.set_line('Observation End', header['DATE-END'])
+        self.set_line('Detector Unit', '%s (%s)' % (header['DETNAM'], header['DET_ID']))
+        for i in range(5):
+            self.set_line('Spacer%d' % i, None)
+
+    def update_cumulative_statistics(self, num_events, emin, emax):
+        """Set the card line with the basic cumulative statistics info.
+        """
+        key = 'Accumulated statistics in %.1f-%.1f keV' % (emin, emax)
+        text = '%d events' % num_events
+        self.set_line(key, text)
+
+    def set_event_data(self, met, energy, ra, dec, q, u, compact=True):
+        """Set the event data.
+        """
+        self.set_line('Mission elapsed time', met, '%.6f', 's')
+        self.set_line('Energy', energy, '%.2f', 'keV')
+        if compact:
+            self.set_line('Sky position (R. A., Dec.)', '(%.3f, %.3f) decimal degrees' % (ra, dec))
+        else:
+            self.set_line('Right ascention', ra, '%.3f', 'decimal degrees')
+            self.set_line('Declination', dec, '%.3f', 'decimal degrees')
+        self.set_line('Stokes parameters (q, u)', '(%.4f, %.4f)' % (q, u))
+
+
+
+def display_event(event, grid, threshold, dbscan, file_name=None, padding=False, **kwargs):
+    """Single-stop event display.
+    """
+    draw_kwargs = dict(values=kwargs.get('pixpha'), indices=kwargs.get('indices'),
+        min_canvas_side=kwargs.get('minaxside'), zero_sup_threshold=threshold,
+        padding=padding, num_clusters=kwargs.get('numclusters'))
+    logger.info('Drawing event @ MET %.6f', event.timestamp)
+    if kwargs.get('clustering'):
+        event.run_clustering(dbscan)
+    # Draw the bare event...
+    grid.draw_event(event, **draw_kwargs)
+    # ... then the reconstruction elements.
+    if kwargs.get('absorption'):
+        event.recon.draw_absorption_point()
+    if kwargs.get('barycenter'):
+        event.recon.draw_barycenter()
+    if kwargs.get('direction'):
+        event.recon.draw_track_direction()
+    # Draw the small ixpeobssim signature :-)
+    plt.text(0., 0.02, 'Powered by https://github.com/lucabaldini/ixpeobssim',
+        transform = plt.gca().transAxes, size='xx-small')
+    if kwargs.get('autosave'):
+        file_path = os.path.join(kwargs.get('outfolder'), file_name)
+    else:
+        file_path = None
+    grid.show_display(file_path, kwargs.get('imgdpi'), kwargs.get('batch'))

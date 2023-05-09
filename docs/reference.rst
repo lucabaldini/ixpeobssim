@@ -201,11 +201,29 @@ xpbinview
    :shell:
 
 
-.. _reference-xpdisplay:
+.. _reference-xpradialprofile:
 
-xpdisplay
-~~~~~~~~~
-.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpdisplay.py --help
+xpradialprofile
+~~~~~~~~~~~~~~~
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpradialprofile.py --help
+   :ellipsis: 0,11
+   :shell:
+
+
+.. _reference-xpevtdisplay:
+
+xpevtdisplay
+~~~~~~~~~~~~
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpevtdisplay.py --help
+   :ellipsis: 0,11
+   :shell:
+
+
+.. _reference-xpobsdisplay:
+
+xpobsdisplay
+~~~~~~~~~~~~
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpobsdisplay.py --help
    :ellipsis: 0,11
    :shell:
 
