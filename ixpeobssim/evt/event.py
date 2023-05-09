@@ -1066,7 +1066,7 @@ class xEventFile:
         """Return the detx and dety column data, in either the detector x and y
         measured coordinates on the detector.
         """
-        return self.event_data['DETX'], self.event_data['DETY']
+        return self.event_data['ABSX'], self.event_data['ABSY']
 
     def phi_data(self):
         """Return the PHI column.
@@ -1394,25 +1394,18 @@ class xEventFileFriend:
             file_list2 = [file_list2]
         if not isinstance(file_list1, list):
             file_list1 = [file_list1]
-        self.file_list2 = []
-        self.file_list1 = []
-        self.time_ids = None
-        time1 = numpy.array([])
-        time2 = numpy.array([])
-        for f2 in file_list2:
-            self.file_list2.append(xEventFile(f2))
-            time2 = numpy.append(time2, self.file_list2[-1].time_data())
-        if None in file_list1:
+        self.file_list2 = [xEventFile(f2) for f2 in file_list2]
+        if file_list1 is None:
             # just concatenate Level2  - mainly for MC use
             self.file_list1 = None
+            self.time_ids = None
         else:
-            for f1 in file_list1:
-                self.file_list1.append(xEventFile(f1))
-                time1 = numpy.append(time1, self.file_list1[-1].time_data())
+            self.file_list1 = [xEventFile(f1) for f1 in file_list1]
             # create a mask to select Lv1 on for the whole lists of files
             # True if Lv1 evt time is also in Lv2 evt time list
             # assume Lv1 list is larger than Lv2
-            #self.time_ids.append(numpy.nonzero(numpy.in1d(time1, time2))[0])
+            time1 = numpy.hstack([f1.time_data() for f1 in self.file_list1])
+            time2 = numpy.hstack([f2.time_data() for f2 in self.file_list2])
             self.time_ids = numpy.in1d(time1, time2)
 
     def l1value(self, val, all_events=False):
@@ -1420,9 +1413,7 @@ class xEventFileFriend:
         """
         if self.file_list1 == None:
             return None
-        outvalues = numpy.array([])
-        for fl1 in self.file_list1:
-            outvalues = numpy.append(outvalues, fl1.event_data[val])
+        outvalues = numpy.hstack([fl1.event_data[val] for fl1 in self.file_list1])
         if all_events:
             return outvalues
         else:
@@ -1431,13 +1422,7 @@ class xEventFileFriend:
     def l2value(self, val):
         """
         """
-        values = None
-        for fl2 in self.file_list2:
-            if values is None:
-                values =  fl2.event_data[val]
-            else:
-                values =  numpy.append(values, fl2.event_data[val])
-        return values
+        return numpy.hstack([fl2.event_data[val] for fl2 in self.file_list2])
 
     def l1_paths(self):
         return [f1.file_path() for f1 in self.file_list1]
@@ -1458,27 +1443,30 @@ class xEventFileFriend:
         """
         logger.warning('xEventFileFriend.energy_l1_data() not implemented yet')
         return None
-        # if self.file_list1 == None:
-        #     return None
-        # outvalues = None
-        # for (i, fl1) in enumerate(self.file_list1):
-        #     values = channel_to_energy(fl1.event_data['PI']) # NO! need conversion from PHA
-        #     if outvalues is None:
-        #         outvalues =  values
-        #     else:
-        #         outvalues =  numpy.append(outvalues, values)
-        # return outvalues
 
     def sky_position_data(self, mc=False):
-        """Wrap xEventFile.sky_position_data() appending values for all the LV2 files
+        """Wrap xEventFile.sky_position_data() appending values for all the LV2
+        files.
         """
-        ra = numpy.array([])
-        dec = numpy.array([])
+        ra = []
+        dec = []
         for fl2 in self.file_list2:
-            val1, val2 = fl2.sky_position_data(mc)
-            ra  = numpy.append(ra, val1)
-            dec = numpy.append(dec, val2)
-        return ra, dec
+            _ra, _dec = fl2.sky_position_data(mc)
+            ra.append(_ra)
+            dec.append(_dec)
+        return numpy.hstack(ra), numpy.hstack(dec)
+
+    def det_position_data(self):
+        """Wrap xEventFile.det_position_data() appending values for all the LV1
+        files.
+        """
+        x = []
+        y = []
+        for fl1 in self.file_list1:
+            _x, _y = fl1.det_position_data()
+            x.append(_x)
+            y.append(_y)
+        return numpy.hstack(x)[self.time_ids], numpy.hstack(y)[self.time_ids]
 
     def wcs_reference(self):
         return [f.wcs_reference() for f in self.file_list2]
