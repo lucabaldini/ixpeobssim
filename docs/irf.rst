@@ -28,34 +28,24 @@ If you are familiar with basic spectral analysis in XSPEC, the .arf and
 .rmf files have exactly the meaning that you would expect, and can be in fact
 used in XSPEC; the .mrf files have the exact same format as the .arf files.
 
-ixpeobssim provides facilities for generating, reading displaying and using
-IRFs, as illustrated below.
+ixpeobssim provides facilities for reading, displaying and using IRFs, as
+illustrated below.
 
 
 IRF summary
 -----------
 
-This is a short, top level description of the version v11 of the default IXPE
-response functions used by ixpeobssim. If you want to dig into all the gory details
-of the process of generating the response files, the section about :ref:`irfgen`
-is the place you want to start from.
+This is a short, top level description of the version v12 of the default IXPE
+response functions used by ixpeobssim.
 
 All the response functions are defined between 1 and 12 keV in steps of 40 eV,
 and are detector-unit based (the pulse-invariant channel space is defined
 between 0 and 15 keV in steps of 40 eV). As such, there are differences between
 the three modules in terms of effective area, modulation factor and
 point-spread function.
-
 Since the eight iteration of the response functions, all response files come
 in two distinct flavors---un-weighted and weighted. Accordingly, all the analysis
 tools support weights.
-
-.. warning::
-
-   At this point in test the analysis of IXPE data with weights has not been
-   thoroughly tested. While weight do allow for a measurable sensitivity
-   improvement, cross-checking your analysis using the plain, old, un-weighted
-   strategy is a sensible way to make sure everything is in order.
 
 
 Effective area
@@ -67,7 +57,7 @@ we shall see in a second, the increase in the modulation factor drives the
 overall sensitivity slightly up.
 
 .. _figure-ixpe_effective_area:
-.. figure:: figures/irf/ixpe_effective_area_v11.*
+.. figure:: figures/irf/ixpe_effective_area_v12.*
    :width: 80%
 
    On-axis effective area as a function of the energy. The solid lines represent
@@ -78,7 +68,7 @@ overall sensitivity slightly up.
 The effective-area curves for the three telescopes are within a few % from each
 other, the small differences being due to the slightly different mirror effective
 areas measured during the MMA calibration, as well as the different asymptotic
-pressure values for the three GPD at the focal plane.
+pressure values for the three GPDs at the focal plane.
 
 The effective-area calculation in ixpeobssim includes all the relevant
 contributions, namely:
@@ -93,20 +83,20 @@ contributions, namely:
 The plots below show the principal ingredients that go into the calculation.
 
 .. _figure-mma_effective_area:
-.. figure:: figures/irf/mma_effective_area_v11.*
+.. figure:: figures/irf/mma_effective_area_v12.*
    :width: 80%
 
    On-axis effective area as a function of the energy for three Mirror-Module
    Assemblies (MMA) and for a single module.
 
 .. _figure-uv_filter_transparency:
-.. figure:: figures/irf/uv_filter_transparency_v11.*
+.. figure:: figures/irf/uv_filter_transparency_v12.*
    :width: 80%
 
    Transparency of the UV filter as a function of the photon energy.
 
 .. _figure-gpd_quantum_efficiency:
-.. figure:: figures/irf/gpd_quantum_efficiency_v11.*
+.. figure:: figures/irf/gpd_quantum_efficiency_v12.*
    :width: 80%
 
    Quantum efficiency of the GPD as a function of the energy, broken up in its
@@ -119,7 +109,7 @@ based upon ray-trace simulations for a perfect mirror module assembly, and is
 relevant for the simulation of extended sources.
 
 .. _figure-mma_vignetting:
-.. figure:: figures/irf/mma_vignetting_v11.*
+.. figure:: figures/irf/mma_vignetting_v12.*
    :width: 80%
 
    Preliminary estimation of the vignetting of the optics as a function of
@@ -131,14 +121,14 @@ as shown in the following two plots. (Note that above 6 keV the drop of the
 effective area at the edge of the field of view is relatively more important.)
 
 .. _figure-field_of_view_at_3_kev:
-.. figure:: figures/irf/field_of_view_at_3_kev_v11.*
+.. figure:: figures/irf/field_of_view_at_3_kev_v12.*
    :width: 80%
 
    Relative exposure at 3 keV across the field of view for the set of three
    telescopes clocked in the IXPE configuration.
 
 .. _figure-field_of_view_at_8_kev:
-.. figure:: figures/irf/field_of_view_at_8_kev_v11.*
+.. figure:: figures/irf/field_of_view_at_8_kev_v12.*
    :width: 80%
 
    Relative exposure at 8 keV across the field of view for the set of three
@@ -161,7 +151,7 @@ which is essentially the content of the binary table in the ``MATRIX`` extension
 the rmf file.
 
 .. _figure-energy_dispersion:
-.. figure:: figures/irf/energy_dispersion_v11.*
+.. figure:: figures/irf/energy_dispersion_v12.*
    :width: 80%
 
    Representation of the GPD response matrix.
@@ -171,7 +161,7 @@ at a few fixed true energies (i.e., these are just vertical slices of the
 color plot above).
 
 .. _figure-energy_resolution:
-.. figure:: figures/irf/energy_resolution_v11.*
+.. figure:: figures/irf/energy_resolution_v12.*
    :width: 80%
 
    Energy dispersion (one-dimensional probability density function) at a set
@@ -184,18 +174,16 @@ Point-spread function
 
 The PSF model is derived from one of the early point-source observations, as
 described in `issue #158 <https://github.com/lucabaldini/ixpeobssim/issues/158>`_.
-
-.. note::
-  Starting with version 6 of the instrument response function each DU comes
-  with a different PSF scaling factor to account for the differences
-  measured during the mirror calibration. As shown in
-  `issue #387 <https://github.com/lucabaldini/ixpeobssim/issues/387>`_, MMA 1
-  has a significantly better PSF (less than 20 arcsec HPD) than MMAs 2 and 3
-  (running at more than 25 arcsec HPD).
+Starting with version 6 of the instrument response function each DU comes
+with a different PSF scaling factor to account for the differences
+measured during the mirror calibration. As shown in
+`issue #387 <https://github.com/lucabaldini/ixpeobssim/issues/387>`_, MMA 1
+has a significantly better PSF (less than 20 arcsec HPD) than MMAs 2 and 3
+(running at more than 25 arcsec HPD).
 
 
 .. _figure-psf_eef:
-.. figure:: figures/irf/psf_eef_v11.*
+.. figure:: figures/irf/psf_eef_v12.*
    :width: 80%
 
    Encircled energy fraction (EEF) for the PSF of the three IXPE telescopes.
@@ -214,7 +202,7 @@ Monte Carlo simulations, informed by the ground calibrations of the three
 detector units.
 
 .. _figure-ixpe_modulation_factor:
-.. figure:: figures/irf/ixpe_modulation_factor_v11.*
+.. figure:: figures/irf/ixpe_modulation_factor_v12.*
    :width: 80%
 
    Modulation factor as a function of the photon energy for the IXPE detectors.
@@ -222,7 +210,7 @@ detector units.
    and weighted version, while the un-labeled dashed lines (admittedly, barely
    visible) represent the curve for each of the three detectors.
 
-.. warning::
+.. note::
    The noticeable edge around 9 keV is due to the K-edge of the copper,
    above which the extraction of photoelectrons from X-rays absorbed in the GEM
    becomes significantly more likely. This causes an increase of effective area,
@@ -231,6 +219,18 @@ detector units.
    work is needed to validate the response of the detector above the Cu
    K-edge, and simulations outside the 2--8 keV standard range should be
    interpreted with caution.
+
+
+Below is an alternative representation of the overall IXPE spectro-polarimetric
+response, combining the elements described above.
+
+.. _figure-ixpe_response:
+.. figure:: figures/irf/ixpe_response_v12.*
+   :width: 80%
+
+   Overall IXPE spectro-polarimetric response (all the elements are described in
+   the first part of this section).
+
 
 
 Minimum detectable polarization
@@ -244,7 +244,7 @@ performance plot below for each iteration of the response functions using
 source flux and the observing time.
 
 .. _figure-ixpe_mdp:
-.. figure:: figures/irf/ixpe_mdp_v11.*
+.. figure:: figures/irf/ixpe_mdp_v12.*
    :width: 80%
 
    IXPE Minimum Detectable Polarization (MDP) as a function of the source flux
@@ -353,9 +353,17 @@ Response file versioning
 This is a short description of the main features of different sets of response
 files that are useful for simulation and science analysis:
 
+* ``ixpe:obssim:v12``: compared to the previous iteration (``ixpe:obssim:v11``),
+  this version includes an updated parametrization of the effective area for
+  MMA 3, accounting for its thicker thermal shield (the effect is of a few % at
+  2 keV, and negligible above 4 keV, but has been shown to improve the spectral
+  residuals at low energy for bright sources), as well as a new set of weighted
+  response files with the SIMPLE prescription, that are necessary for a proper
+  weighted model-independent analysis.
 * ``ixpe:obssim:v11``: identical to ``ixpe:obssim:v10``, except that the PSF
   parametrization (used on the simulation side of things) has been improved to
-  match the on-orbit radial dependence measured with point sources.
+  match the on-orbit radial dependence measured with point sources; all the other
+  response files are unchenged.
 * ``ixpe:obssim:v10``: this is the first iteration of the response files
   matching the structure of the actual CALDB, and the first that can be used
   with real data.
@@ -370,33 +378,9 @@ effective area, the response matrix and the modulation response function)
 have a definite, one-to-one correspondence between the two databases---meaning
 that they are `identical`, modulo a few header keywords.
 
-.. list-table::
-   :widths: 50 50
-   :header-rows: 1
-
-   * - Pseudo CALDB
-     - Real CALDB
-   * - gpd/cpf/arf/ixpe_d?_obssim_v010/011.arf
-     - gpd/cpf/arf/ixpe_d?_20170101_01.arf
-   * - gpd/cpf/arf/ixpe_d?_obssim_alpha075_v010/011.arf
-     - gpd/cpf/arf/ixpe_d?_20170101_alpha075_01.arf
-   * - gpd/cpf/rmf/ixpe_d?_obssim_v010/011.rmf
-     - gpd/cpf/rmf/ixpe_d?_20170101_01.rmf
-   * - gpd/cpf/rmf/ixpe_d?_obssim_alpha075_v010/011.rmf
-     - gpd/cpf/rmf/ixpe_d?_20170101_alpha075_01.rmf
-   * - gpd/cpf/mrf/ixpe_d?_obssim_v010/011.mrf
-     - gpd/cpf/mrf/ixpe_d?_20170101_01.mrf
-   * - gpd/cpf/mrf/ixpe_d?_obssim_alpha075_v010/011.mrf
-     - gpd/cpf/mrf/ixpe_d?_20170101_alpha075_01.mrf
-   * - gpd/cpf/modfact/ixpe_d?_obssim_mfact_v010/011.fits
-     - gpd/cpf/modfact/ixpe_d?_20170101_mfact_01.fits
-   * - gpd/cpf/modfact/ixpe_d?_obssim_alpha075_mfact_v010/011.fits
-     - gpd/cpf/modfact/ixpe_d?_20170101_mfact_alpha075_01.fits
-
-
-
-Differences with the real CALDB
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+* ``ixpe:obssim:v12`` maps to ``20170101_02``
+* ``ixpe:obssim:v11`` maps to ``20170101_01``
+* ``ixpe:obssim:v10`` maps to ``20170101_01``
 
 The structure of the ``ixpeobssim`` pseudo-CALDB is designed to match as closely
 as possible that of the real IXPE CALDB.
@@ -455,38 +439,42 @@ This is just an historical accident that, at this point, is not worth correcting
 Historical notes
 ----------------
 
+.. warning::
+
+   The links provided below are ultimately pointing to IXPE private repositories
+   to which only collaboration members have access.
+
 The release process and the differences with respect to the previous iterations
 are summarized on our issue tracker at:
 
-* `issue #580 <https://github.com/lucabaldini/ixpeobssim/issues/580>`_
+* ixpeirfgen `issue #10 <https://bitbucket.org/ixpesw/ixpeirfgen/issues/10>`_
+  (release of version 12);
+* ixpeobssim `issue #580 <https://github.com/lucabaldini/ixpeobssim/issues/580>`_
   (release of version 11);
-* `issue #496 <https://github.com/lucabaldini/ixpeobssim/issues/496>`_
+* ixpeobssim `issue #496 <https://github.com/lucabaldini/ixpeobssim/issues/496>`_
   (release of version 10);
-* `issue #460 <https://github.com/lucabaldini/ixpeobssim/issues/460>`_
+* ixpeobssim `issue #460 <https://github.com/lucabaldini/ixpeobssim/issues/460>`_
   (release of version 9);
-* `issue #402 <https://github.com/lucabaldini/ixpeobssim/issues/402>`_
+* ixpeobssim `issue #402 <https://github.com/lucabaldini/ixpeobssim/issues/402>`_
   (release of version 7);
-* `issue #333 <https://github.com/lucabaldini/ixpeobssim/issues/333>`_
+* ixpeobssim `issue #333 <https://github.com/lucabaldini/ixpeobssim/issues/333>`_
   (release of version 6);
-* `issue #344 <https://github.com/lucabaldini/ixpeobssim/issues/344>`_
+* ixpeobssim `issue #344 <https://github.com/lucabaldini/ixpeobssim/issues/344>`_
   (release of version 5);
-* `issue #294 <https://github.com/lucabaldini/ixpeobssim/issues/294>`_
+* ixpeobssim `issue #294 <https://github.com/lucabaldini/ixpeobssim/issues/294>`_
   (release of version 4);
-* `issue #258 <https://github.com/lucabaldini/ixpeobssim/issues/258>`_
+* ixpeobssim `issue #258 <https://github.com/lucabaldini/ixpeobssim/issues/258>`_
   (release of version 3);
-* `issue #161 <https://github.com/lucabaldini/ixpeobssim/issues/161>`_
+* ixpeobssim `issue #161 <https://github.com/lucabaldini/ixpeobssim/issues/161>`_
   (release of version 2 and differences with respect to version 1).
 
-In iterations of the response functions up to v3, ixpeobssim used
-to ship combined versions of the effective area and modulation factor, that
-were useful for back-of-the envelope sensitivity calculations. From
-version 4 onward this is no more the case, and all the relevant applications
-have been modified to make the appropriate loop over the three detector units
-where the combined response functions were used before.
+Version 8 of the response files is the first supporting XSPEC spectro-polarimetric
+analysis with weights. Version 9 is fairly similar, with a refined parametrization
+of the MMA effective area. Version 10 features a few new header keywords, and
+is the one on which the first version of the CALDB submitted to HEASARC is
+based.
 
-Likewise, all the non-standard versions of the response files (e.g., without
-the standard cuts or with the MMA alone) have been dropped altogether
-starting from version 4.
+Version 7 of the response files features the first non-diagonal response matrix.
 
 Version 6 of the response function is the first iteration taking full
 advantage of the flight DU calibration and the telescope end-to-end
@@ -500,10 +488,13 @@ spanning the 0--15 keV energy range in steps of 40 eV.
 (In previous iterations the PI spanned the very same energy interval used
 to define the response functions, i.e., 1--12 keV.)
 
-Version 7 of the response files features the first non-diagonal response matrix.
+All the non-standard versions of the response files (e.g., without
+the standard cuts or with the MMA alone) have been dropped altogether
+starting from version 4.
 
-Version 8 of the response files is the first supporting XSPEC spectro-polarimetric
-analysis with weights. Version 9 is fairly similar, with a refined parametrization
-of the MMA effective area. Version 10 features a few new header keywords, and
-is the one on which the first version of the CALDB submitted to HEASARC is
-based.
+In iterations of the response functions up to v3, ixpeobssim used
+to ship combined versions of the effective area and modulation factor, that
+were useful for back-of-the envelope sensitivity calculations. From
+version 4 onward this is no more the case, and all the relevant applications
+have been modified to make the appropriate loop over the three detector units
+where the combined response functions were used before.

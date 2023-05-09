@@ -4,6 +4,81 @@ Release notes
 =============
 
 
+*ixpeobssim (30.2.3) - Sat, 18 Mar 2023 10:58:48 +0100*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/695
+* As run target list rendering for year 1 final update.
+
+
+*ixpeobssim (30.2.2) - Wed, 15 Feb 2023 10:22:34 +0100*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/692
+* Minor fix in the population of the output file list for xpstokesalign.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/691
+
+
+*ixpeobssim (30.2.1) - Thu, 26 Jan 2023 12:31:20 +0100*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/689
+* Fixing the generation of documentation on readthedocs.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/683
+
+
+*ixpeobssim (30.2.0) - Thu, 26 Jan 2023 11:52:59 +0100*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/689
+* Explicitly setting TLMIN and TLMAX for the PI column in both the event
+  files output by xpobssim and the files formatted by xpsimfmt---this is to
+  ensure interoperability with the FTOOLS environment.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/688
+      * https://github.com/lucabaldini/ixpeobssim/issues/588
+
+
+*ixpeobssim (30.1.1) - Tue, 24 Jan 2023 15:40:53 +0100*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/687
+* IRFGEN stripmode removed from xpsimfmt, in order to avoid any interaction
+  with the ixpeirfgen package.
+
+
+*ixpeobssim (30.1.0) - Mon, 23 Jan 2023 17:27:34 +0100*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/686
+* New command-line switches added to xpsimfmt to create smaller output files,
+  facilitating the photon-list and IRF generation code paths.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/685
+
+
+*ixpeobssim (30.0.1) - Wed, 11 Jan 2023 16:23:48 +0100*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/682
+* `from_future_import_annotations` added to support the dataclasses in the
+  evt/display with Python versions prior to 3.9
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/681
+
+
+*ixpeobssim (30.0.0) - Sat, 17 Dec 2022 07:18:16 +0100*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/680
+* New v12 response files shipped, and now default for simulation and analysis.
+* Docs updated.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/669
+
+
+*ixpeobssim (29.7.1) - Fri, 16 Dec 2022 14:57:10 +0100*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/679
+* xpsimfmt.py modified to support (again) the proper generation of reponse files.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/678
+
+
 *ixpeobssim (29.7.0) - Sun, 11 Dec 2022 10:12:24 +0100*
 
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/677

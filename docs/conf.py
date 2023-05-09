@@ -32,7 +32,7 @@ base_repo_url = 'https://github.com/lucabaldini/ixpeobssim/blob/main'
 
 # And here we define some shortcuts.
 extlinks = {
-    'repourl': ('%s/%%s' % base_repo_url, '[github]/')
+    'repourl': ('%s/%%s' % base_repo_url, '[github]/%s')
 }
 
 
