@@ -19,6 +19,7 @@
 from __future__ import print_function, division
 
 
+import itertools
 import numpy
 import scipy.stats
 
@@ -336,9 +337,17 @@ class xFitModelBase:
                 lower_bounds += m.bounds[0]
                 upper_bounds += m.bounds[1]
 
+        # Handle the case of duplicated parameter names
+        parameter_names = []
+        for _name in itertools.chain(m1.PARAMETER_NAMES, m2.PARAMETER_NAMES):
+            if _name not in parameter_names:
+                parameter_names.append(_name)
+            else:
+                parameter_names.append(f'{_name} 2')
+
         class _model(xFitModelBase):
 
-            PARAMETER_NAMES = m1.PARAMETER_NAMES + m2.PARAMETER_NAMES
+            PARAMETER_NAMES = tuple(parameter_names)
             PARAMETER_DEFAULT_VALUES = m1.PARAMETER_DEFAULT_VALUES + \
                                        m2.PARAMETER_DEFAULT_VALUES
             DEFAULT_PLOTTING_RANGE = (xmin, xmax)
