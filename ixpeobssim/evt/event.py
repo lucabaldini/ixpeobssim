@@ -1260,6 +1260,8 @@ class xEventFile:
             hdu_list.append(hdu)
         if self.roi_table:
             hdu_list.append(self.hdu_list['ROITABLE'].copy())
+        if 'GTI' in self.hdu_list:
+            hdu_list.append(self.hdu_list['GTI'].copy())
         return fits.HDUList(hdu_list)
 
     def set_column(self, ext_name, col_name, col_data):
@@ -1409,7 +1411,8 @@ class xEventFileFriend:
             # assume Lv1 list is larger than Lv2
             time1 = numpy.hstack([f1.time_data() for f1 in self.file_list1])
             time2 = numpy.hstack([f2.time_data() for f2 in self.file_list2])
-            self.time_ids = numpy.in1d(time1, time2)
+            _, self.time_ids, _ = numpy.intersect1d(time1, time2,
+                                        assume_unique=True, return_indices=True)
 
     def l1value(self, val, all_events=False):
         """
