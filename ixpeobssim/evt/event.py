@@ -1411,6 +1411,11 @@ class xEventFileFriend:
             # assume Lv1 list is larger than Lv2
             time1 = numpy.hstack([f1.time_data() for f1 in self.file_list1])
             time2 = numpy.hstack([f2.time_data() for f2 in self.file_list2])
+            # The following line will return the indices in the correct order
+            # (i.e. when selecting the lv1 columns with these indices we will
+            # get the values in the same order as they are in the lv2 columns)
+            # even when the two lists of files are not already sorted in time
+            # increasing order.
             _, self.time_ids, _ = numpy.intersect1d(time1, time2,
                                         assume_unique=True, return_indices=True)
 
