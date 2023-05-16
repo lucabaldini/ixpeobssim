@@ -1417,7 +1417,7 @@ class xEventFileFriend:
             # even when the two lists of files are not already sorted in time
             # increasing order.
             _, self.time_ids, _ = numpy.intersect1d(time1, time2,
-                                        assume_unique=True, return_indices=True)
+                                        assume_unique=False, return_indices=True)
 
     def l1value(self, val, all_events=False):
         """
