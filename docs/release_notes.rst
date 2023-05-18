@@ -4,6 +4,8 @@ Release notes
 =============
 
 
+*ixpeobssim (30.3.0) - Thu, 18 May 2023 12:53:13 +0200*
+
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/700
 * Added proper hooks to load the arf and mrf weighted response files with the
   SIMPLE weighting prescription
