@@ -34,7 +34,7 @@ from ixpeobssim.core.hist import xScatterPlot
 from ixpeobssim.core.stokes import xModelStokesParameters
 from ixpeobssim.evt.align import align_stokes_parameters
 from ixpeobssim.evt.kislat2015 import xStokesAnalysis
-from ixpeobssim.irf import load_arf, load_modf
+from ixpeobssim.irf import load_modf
 from ixpeobssim.irf.caldb import irf_file_path
 from ixpeobssim.irf.ebounds import NUM_CHANNELS
 from ixpeobssim.utils.astro import region_compound
@@ -321,8 +321,7 @@ class xEventBinningPCUBE(xEventBinningBase):
         ebinning = self.make_energy_binning(energy, **self.kwargs)
         q, u = self.event_file.stokes_data()
         modf = load_modf(self.irf_name, self.event_file.du_id())
-        aeff = load_arf(self.irf_name, self.event_file.du_id())
-        self.check_pcube_weighting_scheme(aeff)
+        aeff = self.load_aeff_for_polarization_analysis()
         analysis = xStokesAnalysis(q, u, energy, modf, aeff, self.event_file.livetime(),
             self.weight_data(), self.get('acceptcorr'))
         table = analysis.polarization_table(ebinning)
@@ -672,8 +671,7 @@ class xEventBinningMDPMAPCUBE(xEventBinningBase):
         q, u = self.event_file.stokes_data()
         # Load the necessary response functions.
         modf = load_modf(self.irf_name, self.event_file.du_id())
-        aeff = load_arf(self.irf_name, self.event_file.du_id())
-        self.check_pcube_weighting_scheme(aeff)
+        aeff = self.load_aeff_for_polarization_analysis()
         analysis = xStokesAnalysis(q, u, energy, modf, aeff, self.event_file.livetime(),
             self.weight_data(), self.get('acceptcorr'))
         # Prepare the arrays and binning for mapping the polarization.
