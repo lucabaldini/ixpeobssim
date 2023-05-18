@@ -26,6 +26,7 @@ import numpy
 
 from ixpeobssim.core.fitsio import xPrimaryHDU, read_hdu_list_in_memory
 from ixpeobssim.evt.event import xEventFile
+from ixpeobssim.irf import load_arf
 from ixpeobssim.utils.astro import build_wcs
 from ixpeobssim.utils.logging_ import logger, abort
 from ixpeobssim.utils.units_ import arcmin_to_arcsec, arcsec_to_degrees
@@ -216,6 +217,17 @@ class xEventBinningBase:
                 weight_scheme, self.__class__.__name__, self.kwargs)
             logger.info('See https://bitbucket.org/ixpesw/ixpeobssim/issues/573 for more info.')
             raise RuntimeError('Cannot create binned data product')
+
+    def load_aeff_for_polarization_analysis(self):
+        """Load the proper arf file for a model-independent polarization analysis
+        (i.e., to be used for polarization cubes, maps and map cubes).
+
+        This is loading the proper arf file making sure that, when weights are
+        used, the SIMPLE weighting prescription is picked.
+        """
+        aeff = load_arf(self.irf_name, self.event_file.du_id(), simple_weighting=self.get('weights'))
+        self.check_pcube_weighting_scheme(aeff)
+        return aeff
 
     def build_primary_hdu(self, data=None, header=None):
         """Build the primary HDU for the output file.
