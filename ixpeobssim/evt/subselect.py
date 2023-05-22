@@ -306,8 +306,8 @@ class xEventSelect:
         The procedure is a simple implementation of an hit and miss algorithm
         """
         reg = regions.Regions.read(region)[0]
-        half_side_ra = numpy.degrees( GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X / FOCAL_LENGTH)
-        half_side_dec = numpy.degrees( GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y / FOCAL_LENGTH)
+        half_side_ra = numpy.degrees(GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X / FOCAL_LENGTH)
+        half_side_dec = numpy.degrees(GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y / FOCAL_LENGTH)
         fiducial_area = (2 * degrees_to_arcsec(half_side_ra)) * (2 * degrees_to_arcsec(half_side_dec))
         ra0, dec0 = self.event_file.wcs_reference()
         ra_max, ra_min = ra0 + half_side_ra, ra0 - half_side_ra
@@ -316,10 +316,10 @@ class xEventSelect:
                             numpy.random.uniform(dec_min, dec_max, size=ntot)
         tot = ds9_region_filter_sky(ra_vec, dec_vec, self.event_file._wcs, reg)
         hit = numpy.sum(tot)
-        input (f'Fiducial area: {fiducial_area}')
-        input (f'Hit: {hit} Miss: {len(tot)-hit}')
-        input (f'Backscal: {fiducial_area * hit / len(tot)}')
-        return fiducial_area * hit / len(tot)
+        logger.info (f'Fiducial area: {fiducial_area}')
+        logger.info (f'Hit: {hit} Miss: {len(tot)-hit}')
+        logger.info (f'Backscal: {fiducial_area * hit / ntot}')
+        return fiducial_area * hit / ntot
         
         
 
