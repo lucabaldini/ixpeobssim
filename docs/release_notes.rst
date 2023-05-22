@@ -3,6 +3,11 @@
 Release notes
 =============
 
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/702
+* This is a small patch release where we have essentially made room in the
+  pseudo-CALDB structure for the new QE files and the response at the top
+  of the window to be used in the ixpesim workflow.
+
 
 *ixpeobssim (30.3.0) - Thu, 18 May 2023 12:53:13 +0200*
 
@@ -10,7 +15,7 @@ Release notes
 * Added proper hooks to load the arf and mrf weighted response files with the
   SIMPLE weighting prescription
 * xpbin now able to produce PCUBE (and PMAP and PMAPCUBE) binned files
-  with weights. 
+  with weights.
 * Issue(s) closed:
       * https://github.com/lucabaldini/ixpeobssim/issues/573
 
