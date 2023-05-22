@@ -4,6 +4,17 @@ Release notes
 =============
 
 
+*ixpeobssim (30.3.0) - Thu, 18 May 2023 12:53:13 +0200*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/700
+* Added proper hooks to load the arf and mrf weighted response files with the
+  SIMPLE weighting prescription
+* xpbin now able to produce PCUBE (and PMAP and PMAPCUBE) binned files
+  with weights. 
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/573
+
+
 *ixpeobssim (30.2.3) - Sat, 18 Mar 2023 10:58:48 +0100*
 
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/695

@@ -23,7 +23,7 @@ import unittest
 import os
 
 from ixpeobssim.instrument import DU_IDS
-from ixpeobssim.irf import DEFAULT_IRF_NAME, load_irf_set
+from ixpeobssim.irf import DEFAULT_IRF_NAME, load_irf_set, load_arf, load_mrf
 from ixpeobssim.irf.caldb  import IRF_TYPES
 from ixpeobssim.irf.caldb  import irf_file_name, irf_folder_path, irf_file_path, parse_irf_name
 from ixpeobssim.utils.logging_ import logger
@@ -68,7 +68,6 @@ class TestIrf(unittest.TestCase):
                 file_name = irf_file_name(base, du_id, irf_type, intent, version)
                 print(file_name)
 
-
     def test_irf_name(self):
         """Test the mechanisms for splitting IRF names.
         """
@@ -95,6 +94,26 @@ class TestIrf(unittest.TestCase):
                 logger.info(irf.header_comments())
                 logger.info(irf.file_path)
                 logger.info(irf.irf_type)
+
+    def test_simple_weights(self):
+        """Quick test for loading the arf and mrf files with the SIMPLE weighting
+        prescription.
+        """
+        for du_id in DU_IDS:
+            # Load the actual weighted response files with the SIMPLE weighting scheme.
+            aeff = load_arf('ixpe:obssim_alpha075:v12', du_id, simple_weighting=True)
+            self.assertTrue('simple' in aeff.file_path)
+            mrf = load_mrf('ixpe:obssim_alpha075:v12', du_id, simple_weighting=True)
+            self.assertTrue('simple' in mrf.file_path)
+            # Make sure that asking for the simple weighting prescription in the
+            # unweighted case is rising a RuntimeError.
+            self.assertRaises(RuntimeError, load_arf, 'ixpe:obssim:v12', du_id, simple_weighting=True)
+            self.assertRaises(RuntimeError, load_mrf, 'ixpe:obssim:v12', du_id, simple_weighting=True)
+            # Load a full IRF set.
+            irf_set = load_irf_set('ixpe:obssim_alpha075:v12', du_id, simple_weighting=True)
+            self.assertTrue('simple' in irf_set.aeff.file_path)
+            self.assertTrue('simple' in irf_set.mrf.file_path)
+
 
 
 if __name__ == '__main__':
