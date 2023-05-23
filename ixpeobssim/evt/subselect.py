@@ -314,11 +314,11 @@ class xEventSelect:
         ra_side = degrees_to_arcsec(angular_separation(ra_min, dec0, ra_max, dec0))
         dec_side = degrees_to_arcsec(angular_separation(ra0, dec_min, ra0, dec_max))
         total_area = ra_side * dec_side
+        logger.info ("Recovering BACKSCAL information from hit and miss algorithm...")
         ra_vec, dec_vec = numpy.random.uniform(ra_min, ra_max, size=samples),\
                             numpy.random.uniform(dec_min, dec_max, size=samples)
         shot = ds9_region_filter_sky(ra_vec, dec_vec, self.event_file._wcs, reg)
         hit = numpy.sum(shot)
-        logger.info ("Recovering BACKSCAL information from hit and miss algorithm...")
         logger.info ("Fiducial area: %s", total_area)
         logger.info ("Hit: %s", hit)
         logger.info ("Miss: %s", len(shot)-hit)
