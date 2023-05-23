@@ -301,7 +301,7 @@ class xEventSelect:
 
     def _region_backscal(self, region, samples = 10000000):
         """Calculate the value to be written in the BACKSCAL header keyword for
-        an arbitrary region shape passed via DS9. 
+        an arbitrary region shape passed via DS9.
 
         The procedure is a simple implementation of an hit and miss algorithm
         """
@@ -318,13 +318,13 @@ class xEventSelect:
                             numpy.random.uniform(dec_min, dec_max, size=samples)
         shot = ds9_region_filter_sky(ra_vec, dec_vec, self.event_file._wcs, reg)
         hit = numpy.sum(shot)
-        logger.info (f'Recovering BACKSCAL information from hit and miss algorithm...')
-        logger.info (f'Fiducial area: {total_area}')
-        logger.info (f'Hit: {hit} Miss: {len(shot)-hit}')
-        logger.info (f'BACKSCAL value: {total_area * hit / samples}')
+        logger.info ("Recovering BACKSCAL information from hit and miss algorithm...")
+        logger.info ("Fiducial area: %s", total_area)
+        logger.info ("Hit: %s", hit)
+        logger.info ("Miss: %s", len(shot)-hit)
+        logger.info ("BACKSCAL value: %s", total_area * hit / samples)
         return total_area * hit / samples
-        
-        
+
 
     def select(self):
         """Select the events and write the output file.
