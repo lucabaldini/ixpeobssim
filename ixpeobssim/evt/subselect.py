@@ -299,7 +299,7 @@ class xEventSelect:
         return outer_area - inner_area
 
 
-    def _region_backscal(self, region, ntot = 1000000):
+    def _region_backscal(self, region, samples = 10000000):
         """Calculate the value to be written in the BACKSCAL header keyword for
         an arbitrary region shape passed via DS9. 
 
@@ -308,18 +308,21 @@ class xEventSelect:
         reg = regions.Regions.read(region)[0]
         half_side_ra = numpy.degrees(GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X / FOCAL_LENGTH)
         half_side_dec = numpy.degrees(GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y / FOCAL_LENGTH)
-        fiducial_area = (2 * degrees_to_arcsec(half_side_ra)) * (2 * degrees_to_arcsec(half_side_dec))
         ra0, dec0 = self.event_file.wcs_reference()
         ra_max, ra_min = ra0 + half_side_ra, ra0 - half_side_ra
         dec_max, dec_min = dec0 + half_side_dec, dec0 - half_side_dec
-        ra_vec, dec_vec = numpy.random.uniform(ra_min, ra_max, size=ntot),\
-                            numpy.random.uniform(dec_min, dec_max, size=ntot)
-        tot = ds9_region_filter_sky(ra_vec, dec_vec, self.event_file._wcs, reg)
-        hit = numpy.sum(tot)
-        logger.info (f'Fiducial area: {fiducial_area}')
-        logger.info (f'Hit: {hit} Miss: {len(tot)-hit}')
-        logger.info (f'Backscal: {fiducial_area * hit / ntot}')
-        return fiducial_area * hit / ntot
+        ra_side = degrees_to_arcsec(angular_separation(ra_min, dec0, ra_max, dec0))
+        dec_side = degrees_to_arcsec(angular_separation(ra0, dec_min, ra0, dec_max))
+        total_area = ra_side * dec_side
+        ra_vec, dec_vec = numpy.random.uniform(ra_min, ra_max, size=samples),\
+                            numpy.random.uniform(dec_min, dec_max, size=samples)
+        shot = ds9_region_filter_sky(ra_vec, dec_vec, self.event_file._wcs, reg)
+        hit = numpy.sum(shot)
+        logger.info (f'Recovering BACKSCAL information from hit and miss algorithm...')
+        logger.info (f'Fiducial area: {total_area}')
+        logger.info (f'Hit: {hit} Miss: {len(shot)-hit}')
+        logger.info (f'BACKSCAL value: {total_area * hit / samples}')
+        return total_area * hit / samples
         
         
 
