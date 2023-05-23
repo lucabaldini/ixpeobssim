@@ -385,8 +385,6 @@ class xEventSelect:
             if self.get('reginvert'):
                 reg_mask = numpy.logical_not(reg_mask)
             mask *= reg_mask
-            # Need to understand how we calculate the area, in this case.
-            #header_keywords.append(('BACKSCAL', )
             header_keywords['BACKSCAL'] = self._region_backscal(regfile)
 
         # ... and source ID.
