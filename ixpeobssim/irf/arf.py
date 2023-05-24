@@ -71,3 +71,20 @@ class xEffectiveArea(xSpecRespBase):
         """
         # pylint: disable=arguments-differ
         self.plot_base(logy=True)
+
+
+
+class xTowEffectiveArea(xSpecRespBase):
+
+    """Class describing the on-axis effective area at the top of the window.
+
+    Arguments
+    ---------
+    file_path : str
+        The path to the FITS file containing the effective area table.
+    """
+
+    def __init__(self, file_path):
+        """Constructor.
+        """
+        xSpecRespBase.__init__(self, file_path, 'fits')

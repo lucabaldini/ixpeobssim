@@ -39,7 +39,7 @@ import numpy
 
 from ixpeobssim import IXPEOBSSIM_CALDB
 from ixpeobssim.core.spline import xInterpolatedUnivariateSplineLinear
-from ixpeobssim.irf.arf import xEffectiveArea
+from ixpeobssim.irf.arf import xEffectiveArea, xTowEffectiveArea
 from ixpeobssim.irf.caldb import irf_file_path, parse_irf_name
 from ixpeobssim.irf.legacy import _LEGACY_IRF_NAME_DICT
 from ixpeobssim.irf.modf import xModulationFactor
@@ -168,6 +168,12 @@ def load_rmf(irf_name=DEFAULT_IRF_NAME, du_id=1, caldb_path=None, cache=True):
     """Facility to load the energy dispersion for a given IRF set.
     """
     return _load_irf_base(xEnergyDispersion, 'rmf', irf_name, du_id, caldb_path, cache)
+
+
+def load_tow_aeff(irf_name=DEFAULT_IRF_NAME, du_id=1, caldb_path=None, cache=True):
+    """Facility to load the effective area for a given IRF set.
+    """
+    return _load_irf_base(xTowEffectiveArea, 'tow', irf_name, du_id, caldb_path, cache)
 
 
 

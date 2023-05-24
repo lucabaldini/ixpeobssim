@@ -38,6 +38,10 @@ class TestIrf(unittest.TestCase):
         """Make sure we get the path to the irf folder right.
         """
         for irf_type in IRF_TYPES:
+            # The GPD quantum efficiency files are not shipped with ixpeobssim
+            # and therefore we skip the corresponding tests, here.
+            if irf_type in ('qe', ):
+                continue
             folder_path = irf_folder_path(irf_type)
             logger.info('%s -> %s', irf_type, folder_path)
             self.assertTrue(os.path.isdir(folder_path))
@@ -79,6 +83,10 @@ class TestIrf(unittest.TestCase):
         """
         logger.info('Checking files on disk for IRF name %s', irf_name)
         for irf_type in IRF_TYPES:
+            # The GPD quantum efficiency files are not shipped with ixpeobssim
+            # and therefore we skip the corresponding tests, here.
+            if irf_type in ('qe', ):
+                continue
             for du_id in [1, 2, 3]:
                 file_path = irf_file_path(irf_name, du_id, irf_type, check_file=True)
                 logger.info(file_path)
