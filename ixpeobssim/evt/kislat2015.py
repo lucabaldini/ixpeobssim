@@ -493,8 +493,8 @@ class xStokesAnalysis:
         I_REL_ERR = I_ERR / I
         Q_REL_ERR = Q_ERR / Q
         U_REL_ERR = U_ERR / U
-        QN_ERR[mask] = QN[mask] * numpy.sqrt(Q_REL_ERR**2. + I_REL_ERR**2.)
-        UN_ERR[mask] = UN[mask] * numpy.sqrt(U_REL_ERR**2. + I_REL_ERR**2.)
+        QN_ERR[mask] = abs(QN[mask]) * numpy.sqrt(Q_REL_ERR**2. + I_REL_ERR**2.)
+        UN_ERR[mask] = abs(UN[mask]) * numpy.sqrt(U_REL_ERR**2. + I_REL_ERR**2.)
         return QN, UN, QN_ERR, UN_ERR
 
     @staticmethod
