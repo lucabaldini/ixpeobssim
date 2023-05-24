@@ -66,15 +66,16 @@ class TestRegionBackscal(unittest.TestCase):
         assert numpy.allclose(reg_backscal, circ_backscal, rtol=1e-2)
 
     def test_region_backscal_inverse(self):
-        """Compare the reg file BACKSCAL with that of the ordinary circle cut of 1 arcmin.
+        """Compare the reg file BACKSCAL (with the --reginv flag set) with a
+        simple annulus with a 1 arcmin inner radius.
         """
         evt_file_path = self.file_list[0]
         region_file_path = os.path.join(IXPEOBSSIM_TEST_DATA, 'test_reg_backscal.reg')
-        logger.info('Selecting a circular region from %s...', region_file_path)
+        logger.info('Selecting an inverted circular region from %s...', region_file_path)
         reg_selected = pipeline.xpselect(evt_file_path, regfile=region_file_path,
             suffix='reginv', reginv=True, overwrite=True)
         reg_backscal = xEventFile(*reg_selected).backscal()
-        logger.info('Selecting a circular region with built-in xpselect function...')
+        logger.info('Selecting an annulus with built-in xpselect function...')
         circ_selected = pipeline.xpselect(evt_file_path, innerrad=1, suffix='annulus',
             overwrite=True)
         circ_backscal = xEventFile(*circ_selected).backscal()
