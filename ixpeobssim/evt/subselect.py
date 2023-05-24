@@ -305,12 +305,12 @@ class xEventSelect:
 
         The procedure is a simple implementation of an hit and miss algorithm
         """
+        ra_min = numpy.min(self.event_file.sky_position_data()[0])
+        dec_min = numpy.min(self.event_file.sky_position_data()[1])
+        ra_max = numpy.max(self.event_file.sky_position_data()[0])
+        dec_max = numpy.max(self.event_file.sky_position_data()[1])
         reg = regions.Regions.read(region)[0]
-        half_side_ra = numpy.degrees(GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X / FOCAL_LENGTH)
-        half_side_dec = numpy.degrees(GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y / FOCAL_LENGTH)
         ra0, dec0 = self.event_file.wcs_reference()
-        ra_max, ra_min = ra0 + half_side_ra, ra0 - half_side_ra
-        dec_max, dec_min = dec0 + half_side_dec, dec0 - half_side_dec
         ra_side = degrees_to_arcsec(angular_separation(ra_min, dec0, ra_max, dec0))
         dec_side = degrees_to_arcsec(angular_separation(ra0, dec_min, ra0, dec_max))
         total_area = ra_side * dec_side

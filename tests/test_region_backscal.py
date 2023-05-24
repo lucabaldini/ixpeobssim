@@ -28,8 +28,7 @@ import os
 import numpy
 from ixpeobssim.core import pipeline
 from ixpeobssim.evt.event import xEventFile
-from ixpeobssim import IXPEOBSSIM_TEST_DATA
-from ixpeobssim import IXPEOBSSIM_CONFIG
+from ixpeobssim import IXPEOBSSIM_CONFIG, IXPEOBSSIM_DATA, IXPEOBSSIM_TEST_DATA
 from ixpeobssim.utils.logging_ import logger
 
 
@@ -44,9 +43,11 @@ class TestRegionBackscal(unittest.TestCase):
         """
         config_file_path = os.path.join(IXPEOBSSIM_CONFIG, 'toy_point_source.py')
         region_file_path = os.path.join(IXPEOBSSIM_TEST_DATA, 'test_reg_backscal.reg')
+        sim_file_path = os.path.join(IXPEOBSSIM_DATA, 'backscal_test')
         logger.info("Generating a toy point source from %s for selection testing...",
                     config_file_path)
-        test_file = pipeline.xpobssim(configfile = config_file_path, duration = 1000)
+        test_file = pipeline.xpobssim(configfile = config_file_path, 
+                                      duration = 1000, outfile = sim_file_path)
         logger.info("Selecting a circular region from %s...", region_file_path)
         reg_selected = pipeline.xpselect(test_file[0], regfile = region_file_path,
                                          suffix = 'reg', overwrite = True)
