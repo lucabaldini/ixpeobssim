@@ -31,8 +31,7 @@ from ixpeobssim.instrument.mma import fiducial_backscal
 from ixpeobssim.utils.astro import angular_separation, ds9_region_filter_sky
 from ixpeobssim.utils.logging_ import logger, abort
 from ixpeobssim.utils.profile import timing
-from ixpeobssim.utils.units_ import degrees_to_arcmin, arcmin_to_arcsec,\
-    degrees_to_arcsec, arcmin_to_degrees
+from ixpeobssim.utils.units_ import degrees_to_arcmin, arcmin_to_arcsec, arcmin_to_degrees
 
 
 # pylint: disable=invalid-name, too-many-locals, consider-using-f-string
@@ -103,7 +102,7 @@ class xEventSelect:
     def mask_selected(self):
         """Return True if selecting with event mask directly,
         """
-        return self.get('mask') !=None
+        return self.get('mask') is not None
 
     def _validate(self):
         """Make sure that the event selection is valid.
@@ -326,6 +325,7 @@ class xEventSelect:
         half_side : float
             The half-side of the sampling region in arcmin.
         """
+        # pylint: disable=protected-access
         # Remember: we measure the area in arcsec^2, and we throw sky coordinates
         # in degrees.
         total_area = 4. * arcmin_to_arcsec(half_side)**2.
@@ -353,6 +353,7 @@ class xEventSelect:
     def select(self):
         """Select the events and write the output file.
         """
+        # pylint: disable=too-many-branches, too-many-statements
         self._validate()
         # Prepare a list of the header keywords that needs to be updated in the
         # filtered file---these will be passed to xEventFile.write_fits_selected()
