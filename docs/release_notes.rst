@@ -4,6 +4,13 @@ Release notes
 =============
 
 
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/704
+* Now the BACKSCAL keyword is written out by xpselect for an arbitary ds9
+  region file.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/543
+
+
 *ixpeobssim (30.4.0) - Wed, 24 May 2023 10:24:44 +0200*
 
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/702
