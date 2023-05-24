@@ -37,26 +37,51 @@ class TestRegionBackscal(unittest.TestCase):
     """Unit test for the BACKSCAL keyword for xpselect with reg files
     """
 
-    def test_region_backscal(self):
-        """Compare the reg file BACKSCAL with that of the ordinary circle cut
-        of 1'.
+    @classmethod
+    def setUpClass(cls):
+        """Test setup.
         """
         config_file_path = os.path.join(IXPEOBSSIM_CONFIG, 'toy_point_source.py')
-        region_file_path = os.path.join(IXPEOBSSIM_TEST_DATA, 'test_reg_backscal.reg')
         sim_file_path = os.path.join(IXPEOBSSIM_DATA, 'backscal_test')
         logger.info("Generating a toy point source from %s for selection testing...",
-                    config_file_path)
-        test_file = pipeline.xpobssim(configfile = config_file_path, 
-                                      duration = 1000, outfile = sim_file_path)
-        logger.info("Selecting a circular region from %s...", region_file_path)
-        reg_selected = pipeline.xpselect(test_file[0], regfile = region_file_path,
-                                         suffix = 'reg', overwrite = True)
+            config_file_path)
+        cls.file_list = pipeline.xpobssim(configfile = config_file_path, duration=1000,
+            outfile=sim_file_path)
+
+    def test_region_backscal(self):
+        """Compare the reg file BACKSCAL with that of the ordinary circle cut of 1 arcmin.
+        """
+        evt_file_path = self.file_list[0]
+        region_file_path = os.path.join(IXPEOBSSIM_TEST_DATA, 'test_reg_backscal.reg')
+        logger.info('Selecting a circular region from %s...', region_file_path)
+        reg_selected = pipeline.xpselect(evt_file_path, regfile=region_file_path, suffix='reg',
+            overwrite=True)
         reg_backscal = xEventFile(*reg_selected).backscal()
-        logger.info("Selecting a circular region with built-in xpselect function...")
-        circ_selected = pipeline.xpselect(test_file[0], rad = 1, suffix = 'circ',
-                                          overwrite = True)
+        logger.info('Selecting a circular region with built-in xpselect function...')
+        circ_selected = pipeline.xpselect(evt_file_path, rad=1, suffix='circ', overwrite=True)
         circ_backscal = xEventFile(*circ_selected).backscal()
-        assert numpy.allclose(reg_backscal, circ_backscal, rtol = 1e-2)
+        logger.info('Region backscal: %.3f arcsec^2', reg_backscal)
+        logger.info('Circle backscal: %.3f arcsec^2', circ_backscal)
+        logger.info('Ratio: %.6f', reg_backscal / circ_backscal)
+        assert numpy.allclose(reg_backscal, circ_backscal, rtol=1e-2)
+
+    def test_region_backscal_inverse(self):
+        """Compare the reg file BACKSCAL with that of the ordinary circle cut of 1 arcmin.
+        """
+        evt_file_path = self.file_list[0]
+        region_file_path = os.path.join(IXPEOBSSIM_TEST_DATA, 'test_reg_backscal.reg')
+        logger.info('Selecting a circular region from %s...', region_file_path)
+        reg_selected = pipeline.xpselect(evt_file_path, regfile=region_file_path,
+            suffix='reginv', reginv=True, overwrite=True)
+        reg_backscal = xEventFile(*reg_selected).backscal()
+        logger.info('Selecting a circular region with built-in xpselect function...')
+        circ_selected = pipeline.xpselect(evt_file_path, innerrad=1, suffix='annulus',
+            overwrite=True)
+        circ_backscal = xEventFile(*circ_selected).backscal()
+        logger.info('Region backscal: %.3f arcsec^2', reg_backscal)
+        logger.info('Circle backscal: %.3f arcsec^2', circ_backscal)
+        logger.info('Ratio: %.6f', reg_backscal / circ_backscal)
+        assert numpy.allclose(reg_backscal, circ_backscal, rtol=1e-2)
 
 
 
