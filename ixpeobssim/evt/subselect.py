@@ -305,7 +305,7 @@ class xEventSelect:
         return outer_area - inner_area
 
     @timing
-    def _region_backscal(self, region_file_path, num_samples=10000000, half_side=8.):
+    def _region_backscal(self, region_file_path, num_samples=10000000, half_side=10.):
         """Calculate the value to be written in the BACKSCAL header keyword for
         an arbitrary region shape passed via DS9.
 
@@ -313,6 +313,9 @@ class xEventSelect:
         where we throw a bunch of sky coordinates uniformly distributed within
         a square in the sky and count the fraction of them falling inside the
         region (or the logical or of the regions).
+
+        The 10' hald_side is necessary to contain all the field of view including
+        DU rotation and dithering.
 
         Arguments
         ---------
