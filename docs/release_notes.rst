@@ -3,6 +3,9 @@
 Release notes
 =============
 
+
+*ixpeobssim (30.4.0) - Wed, 24 May 2023 10:24:44 +0200*
+
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/702
 * Back-filling the v12 response files with the new arf and mrf appropriate
   for use with the gray filter (the same files are being released in the
