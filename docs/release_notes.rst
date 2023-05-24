@@ -4,6 +4,8 @@ Release notes
 =============
 
 
+*ixpeobssim (30.3.1) - Wed, 24 May 2023 08:47:40 +0200*
+
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/706
 * Small fix for the Q_N and U_N error calculation in the model-independent analysis.
 * Issue(s) closed:
