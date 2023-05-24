@@ -3,6 +3,16 @@
 Release notes
 =============
 
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/702
+* Back-filling the v12 response files with the new arf and mrf appropriate
+  for use with the gray filter (the same files are being released in the
+  May 2023 update of the CALDB at HEASARC).
+* Small update to the structure of the pseudo-caldb to make room for
+  the new QE files and the response at the top of the window to be used in the
+  photon-list workflow.
+* Back-filling the v12 response files with the effective area at the top
+  of the window (not yet used in the photon list workflow).
+
 
 *ixpeobssim (30.3.1) - Wed, 24 May 2023 08:47:40 +0200*
 
