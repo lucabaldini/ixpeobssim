@@ -210,5 +210,6 @@ def load_irf_set(irf_name=DEFAULT_IRF_NAME, du_id=1, caldb_path=None, cache=True
                  simple_weighting=False, psf_type='1d'):
     """Load a set of instrument response functions.
     """
-    return xIRFSet(irf_name, du_id, caldb_path, cache=cache, simple_weighting,
-                    psf_type=psf_type)
+    return xIRFSet(irf_name, du_id, caldb_path, cache=cache,
+                   simple_weighting=simple_weighting,
+                   psf_type=psf_type)
