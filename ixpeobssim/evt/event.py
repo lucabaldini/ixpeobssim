@@ -1069,7 +1069,7 @@ class xEventFile:
         """Return the detx and dety column data, in either the detector x and y
         measured coordinates on the detector.
         """
-        return self.event_data['ABSX'], self.event_data['ABSY']
+        return self.event_data['DETX'], self.event_data['DETY']
 
     def phi_data(self):
         """Return the PHI column.
@@ -1471,13 +1471,7 @@ class xEventFileFriend:
         """Wrap xEventFile.det_position_data() appending values for all the LV1
         files.
         """
-        x = []
-        y = []
-        for fl1 in self.file_list1:
-            _x, _y = fl1.det_position_data()
-            x.append(_x)
-            y.append(_y)
-        return numpy.hstack(x)[self.time_ids], numpy.hstack(y)[self.time_ids]
+        return self.l1value('ABSX'), self.l1value('ABSY')
 
     def wcs_reference(self):
         return [f.wcs_reference() for f in self.file_list2]
