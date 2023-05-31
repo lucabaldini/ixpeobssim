@@ -101,7 +101,7 @@ def fit(model, xdata, ydata, p0=None, sigma=None, xmin=-numpy.inf,
     # If the model has a Jacobian defined, go ahead and use it.
     try:
         jac = model.jacobian
-    except:
+    except AttributeError:
         jac = None
     # If we are not passing default starting points for the model parameters,
     # try and do something sensible.
