@@ -4,6 +4,53 @@ Release notes
 =============
 
 
+*ixpeobssim (30.5.0) - Wed, 24 May 2023 14:50:05 +0200*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/704
+* Now the BACKSCAL keyword is written out by xpselect for an arbitary ds9
+  region file.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/543
+
+
+*ixpeobssim (30.4.0) - Wed, 24 May 2023 10:24:44 +0200*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/702
+* Back-filling the v12 response files with the new arf and mrf appropriate
+  for use with the gray filter (the same files are being released in the
+  May 2023 update of the CALDB at HEASARC).
+* Small update to the structure of the pseudo-caldb to make room for
+  the new QE files and the response at the top of the window to be used in the
+  photon-list workflow.
+* Back-filling the v12 response files with the effective area at the top
+  of the window (not yet used in the photon list workflow).
+
+
+*ixpeobssim (30.3.1) - Wed, 24 May 2023 08:47:40 +0200*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/706
+* Small fix for the Q_N and U_N error calculation in the model-independent analysis.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/705
+
+
+*ixpeobssim (30.3.0) - Thu, 18 May 2023 12:53:13 +0200*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/700
+* Added proper hooks to load the arf and mrf weighted response files with the
+  SIMPLE weighting prescription
+* xpbin now able to produce PCUBE (and PMAP and PMAPCUBE) binned files
+  with weights.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/573
+
+
+*ixpeobssim (30.2.3) - Sat, 18 Mar 2023 10:58:48 +0100*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/695
+* As run target list rendering for year 1 final update.
+
+
 *ixpeobssim (30.2.2) - Wed, 15 Feb 2023 10:22:34 +0100*
 
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/692
