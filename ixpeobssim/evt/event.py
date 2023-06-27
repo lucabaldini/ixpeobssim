@@ -1430,6 +1430,28 @@ class xEventFileFriend:
         else:
             return outvalues[self.time_ids]
 
+    @staticmethod
+    def _min_time(file_list):
+        return min([f.start_met() for f in file_list])
+
+    @staticmethod
+    def _max_time(file_list):
+        return max([f.stop_met() for f in file_list])
+
+    def start_met(self, lv1=False):
+        """
+        """
+        if lv1:
+            return self._min_time(self.file_list1)
+        return self._min_time(self.file_list2)
+
+    def stop_met(self, lv1=False):
+        """
+        """
+        if lv1:
+            return self._max_time(self.file_list1)
+        return self._max_time(self.file_list2)
+
     def l2value(self, val):
         """
         """
