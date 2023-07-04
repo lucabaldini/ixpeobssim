@@ -27,7 +27,7 @@ import numpy
 
 from ixpeobssim.utils.logging_ import logger, abort
 from ixpeobssim.core.fitsio import FITS_TO_NUMPY_TYPE_DICT, set_tlbounds
-from ixpeobssim.core.hist import xHistogram2d, xScatterPlot
+from ixpeobssim.core.hist import xHistogram2d, xScatterPlot, xHistogram1d
 from ixpeobssim.evt.fmt import set_telescope_header_keywords, set_time_header_keywords,\
     set_object_header_keywords, set_version_keywords
 from ixpeobssim.evt.fmt import xLvl2PrimaryHDU, xBinTableHDUEvents, xBinTableHDUMonteCarlo,\
@@ -1392,7 +1392,7 @@ class xEventFileFriend:
 
     def __init__(self, file_list2, file_list1=None):
         """Simple wrapper class to read two list of files, Lv2 and Lv1,
-        for one observation ad get variables for only events filtered
+        for one observation ad get variables for events filtered
         in the level2 selection
         """
         if not isinstance(file_list2, list):
@@ -1419,6 +1419,12 @@ class xEventFileFriend:
             _, self.time_ids, _ = numpy.intersect1d(time1, time2,
                                         assume_unique=False, return_indices=True)
 
+    def l1_paths(self):
+        return [f1.file_path() for f1 in self.file_list1]
+
+    def l2_paths(self):
+        return [f2.file_path() for f2 in self.file_list2]
+
     def l1value(self, val, all_events=False):
         """
         """
@@ -1429,6 +1435,16 @@ class xEventFileFriend:
             return outvalues
         else:
             return outvalues[self.time_ids]
+
+    def l2value(self, val):
+        """
+        """
+        return numpy.hstack([fl2.event_data[val] for fl2 in self.file_list2])
+
+    def time_data(self, all_events=False):
+        """
+        """
+        return self.l1value('TIME', all_events=all_events)
 
     @staticmethod
     def _min_time(file_list):
@@ -1451,17 +1467,6 @@ class xEventFileFriend:
         if lv1:
             return self._max_time(self.file_list1)
         return self._max_time(self.file_list2)
-
-    def l2value(self, val):
-        """
-        """
-        return numpy.hstack([fl2.event_data[val] for fl2 in self.file_list2])
-
-    def l1_paths(self):
-        return [f1.file_path() for f1 in self.file_list1]
-
-    def l2_paths(self):
-        return [f2.file_path() for f2 in self.file_list2]
 
     def energy_data(self, mc=False):
         """Wrap xEventFile.energy_data() appending values for all the LV2 files
@@ -1497,3 +1502,120 @@ class xEventFileFriend:
 
     def wcs_reference(self):
         return [f.wcs_reference() for f in self.file_list2]
+
+    def livetime(self, time_mask=None):
+        """ Get the observation livetime, possibly applying a time
+        selection mask.
+        """
+        lvt = self.file_list2[0].livetime()
+        logger.info ('Total livetime: %s', lvt)
+        if time_mask is not None:
+            lvt_array = self.l1value('LIVETIME')
+            rej_lt = numpy.sum(lvt_array[~time_mask]) / 1.e6
+            logger.info ('Rejected livetime: %s', rej_lt)
+            lvt -= rej_lt
+            logger.info ('Final livetime: %s ', lvt)
+        return lvt
+
+    @staticmethod
+    def _merge_no_duplicate(x, y):
+        """ Merge two numpy arrays removing duplicated elements but preserving
+        order. From https://stackoverflow.com/a/49950451/11677565
+        """
+        z = numpy.concatenate((x, y))
+        _, i = numpy.unique(z, return_index=True)
+        return z[numpy.sort(i)]
+
+    def gti_data(self, lv1=False):
+        """ Warning: This gets the GTI from either level 1 or level 2 file
+        (default). The level 2 definition is more estrictive than other
+        definitions of GTIs, and passes the following selection:
+
+        • Data has been received and processed at the SOC
+        • The spacecraft was actively pointing to the given target
+        • The detectors were properly configured to observe the target
+        • The spacecraft was outside the SAA model polygon
+        • The object was not occulted by the earth or moon
+
+        Note that we must handle the case where the GTIs are split over
+        different files (which is usually the case for LV1, while LV2 GTIs
+        should be identical, although we do not rely on this assumption here).
+        """
+        if lv1:
+            file_list = self.file_list1
+        else:
+            file_list = self.file_list2
+        gti_data = {}
+        for _file in file_list:
+            _gti_data = _file.gti_data()
+            for key, value in _gti_data.items():
+                if key not in gti_data:
+                    gti_data[key] = value
+                    continue
+                gti_data[key] = self._merge_no_duplicate(gti_data[key], value)
+        return gti_data
+
+    def gti_clip_mask(self, all_events=False, lv1_gti=False):
+        """ Create a mask for selecting the GTIs.
+        Note that, even though by default the BTI filtering is already
+        applied to LV2 files, this mask is not equivalent to taking the
+        intersection between LV1 and LV2, as there are events in the GTI which
+        are excluded from LV2 for other reasons. This can be useful, e.g., for
+        computing the exposure.
+        """
+        _gti_data = self.gti_data(lv1=lv1_gti)
+        tstart, tstop = _gti_data['START'], _gti_data['STOP']
+        time = self.l1value('TIME', all_events=all_events)
+        gti = []
+        logger.info('Performing GTI selection...')
+        for start, stop in zip(tstart, tstop):
+            gti.append((time < stop) * (time > start))
+        gti_mask = numpy.logical_or.reduce(gti)
+        logger.info('Kept %s events out of %s after GTI selection',
+                    numpy.sum(gti_mask), len(time))
+        return gti_mask
+
+    def build_livetime_histogram(self, tbins, discard_bti=True):
+        """ Create a time histogram of the livetime from the class l1, l2 files.
+
+        Returns
+        ---------
+        lvt_hist : xHistogram1d
+            Histogram of the livetime in the given time bins
+        """
+        l1_time = self.time_data(all_events=True)
+        livetime = self.l1value('LIVETIME', all_events=True)
+        if discard_bti:
+            mask_l1 = self.gti_clip_mask(all_events=True)
+            l1_time = l1_time[mask_l1]
+            livetime = livetime[mask_l1]
+        lvt_hist = xHistogram1d(tbins, xlabel='MET [s]', ylabel='Livetime [s]')
+        return lvt_hist.fill(l1_time, weights = livetime / 1.e6)
+
+    def build_rate_histogram(self, tbins, discard_bti=True, selection_mask=None):
+        """ Create a time histogram of the livetime corrected rate from the
+        class l1, l2 files. Optionally provide a mask to select a subset
+        of the events.
+
+        Returns
+        ---------
+        rate_hist : xHistogram1d
+            Histogram of the rate in the given time bins
+        """
+        # Note that we must apply the selection only when counting the events,
+        # not when computing the livetime
+        l2_time = self.time_data()
+        if selection_mask is None:
+            selection_mask = numpy.full(l2_time.shape, True)
+        if discard_bti:
+            mask_l2 = self.gti_clip_mask()
+            l2_time = l2_time[mask_l2 * selection_mask]
+        else:
+            l2_time = l2_time[selection_mask]
+        lvt_hist = self.build_livetime_histogram(tbins, discard_bti=discard_bti)
+        rate_hist = xHistogram1d(tbins, xlabel='MET [s]', ylabel='Rate [Hz]')
+        rate_hist.fill(l2_time)
+        rate = rate_hist.content / lvt_hist.content
+        rate_err = numpy.sqrt(rate_hist.content) / lvt_hist.content
+        rate_hist.set_content(rate, rate_hist.entries, rate_err)
+        return rate_hist
