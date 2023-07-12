@@ -22,17 +22,19 @@
 from __future__ import print_function, division
 
 import numpy
+import regions
 
 from ixpeobssim.evt.event import xEventFile
 from ixpeobssim.instrument.gpd import GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X,\
     GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y
 from ixpeobssim.instrument.mma import fiducial_backscal
-from ixpeobssim.utils.astro import angular_separation
+from ixpeobssim.utils.astro import angular_separation, ds9_region_filter_sky
 from ixpeobssim.utils.logging_ import logger, abort
-from ixpeobssim.utils.units_ import degrees_to_arcmin, arcmin_to_arcsec
+from ixpeobssim.utils.profile import timing
+from ixpeobssim.utils.units_ import degrees_to_arcmin, arcmin_to_arcsec, arcmin_to_degrees
 
 
-# pylint: disable=invalid-name, too-many-locals
+# pylint: disable=invalid-name, too-many-locals, consider-using-f-string
 
 
 class xEventSelect:
@@ -100,7 +102,7 @@ class xEventSelect:
     def mask_selected(self):
         """Return True if selecting with event mask directly,
         """
-        return self.get('mask') !=None
+        return self.get('mask') is not None
 
     def _validate(self):
         """Make sure that the event selection is valid.
@@ -268,6 +270,12 @@ class xEventSelect:
         return mask_in
 
     @staticmethod
+    def _default_fiducial_backscal():
+        """Return the default fiducial backscal for the entire detector.
+        """
+        return fiducial_backscal(GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X, GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y)
+
+    @staticmethod
     def _annulus_backscal(inner_radius=None, outer_radius=None):
         """Calculate the value to be written in the BACKSCAL header keyword for
         a given annulus selection.
@@ -291,15 +299,64 @@ class xEventSelect:
         else:
             inner_area = numpy.pi * arcmin_to_arcsec(inner_radius)**2.
         if outer_radius is None:
-            outer_area = fiducial_backscal(GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X,
-                GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y)
+            outer_area = xEventSelect._default_fiducial_backscal()
         else:
             outer_area = numpy.pi * arcmin_to_arcsec(outer_radius)**2.
         return outer_area - inner_area
 
+    @timing
+    def _region_backscal(self, region_file_path, num_samples=10000000, half_side=10.):
+        """Calculate the value to be written in the BACKSCAL header keyword for
+        an arbitrary region shape passed via DS9.
+
+        The procedure is a simple implementation of an hit and miss algorithm,
+        where we throw a bunch of sky coordinates uniformly distributed within
+        a square in the sky and count the fraction of them falling inside the
+        region (or the logical or of the regions).
+
+        The 10' hald_side is necessary to contain all the field of view including
+        DU rotation and dithering.
+
+        Arguments
+        ---------
+        region_file_path : str
+            The path to the ds9 region file.
+
+        num_samples : int
+            The number of samples to be extracted for the hit or miss integration
+
+        half_side : float
+            The half-side of the sampling region in arcmin.
+        """
+        # pylint: disable=protected-access
+        # Remember: we measure the area in arcsec^2, and we throw sky coordinates
+        # in degrees.
+        total_area = 4. * arcmin_to_arcsec(half_side)**2.
+        half_side = arcmin_to_degrees(half_side)
+        # Throw a bunch of random coordinates in the sky, sampling a square region
+        # centered on the reference of the underlying WCS and larger than the
+        # full FOV of the instrument.
+        ra0, dec0 = self.event_file.wcs_reference()
+        delta_ra = numpy.random.uniform(-half_side, half_side, size=num_samples)
+        ra = ra0 + delta_ra / numpy.cos(numpy.radians(dec0))
+        dec = numpy.random.uniform(dec0 - half_side, dec0 + half_side, size=num_samples)
+        # Read the regions. Note that, for the actual event mask downstream,
+        # the relevant call is to xEventFile.ds9_region_file_mask(), which takes the
+        # logical or of the regions (when the file contains more than one of them)
+        # and here we are doing exactly the same thing.
+        regs = regions.Regions.read(region_file_path)
+        # Count the events inside the region.
+        hit = ds9_region_filter_sky(ra, dec, self.event_file._wcs, *regs).sum()
+        backscal = total_area * hit / num_samples
+        logger.info ('Sampling area: %s, %d points / %d hit', total_area, hit, num_samples)
+        logger.info ('BACKSCAL value: %.3f arcsec^2', backscal)
+        return total_area * hit / num_samples
+
+
     def select(self):
         """Select the events and write the output file.
         """
+        # pylint: disable=too-many-branches, too-many-statements
         self._validate()
         # Prepare a list of the header keywords that needs to be updated in the
         # filtered file---these will be passed to xEventFile.write_fits_selected()
@@ -352,12 +409,13 @@ class xEventSelect:
         # and ds9 region files.
         regfile = self.get('regfile')
         if regfile is not None:
-            reg_mask = self.event_file.ds9_region_file_mask(regfile, self.get('mc'))
+            reg_mask = self.event_file.ds9_region_file_mask(regfile, mc=self.get('mc'))
+            backscal = self._region_backscal(regfile)
             if self.get('reginvert'):
                 reg_mask = numpy.logical_not(reg_mask)
+                backscal = xEventSelect._default_fiducial_backscal() - backscal
             mask *= reg_mask
-            # Need to understand how we calculate the area, in this case.
-            #header_keywords.append(('BACKSCAL', )
+            header_keywords['BACKSCAL'] = backscal
 
         # ... and source ID.
         for srcid in self.get('mcsrcid'):
