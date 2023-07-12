@@ -20,6 +20,7 @@
 from __future__ import print_function, division
 
 import numbers
+from functools import lru_cache
 
 from astropy.io import fits
 from astropy import wcs
@@ -1555,6 +1556,7 @@ class xEventFileFriend:
                 gti_data[key] = self._merge_no_duplicate(gti_data[key], value)
         return gti_data
 
+    @lru_cache(maxsize=5)
     def gti_clip_mask(self, all_events=False, lv1_gti=False):
         """ Create a mask for selecting the GTIs.
         Note that, even though by default the BTI filtering is already
