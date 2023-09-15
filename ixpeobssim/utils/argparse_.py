@@ -190,7 +190,7 @@ class xArgumentParser(argparse.ArgumentParser):
     def add_grayfilter(self):
         """Custom option.
         """
-        self.add_boolean('grayfilter', default=False,
+        self.add_boolean('--grayfilter', default=False,
                           help='enable the gray filter')
 
     def add_irfname(self, default=DEFAULT_IRF_NAME, required=False):
