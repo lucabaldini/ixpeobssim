@@ -231,4 +231,4 @@ def load_irf_set(irf_name=DEFAULT_IRF_NAME, du_id=1, caldb_path=None, cache=True
     simple_weighting=False, gray_filter=False):
     """Load a set of instrument response functions.
     """
-    return xIRFSet(irf_name, du_id, caldb_path, cache, simple_weighting)
+    return xIRFSet(irf_name, du_id, caldb_path, cache, simple_weighting, gray_filter)

@@ -56,6 +56,7 @@ PARSER.add_objname()
 PARSER.add_seed()
 PARSER.add_vignetting()
 PARSER.add_dithering()
+PARSER.add_grayfilter()
 PARSER.add_roll()
 PARSER.add_trajectory()
 PARSER.add_sc_data()
@@ -82,7 +83,7 @@ def xpphotonlist(**kwargs):
         numpy.random.seed(_seed)
         # Load the response functions.
         logger.info('Loading the instrument response functions...')
-        irf_set = load_irf_set(kwargs.get('irfname'), du_id)
+        irf_set = load_irf_set(kwargs.get('irfname'), du_id, gray_filter=kwargs.get('grayfilter'))
         logger.info('Done %s.', chrono)
         # Run the actual simulation.
         logger.info('Generating the photon list...')
