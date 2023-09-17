@@ -56,10 +56,6 @@ from ixpeobssim.utils.os_ import check_input_file
 
 # Name of the IRF set to be used by default throughout the package.
 DEFAULT_IRF_NAME = 'ixpe:obssim:v12'
-SUPPORTED_SIMPLE_IRF_TYPES = ('arf', 'mrf')
-SUPPORTED_GRAY_IRF_TYPES = ('arf', 'mrf')
-SUPPORTED_SIMPLE_INTENTS = ('obssim_alpha075', )
-VALID_WEIGHT_NAMES = ('alpha075', )
 
 # Private dictionary to cache the objects that have already been loaded.
 __CACHE = {}
@@ -113,41 +109,8 @@ def _load_irf_base(cls, irf_type, irf_name=DEFAULT_IRF_NAME, du_id=1,
         _irf_name = irf_name
         irf_name = _LEGACY_IRF_NAME_DICT[_irf_name]
         logger.info('Old-style IRF name %s -> %s', _irf_name, irf_name)
-
-    # Hook to handle response files with the SIMPLE weighting scheme.
-    if simple_weighting:
-        # Is this a valid reponse file type for the simple weighting?
-        if irf_type not in SUPPORTED_SIMPLE_IRF_TYPES:
-            raise RuntimeError('No simple weighting available for %s files.', irf_type)
-        # Is the weight name supported in the SIMPLE weighting flavor?
-        base, intent, version = parse_irf_name(irf_name)
-        if intent not in SUPPORTED_SIMPLE_INTENTS:
-            raise RuntimeError('No simple weighting available for %s intent.', intent)
-        # We're good to go, update the IRF name.
-        irf_name = '%s:%ssimple:v%s' % (base, intent, version)
-        logger.debug('Simple weighting scheme required, irf_name set to %s...', irf_name)
-    # Hook to handle response files for the gray filter.
-    if gray_filter:
-        # Is this a valid reponse file type for the simple weighting?
-        if irf_type not in SUPPORTED_GRAY_IRF_TYPES:
-            raise RuntimeError('No gray filter flavor available for %s files.', irf_type)
-        base, intent, version = parse_irf_name(irf_name)
-        # Here the thing gets a little bit unwildely, as the semantic for the
-        # naming with the gray filter, unfortunately, was ill-conceived:
-        # "ixpe:obssim:v12" maps into "ixpe_d*_obssim_gray_v012", while
-        # "ixpe:obssim_alpha075:v12" maps into "ixpe_d*_obssim_gray_alpha075_v012",
-        # that is, the "gray" in the second case is stuck between the two parts
-        # of the intent. As a result, the logic for inserting the damned "_gray"
-        # is more convoluted than it could be.
-        _intent = intent.replace('simple', '')
-        for weight_name in VALID_WEIGHT_NAMES:
-            _intent = _intent.replace(weight_name, '')
-        _intent = _intent.strip('_')
-        _intent = intent.replace(_intent, '%s_gray' % _intent)
-        # We're good to go, update the IRF name.
-        irf_name = '%s:%s:v%s' % (base, _intent, version)
-        logger.debug('Gray filter required, irf_name set to %s...', irf_name)
-    file_path = irf_file_path(irf_name, du_id, irf_type, caldb_path, True)
+    file_path = irf_file_path(irf_name, du_id, irf_type, caldb_path, True,
+        simple_weighting, gray_filter)
     if file_path in __CACHE:
         logger.info('Using cached %s object at %s...', cls.__name__, file_path)
         return __CACHE[file_path]
