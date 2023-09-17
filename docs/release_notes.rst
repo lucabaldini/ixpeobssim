@@ -3,9 +3,17 @@
 Release notes
 =============
 
-* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/716
 * Added proper hooks to load the existing response files with the gray filter.
 * --grayfilter option added to xpobssim and xpphotonlist.
+* --grayfilter option added to xpbin for all the algorithms that are pertinent
+  to polarization (this should allow to perform out of the box a spectro-polarimetric
+  analysis in XSPEC, as well as a model-independent analysis).
+* All the convolved logic for handling the simple weighting scheme in the
+  file naming moved to ixpeobssim.irf.caldb.irf_file_name(), along with the
+  (even more convoluted) logic for handling the gray filter.
+* toy_point_source_grayfilter example added.
+* Unit tests added.
 * Issue(s) closed:
       * https://github.com/lucabaldini/ixpeobssim/issues/712
 
