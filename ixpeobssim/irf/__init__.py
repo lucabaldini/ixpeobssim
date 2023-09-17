@@ -56,9 +56,6 @@ from ixpeobssim.utils.os_ import check_input_file
 
 # Name of the IRF set to be used by default throughout the package.
 DEFAULT_IRF_NAME = 'ixpe:obssim:v12'
-SUPPORTED_SIMPLE_IRF_TYPES = ('arf', 'mrf')
-SUPPORTED_SIMPLE_INTENTS = ('obssim_alpha075', )
-
 
 # Private dictionary to cache the objects that have already been loaded.
 __CACHE = {}
@@ -77,7 +74,7 @@ def peek_irf_type(file_path):
 
 
 def _load_irf_base(cls, irf_type, irf_name=DEFAULT_IRF_NAME, du_id=1,
-    caldb_path=None, cache=True, simple_weighting=False):
+    caldb_path=None, cache=True, simple_weighting=False, gray_filter=False):
     """Base helper function to load a response function.
 
     Arguments
@@ -102,25 +99,18 @@ def _load_irf_base(cls, irf_type, irf_name=DEFAULT_IRF_NAME, du_id=1,
 
     simple_weighting : bool
         If True, load the response file with the SIMPLE weighting scheme.
+
+    gray_filter : bool
+        If True, load the response files apppropriate for the gray filtes (where)
+        this makes sense.
     """
     # Small hook to support old-style IRF names.
     if irf_name in _LEGACY_IRF_NAME_DICT:
         _irf_name = irf_name
         irf_name = _LEGACY_IRF_NAME_DICT[_irf_name]
         logger.info('Old-style IRF name %s -> %s', _irf_name, irf_name)
-    # Hook to handle response files with the SIMPLE weighting scheme.
-    if simple_weighting:
-        # Is this a valid reponse file type for the simple weighting?
-        if irf_type not in SUPPORTED_SIMPLE_IRF_TYPES:
-            raise RuntimeError('No simple weighting available for %s files.', irf_type)
-        # Is the weight name supported in the SIMPLE weighting flavor?
-        base, intent, version = parse_irf_name(irf_name)
-        if intent not in SUPPORTED_SIMPLE_INTENTS:
-            raise RuntimeError('No simple weightig available for %s intent.', intent)
-        # We're good to go, update the IRF name.
-        irf_name = '%s:%ssimple:v%s' % (base, intent, version)
-        logger.debug('Simple weighting scheme required, irf_name set to %s...', irf_name)
-    file_path = irf_file_path(irf_name, du_id, irf_type, caldb_path, True)
+    file_path = irf_file_path(irf_name, du_id, irf_type, caldb_path, True,
+        simple_weighting, gray_filter)
     if file_path in __CACHE:
         logger.info('Using cached %s object at %s...', cls.__name__, file_path)
         return __CACHE[file_path]
@@ -131,11 +121,11 @@ def _load_irf_base(cls, irf_type, irf_name=DEFAULT_IRF_NAME, du_id=1,
 
 
 def load_arf(irf_name=DEFAULT_IRF_NAME, du_id=1, caldb_path=None, cache=True,
-    simple_weighting=False):
+    simple_weighting=False, gray_filter=False):
     """Facility to load the effective area for a given IRF set.
     """
     return _load_irf_base(xEffectiveArea, 'arf', irf_name, du_id, caldb_path,
-        cache, simple_weighting)
+        cache, simple_weighting, gray_filter)
 
 
 def load_vign(irf_name=DEFAULT_IRF_NAME, du_id=1, caldb_path=None, cache=True):
@@ -157,11 +147,11 @@ def load_modf(irf_name=DEFAULT_IRF_NAME, du_id=1, caldb_path=None, cache=True):
 
 
 def load_mrf(irf_name=DEFAULT_IRF_NAME, du_id=1, caldb_path=None, cache=True,
-    simple_weighting=False):
+    simple_weighting=False, gray_filter=False):
     """Facility to load the modulation response for a given IRF set.
     """
     return _load_irf_base(xModulationResponse, 'mrf', irf_name, du_id, caldb_path,
-        cache, simple_weighting)
+        cache, simple_weighting, gray_filter)
 
 
 def load_rmf(irf_name=DEFAULT_IRF_NAME, du_id=1, caldb_path=None, cache=True):
@@ -184,23 +174,24 @@ class xIRFSet:
 
     # pylint: disable=too-few-public-methods
 
-    def __init__(self, irf_name, du_id, caldb_path=None, cache=True, simple_weighting=False):
+    def __init__(self, irf_name, du_id, caldb_path=None, cache=True,
+        simple_weighting=False, gray_filter=False):
         """Constructor.
         """
         self.irf_name = irf_name
         self.du_id = du_id
         args = irf_name, du_id, caldb_path, cache
-        self.aeff = load_arf(*args, simple_weighting)
+        self.aeff = load_arf(*args, simple_weighting, gray_filter)
         self.vign = load_vign(*args)
         self.edisp = load_rmf(*args)
         self.psf = load_psf(*args)
         self.modf = load_modf(*args)
-        self.mrf = load_mrf(*args, simple_weighting)
+        self.mrf = load_mrf(*args, simple_weighting, gray_filter)
 
 
 
 def load_irf_set(irf_name=DEFAULT_IRF_NAME, du_id=1, caldb_path=None, cache=True,
-    simple_weighting=False):
+    simple_weighting=False, gray_filter=False):
     """Load a set of instrument response functions.
     """
-    return xIRFSet(irf_name, du_id, caldb_path, cache, simple_weighting)
+    return xIRFSet(irf_name, du_id, caldb_path, cache, simple_weighting, gray_filter)

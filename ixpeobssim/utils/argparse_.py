@@ -187,6 +187,12 @@ class xArgumentParser(argparse.ArgumentParser):
         self.add_argument('filelist', nargs='+',
                           help='path(s) to the input file(s)')
 
+    def add_grayfilter(self):
+        """Custom option.
+        """
+        self.add_boolean('--grayfilter', default=False,
+                          help='enable the gray filter')
+
     def add_irfname(self, default=DEFAULT_IRF_NAME, required=False):
         """Custom option.
         """
