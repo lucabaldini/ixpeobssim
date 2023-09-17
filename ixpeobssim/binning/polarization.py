@@ -55,7 +55,7 @@ class xEventBinningPHA1Base(xEventBinningBase):
 
     ANCRFILE = None
     XFLT0001 = None
-    SUPPORTED_KWARGS = ['mc', 'weights', 'weightcol']
+    SUPPORTED_KWARGS = ['mc', 'weights', 'weightcol', 'grayfilter']
 
     def __init__(self, file_path, **kwargs):
         """Overloaded constructor.
@@ -174,7 +174,8 @@ class xEventBinningPHA1Base(xEventBinningBase):
         keywords = [
             ('EXPOSURE', self.event_file.livetime()),
             ('RESPFILE', irf_file_path(self.irf_name, du_id, 'rmf')),
-            ('ANCRFILE', irf_file_path(self.irf_name, du_id, self.ANCRFILE)),
+            ('ANCRFILE', irf_file_path(self.irf_name, du_id, self.ANCRFILE,
+                gray_filter=self.get('grayfilter'))),
             ('XFLT0001', self.XFLT0001)
             ]
         spec_hdu.setup_header(keywords)
@@ -309,7 +310,7 @@ class xEventBinningPCUBE(xEventBinningBase):
     """
 
     INTENT = 'polarization cube (in energy layers)'
-    SUPPORTED_KWARGS = ['mc', 'acceptcorr', 'weights', 'weightcol'] + \
+    SUPPORTED_KWARGS = ['mc', 'acceptcorr', 'weights', 'weightcol', 'grayfilter'] + \
         xEventBinningBase._energy_binning_kwargs()
 
     def bin_(self):
@@ -643,7 +644,7 @@ class xEventBinningMDPMAPCUBE(xEventBinningBase):
     """
 
     INTENT = 'MDP map cube in sky coordinates and energy layers'
-    SUPPORTED_KWARGS = ['mc', 'acceptcorr', 'weights', 'weightcol'] + \
+    SUPPORTED_KWARGS = ['mc', 'acceptcorr', 'weights', 'weightcol', 'grayfilter'] + \
         xEventBinningBase._image_wcs_kwargs() + xEventBinningBase._energy_binning_kwargs()
     EXTENSIONS_NAMES = xBinTableHDUPCUBE.MDP_COL_NAMES
 
@@ -906,8 +907,8 @@ class xEventBinningMDPMAP(xEventBinningMDPMAPCUBE):
     """
 
     INTENT = 'MDP map in sky coordinates'
-    SUPPORTED_KWARGS = ['mc', 'acceptcorr', 'weights', 'weightcol', 'emin', 'emax'] + \
-        xEventBinningBase._image_wcs_kwargs()
+    SUPPORTED_KWARGS = ['mc', 'acceptcorr', 'weights', 'weightcol', 'grayfilter',
+        'emin', 'emax'] + xEventBinningBase._image_wcs_kwargs()
 
     def process_kwargs(self):
         """Overloaded method.

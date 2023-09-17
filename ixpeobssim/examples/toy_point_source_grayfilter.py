@@ -40,10 +40,12 @@ def simulate():
 
 
 def bin_():
-    """Create the Stokes spectra in all the three flavors.
+    """Create the Stokes spectra in all the three flavors, as well as the
+    polarization cubes.
     """
     for algorithm in ['PHA1', 'PHA1Q', 'PHA1U']:
         pipeline.xpbin(*pipeline.file_list(), algorithm=algorithm, grayfilter=True)
+    pipeline.xpbin(*pipeline.file_list(), algorithm='PCUBE', grayfilter=True)
 
 
 def spectral_fit():

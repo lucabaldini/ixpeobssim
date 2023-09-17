@@ -225,7 +225,8 @@ class xEventBinningBase:
         This is loading the proper arf file making sure that, when weights are
         used, the SIMPLE weighting prescription is picked.
         """
-        aeff = load_arf(self.irf_name, self.event_file.du_id(), simple_weighting=self.get('weights'))
+        aeff = load_arf(self.irf_name, self.event_file.du_id(),
+            simple_weighting=self.get('weights'), gray_filter=self.get('grayfilter'))
         self.check_pcube_weighting_scheme(aeff)
         return aeff
 
