@@ -27,6 +27,7 @@ if PYXSPEC_INSTALLED:
     import ixpeobssim.evt.xspec_ as xspec_
 
 
+IRF_NAME = 'ixpe:obssim:v12'
 DURATION = 100000.
 
 
@@ -36,7 +37,8 @@ def simulate():
     Note that, due to https://github.com/lucabaldini/ixpeobssim/issues/713
     we have to set the emin command-line flag to something larger than 1.04 keV.
     """
-    pipeline.xpobssim(duration=DURATION, saa=True, occult=True, grayfilter=True, emin=1.05)
+    pipeline.xpobssim(irfname=IRF_NAME, duration=DURATION, saa=True, occult=True,
+        grayfilter=True, emin=1.05)
 
 
 def bin_():
