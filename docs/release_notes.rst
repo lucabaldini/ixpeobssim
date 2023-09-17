@@ -15,6 +15,8 @@ Release notes
 * toy_point_source_grayfilter example added.
 * Unit tests added.
 * Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/710
+      * https://github.com/lucabaldini/ixpeobssim/issues/711
       * https://github.com/lucabaldini/ixpeobssim/issues/712
 
 
