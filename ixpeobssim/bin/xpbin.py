@@ -132,6 +132,7 @@ PARSER.add_argument('--algorithm', choices=BIN_ALGS, required=True,
                     help='the binning algorithm')
 PARSER.add_suffix(None)
 PARSER.add_irfname(default=None)
+PARSER.add_grayfilter()
 PARSER.add_boolean('--acceptcorr', default=True,
     help='enable/disable the acceptance correction for polarization cubse and maps')
 PARSER.add_weights(default=False)
