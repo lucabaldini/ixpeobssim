@@ -3,6 +3,9 @@
 Release notes
 =============
 
+
+*ixpeobssim (30.6.0) - Sun, 17 Sep 2023 21:06:28 +0200*
+
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/716
 * Added proper hooks to load the existing response files with the gray filter.
 * --grayfilter option added to xpobssim and xpphotonlist.
