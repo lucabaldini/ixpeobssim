@@ -4,6 +4,15 @@ Release notes
 =============
 
 
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/717
+* Extrapolated data points at 1 and 12 keV added when building the quadratic splines
+  for specresp response files (effective area, modulation response function,
+  modulation factor). This avoid the low-energy extrapolation problems that
+  we had with the gray filter.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/713
+
+
 *ixpeobssim (30.6.0) - Sun, 17 Sep 2023 21:06:28 +0200*
 
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/716
