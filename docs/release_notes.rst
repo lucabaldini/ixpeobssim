@@ -9,6 +9,7 @@ Release notes
   for specresp response files (effective area, modulation response function,
   modulation factor). This avoid the low-energy extrapolation problems that
   we had with the gray filter.
+* Unit test added.
 * Issue(s) closed:
       * https://github.com/lucabaldini/ixpeobssim/issues/713
 
