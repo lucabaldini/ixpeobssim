@@ -138,6 +138,7 @@ class xSpecRespBase(xResponseBase, xInterpolatedUnivariateSpline):
         self.peak_energy = energy[argmax]
         self.peak_value = resp[argmax]
         fmt = dict(xlabel='Energy [keV]', ylabel=self.Y_LABEL, k=k)
+        energy, resp = self._pad(energy, resp)
         xInterpolatedUnivariateSpline.__init__(self, energy, resp, **fmt)
         try:
             fmt = dict(xlabel='Energy [keV]', ylabel='Relative systematic error', k=k)
@@ -146,6 +147,28 @@ class xSpecRespBase(xResponseBase, xInterpolatedUnivariateSpline):
         except KeyError:
             self.sys_min = None
             self.sys_max = None
+
+    def _pad(self, energy, resp):
+        """Small padding utility.
+
+        This extends the data points used to create the spectral spline all the
+        way to the low- and high-energy extremes (as opposed to the midpoints)
+        of the first and last energy bins.
+
+        This was introduced after
+        https://github.com/lucabaldini/ixpeobssim/issues/713
+        as adding the extra point on the left proved to make the response files
+        with the gray filter stable in the extrapolation. We're not doing anything
+        fancy---just linearly extrapolating in log space.
+        """
+        emin, emax = self.field('ENERG_LO')[0], self.field('ENERG_HI')[-1]
+        respmin = resp[0] / 10.**(0.5 * numpy.log10(resp[1] / resp[0]))
+        respmax = resp[-1] / 10.**(0.5 * numpy.log10(resp[-2] / resp[-1]))
+        energy = numpy.insert(energy, 0, emin)
+        resp = numpy.insert(resp, 0, respmin)
+        energy = numpy.insert(energy, -1, emax)
+        resp = numpy.insert(resp, -1, respmax)
+        return energy, resp
 
     def has_sys_errors(self):
         """Return True if the object instance has both negative and positive
