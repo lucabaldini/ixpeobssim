@@ -4,6 +4,8 @@ Release notes
 =============
 
 
+*ixpeobssim (30.6.1) - Mon, 18 Sep 2023 18:56:35 +0200*
+
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/717
 * Extrapolated data points at 1 and 12 keV added when building the quadratic splines
   for specresp response files (effective area, modulation response function,
