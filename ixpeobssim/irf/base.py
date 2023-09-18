@@ -123,7 +123,7 @@ class xSpecRespBase(xResponseBase, xInterpolatedUnivariateSpline):
     Y_UNITS = 'cm$^2$'
     Y_LABEL = 'On-axis effective area [%s]' % Y_UNITS
 
-    def __init__(self, file_path, extension, k=2):
+    def __init__(self, file_path, extension, k=2, pad=True):
         """Overloaded constructor
         """
         xResponseBase.__init__(self, file_path, extension)
@@ -138,7 +138,8 @@ class xSpecRespBase(xResponseBase, xInterpolatedUnivariateSpline):
         self.peak_energy = energy[argmax]
         self.peak_value = resp[argmax]
         fmt = dict(xlabel='Energy [keV]', ylabel=self.Y_LABEL, k=k)
-        energy, resp = self._pad(energy, resp)
+        if pad:
+            energy, resp = self._pad(energy, resp)
         xInterpolatedUnivariateSpline.__init__(self, energy, resp, **fmt)
         try:
             fmt = dict(xlabel='Energy [keV]', ylabel='Relative systematic error', k=k)
