@@ -50,7 +50,7 @@ class TestSignificance(unittest.TestCase):
     def _significance_new(confidence):
         """New routine proposed by Phil.
         """
-        return scipy.stats.norm.ppf(confidence / 2. + 0.5)
+        return scipy.stats.norm.ppf(0.5 * confidence + 0.5)
 
     def test(self):
         """Quick test comparing the two.
