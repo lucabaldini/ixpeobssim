@@ -3,6 +3,9 @@
 Release notes
 =============
 
+
+*ixpeobssim (30.6.3) - Tue, 19 Sep 2023 16:33:03 +0200*
+
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/718
 * Small fix in the significance calculation for polarization cubes.
   (This won't make a huge difference for any sensible detection, but the old
