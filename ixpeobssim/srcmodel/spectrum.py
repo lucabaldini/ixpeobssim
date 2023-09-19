@@ -27,8 +27,9 @@ import numpy
 
 from ixpeobssim.utils.environment import PYXSPEC_INSTALLED
 from ixpeobssim.core.rand import xUnivariateGenerator, xUnivariateAuxGenerator
-from ixpeobssim.core.spline import xInterpolatedUnivariateSpline
+from ixpeobssim.core.spline import xInterpolatedUnivariateSpline, xInterpolatedBivariateSpline
 from ixpeobssim.evt.mdp import xMDPTable
+from ixpeobssim.irf import load_arf, load_rmf
 from ixpeobssim.utils.units_ import erg_to_keV, keV_to_erg
 from ixpeobssim.utils.logging_ import logger
 from ixpeobssim.srcmodel.gabs import xInterstellarAbsorptionModel
@@ -767,3 +768,34 @@ class xCountSpectrum(xSourceSpectrum):
             mu_eff = mu_spectrum.integral(emin, emax) / num_counts
             mdp_table.add_row(emin, emax, mu_eff, num_counts)
         return mdp_table
+
+
+
+class xSmearingMatrix(xInterpolatedBivariateSpline):
+
+    """Class representing a smearing matrix, i.e., the convolution of the
+    response matrix with a given source spectrum and effective area.
+    """
+
+    def __init__(self, irf_name, du_id, spectral_index, gray_filter=False,
+        column_density=0.):
+        """Constructor.
+        """
+        # Load the response matrix and the effective area.
+        edisp = load_rmf(irf_name, du_id)
+        aeff = load_arf(irf_name, du_id, gray_filter=gray_filter)
+        # Grab the relevant arrays.
+        channel = edisp.matrix.x
+        energy = edisp.matrix.y
+        matrix = edisp.matrix.z
+        # Convolve with the source spectrum.
+        matrix *= energy**-spectral_index
+        # If necessary, convolve with the interstellar absorption.
+        if column_density > 0.:
+            matrix *= xInterstellarAbsorptionModel().transmission_factor(column_density)(energy)
+        # Convolve with the effective area.
+        matrix *= aeff(energy)
+        # Normalize all the vertical slices.
+        matrix = (matrix.T / matrix.sum(axis=1)).T
+        # Build the actual interpolated spline.
+        xInterpolatedBivariateSpline.__init__(self, channel, energy, matrix)
