@@ -47,6 +47,7 @@ class TestSmearingMatrix(unittest.TestCase):
             plt.figure('Smearing matrix slice at channel %d' % chan)
             matrix_std.vslice(chan).plot(label='Standard')
             matrix_gry.vslice(chan).plot(label='Gray filter')
+            plt.text(0.75, 0.75, 'Channel %d' % chan, transform=plt.gca().transAxes)
             setup_gca(xlabel='Energy [keV]', ylabel='pdf', legend=True,
                 logy=True, grids=True, ymin=1e-8)
 
