@@ -26,7 +26,6 @@ import numpy
 
 from ixpeobssim.irf import DEFAULT_IRF_NAME
 from ixpeobssim.srcmodel.spectrum import xSmearingMatrix
-#from ixpeobssim.irf.ebounds import energy_to_channel
 from ixpeobssim.utils.matplotlib_ import plt, setup_gca, last_line_color
 
 if sys.flags.interactive:
@@ -44,16 +43,12 @@ class TestSmearingMatrix(unittest.TestCase):
         """
         matrix_std = xSmearingMatrix(irf_name, du_id, spectral_index, gray_filter=False)
         matrix_gry = xSmearingMatrix(irf_name, du_id, spectral_index, gray_filter=True)
-
-        plt.figure('Smearing matrix')
-        matrix_std.plot()
-        setup_gca(xlabel='Channel', ylabel='Energy')
-
-        for chan in (50, 100, 150, 200):
+        for chan in (50, 75):
             plt.figure('Smearing matrix slice at channel %d' % chan)
             matrix_std.vslice(chan).plot(label='Standard')
             matrix_gry.vslice(chan).plot(label='Gray filter')
-            setup_gca(legend=True, logy=True, grids=True, ymin=1e-8)
+            setup_gca(xlabel='Energy [keV]', ylabel='pdf', legend=True,
+                logy=True, grids=True, ymin=1e-8)
 
 
 
