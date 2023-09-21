@@ -28,7 +28,7 @@ import sys
 import numpy
 
 from ixpeobssim.instrument import DU_IDS
-from ixpeobssim.irf import load_arf
+from ixpeobssim.irf import load_arf, DEFAULT_IRF_NAME
 from ixpeobssim.utils.matplotlib_ import plt, setup_gca
 
 if sys.flags.interactive:
@@ -63,7 +63,20 @@ class TestIxpeArf(unittest.TestCase):
             E = numpy.linspace(1., 12., 1000)
             plt.plot(E, aeff(E))
             setup_gca(xlabel='Energy [keV]', ylabel='Effective area [cm$^2$]', logx=True,
-                logy=True)
+                logy=True, xmin=1., xmax=12., grids=True)
+
+    def test_comparison(self, irf_name=DEFAULT_IRF_NAME, du_id=1):
+        """Compare the effectivea area with and without the gray filter.
+        """
+        aeff_std = load_arf(irf_name, du_id, gray_filter=False)
+        aeff_gry = load_arf(irf_name, du_id, gray_filter=True)
+        E = numpy.linspace(1., 12., 200)
+        plt.figure('Gray filter effective area')
+        plt.plot(E, aeff_std(E), label='Standard')
+        plt.plot(E, aeff_gry(E), label='Gray filter')
+        setup_gca(xlabel='Energy [keV]', ylabel='Effective area [cm$^2$]', grids=True,
+            legend=True, logy=True, logx=True, xmin=1., xmax=12., ymin=1.e-6)
+
 
 
 if __name__ == '__main__':
