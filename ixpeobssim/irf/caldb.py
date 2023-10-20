@@ -38,7 +38,9 @@ __CALDB_FOLDER_DICT = {
     'tow' : ('gpd', 'cpf', 'tow'),
     'qe'  : ('gpd', 'bcf', 'qe'),
     'psf' : ('xrt', 'bcf', 'psf'),
-    'vign': ('xrt', 'bcf', 'vign')
+    'vign': ('xrt', 'bcf', 'vign'),
+    'grflt': ('gpd', 'bcf', 'grflt'),
+    'uvflt': ('gpd', 'bcf', 'uvflt')
     }
 
 
