@@ -1506,15 +1506,19 @@ class xEventFileFriend:
 
     def livetime(self, time_mask=None):
         """ Get the observation livetime, possibly applying a time
-        selection mask.
+        selection mask. Note: the mask must be of the size of the full LV1
+        sample.
         """
-        lvt = self.file_list2[0].livetime()
-        logger.info ('Total livetime: %s', lvt)
-        if time_mask is not None:
-            lvt_array = self.l1value('LIVETIME')
-            rej_lt = numpy.sum(lvt_array[~time_mask]) / 1.e6
+        if time_mask is None:
+            lvt = self.file_list2[0].livetime()
+        else:
+            lvt_array = self.l1value('LIVETIME', all_events=True)
+            gti_mask = self.gti_clip_mask(all_events=True)
+            tot_lvt = lvt_array[gti_mask].sum() / 1.e6
+            logger.info ('Total livetime: %s', tot_lvt)
+            rej_lt = numpy.sum(lvt_array[(~time_mask) * gti_mask]) / 1.e6
             logger.info ('Rejected livetime: %s', rej_lt)
-            lvt -= rej_lt
+            lvt = tot_lvt - rej_lt
             logger.info ('Final livetime: %s ', lvt)
         return lvt
 
