@@ -3,6 +3,9 @@
 Release notes
 =============
 
+
+*ixpeobssim (30.6.4) - Tue, 12 Dec 2023 14:22:42 +0100*
+
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/718
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/722
 * New xSmearingMatrix class added, and a couple of unit tests along with it.
