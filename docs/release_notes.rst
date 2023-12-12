@@ -4,7 +4,11 @@ Release notes
 =============
 
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/718
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/722
 * New xSmearingMatrix class added, and a couple of unit tests along with it.
+* Fix for issue #721 (compatibility issue with scipy 6x)
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/721
 
 
 *ixpeobssim (30.6.3) - Tue, 19 Sep 2023 16:33:03 +0200*

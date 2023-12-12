@@ -25,11 +25,11 @@ import numbers
 import functools
 
 from astropy import units, wcs
-from astropy.coordinates import angle_utilities, SkyCoord
+import astropy.coordinates
 import numpy
 import regions
 
-from ixpeobssim.utils.environment import REGIONS_VERSION
+from ixpeobssim.utils.environment import REGIONS_VERSION, ASTROPY_VERSION
 from ixpeobssim.utils.logging_ import logger
 
 
@@ -139,7 +139,7 @@ def ds9_region_filter_sky(ra, dec, wcs_, *region_list, compound_mode="or", inver
         The mask array corresponding to the input events.
     """
     reg = region_compound(*region_list, compound_mode=compound_mode)
-    mask = reg.contains(SkyCoord(ra * units.degree, dec * units.degree), wcs_)
+    mask = reg.contains(astropy.coordinates.SkyCoord(ra * units.degree, dec * units.degree), wcs_)
     if invert:
         mask = numpy.invert(mask)
     return mask
@@ -171,8 +171,12 @@ def angular_separation(ra, dec, ra0, dec0):
         The reference dec coordinate.
     """
     args = [numpy.radians(val) for val in (ra, dec, ra0, dec0)]
-    return numpy.degrees(angle_utilities.angular_separation(*args))
-
+    # This conditional branch is a brute-force fix for
+    # https://github.com/lucabaldini/ixpeobssim/issues/721
+    if ASTROPY_VERSION < '6.0.0':
+        return numpy.degrees(astropy.coordinates.angle_utilities.angular_separation(*args))
+    else:
+        return numpy.degrees(astropy.coordinates.angular_separation(*args))
 
 def square_sky_grid(nside, center, half_size):
     """Create a square, regular grid in ra and dec.
