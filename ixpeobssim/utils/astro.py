@@ -26,7 +26,6 @@ import functools
 
 from astropy import units, wcs
 import astropy.coordinates
-#from astropy.coordinates import angle_utilities, SkyCoord
 import numpy
 import regions
 
