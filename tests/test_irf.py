@@ -122,6 +122,27 @@ class TestIrf(unittest.TestCase):
             self.assertTrue('simple' in irf_set.aeff.file_path)
             self.assertTrue('simple' in irf_set.mrf.file_path)
 
+    def test_gray_filter(self):
+        """Quick test for the response files with the gray filter.
+        """
+        for du_id in DU_IDS:
+            irf_name = 'ixpe:obssim:v12'
+            aeff = load_arf(irf_name, du_id, gray_filter=True)
+            self.assertTrue('gray' in aeff.file_path)
+            mrf = load_arf(irf_name, du_id, gray_filter=True)
+            self.assertTrue('gray' in mrf.file_path)
+            irf_name = 'ixpe:obssim_alpha075:v12'
+            aeff = load_arf(irf_name, du_id, gray_filter=True)
+            self.assertTrue('gray' in aeff.file_path)
+            mrf = load_arf(irf_name, du_id, gray_filter=True)
+            self.assertTrue('gray' in mrf.file_path)
+            aeff = load_arf(irf_name, du_id, simple_weighting=True, gray_filter=True)
+            self.assertTrue('gray' in aeff.file_path)
+            self.assertTrue('simple' in aeff.file_path)
+            mrf = load_arf(irf_name, du_id, simple_weighting=True, gray_filter=True)
+            self.assertTrue('gray' in mrf.file_path)
+            self.assertTrue('simple' in mrf.file_path)
+
 
 
 if __name__ == '__main__':

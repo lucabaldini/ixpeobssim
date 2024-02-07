@@ -4,6 +4,58 @@ Release notes
 =============
 
 
+*ixpeobssim (30.6.4) - Tue, 12 Dec 2023 14:22:42 +0100*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/718
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/722
+* New xSmearingMatrix class added, and a couple of unit tests along with it.
+* Fix for issue #721 (compatibility issue with scipy 6x)
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/721
+
+
+*ixpeobssim (30.6.3) - Tue, 19 Sep 2023 16:33:03 +0200*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/718
+* Small fix in the significance calculation for polarization cubes.
+  (This won't make a huge difference for any sensible detection, but the old
+  calculation was wrong, and you should definitely update.)
+* Unit test added.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/709
+
+
+*ixpeobssim (30.6.2) - Mon, 18 Sep 2023 18:56:54 +0200*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/717
+* Extrapolated data points at 1 and 12 keV added when building the quadratic splines
+  for specresp response files (effective area, modulation response function,
+  modulation factor). This avoid the low-energy extrapolation problems that
+  we had with the gray filter.
+* Unit test added.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/713
+
+
+*ixpeobssim (30.6.0) - Sun, 17 Sep 2023 21:06:28 +0200*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/716
+* Added proper hooks to load the existing response files with the gray filter.
+* --grayfilter option added to xpobssim and xpphotonlist.
+* --grayfilter option added to xpbin for all the algorithms that are pertinent
+  to polarization (this should allow to perform out of the box a spectro-polarimetric
+  analysis in XSPEC, as well as a model-independent analysis).
+* All the convolved logic for handling the simple weighting scheme in the
+  file naming moved to ixpeobssim.irf.caldb.irf_file_name(), along with the
+  (even more convoluted) logic for handling the gray filter.
+* toy_point_source_grayfilter example added.
+* Unit tests added.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/710
+      * https://github.com/lucabaldini/ixpeobssim/issues/711
+      * https://github.com/lucabaldini/ixpeobssim/issues/712
+
+
 *ixpeobssim (30.5.0) - Wed, 24 May 2023 14:50:05 +0200*
 
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/704
