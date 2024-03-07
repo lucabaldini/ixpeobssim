@@ -3,6 +3,9 @@
 Release notes
 =============
 
+
+*ixpeobssim (31.0.0) - Thu, 07 Mar 2024 15:21:06 +0100*
+
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/723
 * Initial import of version 13 of the response files, in synch with the official
   IXPE CALDB shipped with HEASoft 6.33.
