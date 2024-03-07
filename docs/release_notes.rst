@@ -3,6 +3,15 @@
 Release notes
 =============
 
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/723
+* Initial import of version 13 of the response files, in synch with the official
+  IXPE CALDB shipped with HEASoft 6.33.
+* Default IRF name bumped to one of the new sets of response files (more specifically,
+  'ixpe:obssim20240101:v13') now provided in 6-months time intervals.
+* Documentation updated.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/724
+
 
 *ixpeobssim (30.6.4) - Tue, 12 Dec 2023 14:22:42 +0100*
 

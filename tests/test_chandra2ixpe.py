@@ -117,7 +117,7 @@ class TestChandraToIxpe(unittest.TestCase):
         new_num_events = expect_repeat.sum()
         _delta =  old_num_events / new_num_events - 1
         _delta_max = numpy.absolute(_delta).max()
-        self.assertTrue(_delta_max < 1e-2, 'diff. %.9f' % _delta_max)
+        self.assertTrue(_delta_max < 1.4e-2, 'diff. %.9f' % _delta_max)
 
     def test_chandra_converter(self):
         """Run a quick test converting data from Chandra.
