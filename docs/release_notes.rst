@@ -4,6 +4,8 @@ Release notes
 =============
 
 
+*ixpeobssim (31.0.1) - Fri, 08 Mar 2024 08:38:15 +0100*
+
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/726
 * Fix for a critical bug that was preventing from using weights in a model-independent
   analysis with the latest iteration of the response files.
