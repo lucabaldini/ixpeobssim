@@ -48,8 +48,27 @@ IRF_TYPES = __CALDB_FOLDER_DICT.keys()
 # Auxiliary variables for the IRF variants, i.e., simple weighting and gray filter.
 VALID_WEIGHT_NAMES = ('alpha075', )
 SUPPORTED_SIMPLE_IRF_TYPES = ('arf', 'mrf')
-SUPPORTED_SIMPLE_INTENTS = ('obssim_alpha075', )
 SUPPORTED_GRAY_IRF_TYPES = ('arf', 'mrf')
+
+
+def _supports_simple_weighting(intent):
+    """Return True if the given intent portion of the irf_name supports simple
+    weighting.
+
+    This used to be a simple tuple ('obssim_alpha075', ), but we have to resort
+    to a function after
+    https://github.com/lucabaldini/ixpeobssim/issues/725
+    due to the fact the, starting with version v13, we ship different sets of
+    response files in 6-months time bins.
+
+    Arguments
+    ---------
+    intent : str
+        The given intent.
+    """
+    if intent.endswith('_alpha075'):
+        return True
+    return False
 
 
 def irf_file_name(base, du_id, irf_type, intent, version, simple_weighting=False,
@@ -98,7 +117,7 @@ def irf_file_name(base, du_id, irf_type, intent, version, simple_weighting=False
     if simple_weighting:
         if irf_type not in SUPPORTED_SIMPLE_IRF_TYPES:
             raise RuntimeError('No simple weighting available for %s files.', irf_type)
-        if intent not in SUPPORTED_SIMPLE_INTENTS:
+        if not _supports_simple_weighting(intent):
             raise RuntimeError('No simple weighting available for %s intent.', intent)
         intent = '%ssimple' % intent
         logger.debug('Simple weighting scheme required, intent set to %s...', intent)
