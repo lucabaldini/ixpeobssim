@@ -259,6 +259,15 @@ xpsonify
    :shell:
 
 
+.. _reference-xpbkgtemplate:
+
+xpbkgtemplate
+~~~~~~~~~~~~~
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpbkgtemplate.py --help
+   :ellipsis: 0,11
+   :shell:
+
+
 .. _reference-xpevtstat:
 
 xpevtstat
