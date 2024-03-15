@@ -211,7 +211,7 @@ def residual_plot(figure_name=None, separation=0.3, padding=0.01,
     plt.sca(ax1)
     ax2.get_yaxis().set_label_coords(ylabel_offset, 0.5)
     if sharex:
-        ax1.get_shared_x_axes().join(ax1, ax2)
+        ax1.sharex(ax2)
         ax2.autoscale() ## call autoscale if needed
     return ax1, ax2
 
