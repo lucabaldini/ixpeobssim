@@ -613,7 +613,8 @@ class xStokesAnalysis:
         # is then calculated with the ppf of a normal distribution.
         pval[mask] = numpy.exp(-0.5 * (_Q**2. / dQ[mask]**2. + _U**2. / dU[mask]**2.))
         conf[mask] = 1. - pval[mask]
-        sig[mask] =  scipy.stats.norm.ppf(conf[mask])
+        # Note this has been fixed after https://github.com/lucabaldini/ixpeobssim/issues/727
+        sig[mask] =  scipy.stats.norm.ppf(0.5 * conf[mask] + 0.5)
         # And this is obviously ill-conditioned when we're many sigmas from zero,
         # as the pvalue is too small, the detection confidence is 1, and the
         # significance becomes infinite. Under this conditions we might as well
