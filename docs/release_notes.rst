@@ -3,6 +3,9 @@
 Release notes
 =============
 
+
+*ixpeobssim (31.0.2) - Thu, 22 Aug 2024 16:07:35 +0200*
+
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/731
 * Small bug fix in the significance calculation, germane to that fixed in
   issue #709.
