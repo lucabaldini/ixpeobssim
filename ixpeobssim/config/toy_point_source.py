@@ -53,6 +53,8 @@ pd = 0.1
 pa = 30.
 pol_deg = constant(pd)
 pol_ang = constant(numpy.radians(pa))
+eflux = 2.5786e-8 # energy flux in erg/cm^2/s, between 2 and 10 keV
+i_norm_ltime = 4 # I(Stokes)/livetime in 1/s, between 2 and 10 keV
 
 src = xPointSource('Point source', ra, dec, spec, pol_deg, pol_ang)
 
