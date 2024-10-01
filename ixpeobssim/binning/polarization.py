@@ -573,6 +573,8 @@ class xBinnedPolarizationCube(xBinnedFileBase):
                 step = 0.05
             else:
                 step = 0.1
+            if side < step:
+                side = step
             pd_grid = numpy.arange(step, side, step)
         # If the color is not set, default to the color for the DU.
         if colors is None:
