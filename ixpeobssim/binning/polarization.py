@@ -573,8 +573,10 @@ class xBinnedPolarizationCube(xBinnedFileBase):
                 step = 0.05
             else:
                 step = 0.1
-            if side < step:
-                side = step
+            # Deal with an edge case reported in issue #733.
+            print(side, step)
+            if side <= 2 * step:
+                side = 2.01 * step
             pd_grid = numpy.arange(step, side, step)
         # If the color is not set, default to the color for the DU.
         if colors is None:
@@ -604,14 +606,16 @@ class xBinnedPolarizationCube(xBinnedFileBase):
             # Annotations for the energy layers.
             if annotate_energies:
                 label = '%.2f-%.2f keV' % (emin, emax)
+                delta_offset = min(0.75 * side, 0.05)
+                delta_slope = min(0.75 * side, 0.02)
                 if q > 0:
-                    xtext = q - 0.05 + 0.02 * i
+                    xtext = q - delta_offset + delta_slope * i
                 else:
-                    xtext = q + 0.05 - 0.02 * i
+                    xtext = q + delta_offset - delta_slope * i
                 if u > 0:
-                    ytext = u - 0.05 - 0.02 * i
+                    ytext = u - delta_offset - delta_slope * i
                 else:
-                    ytext = u + 0.05 + 0.02 * i
+                    ytext = u + delta_offset + delta_slope * i
                 plt.gca().annotate(label, xy=(q, u), xycoords='data', xytext=(xtext, ytext),
                     textcoords='data', size='small', ha='center', zorder=10, color=color,
                     arrowprops=dict(arrowstyle="->", color=color, lw=0.75,
