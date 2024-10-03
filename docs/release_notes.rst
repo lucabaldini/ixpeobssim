@@ -3,6 +3,9 @@
 Release notes
 =============
 
+
+*ixpeobssim (31.0.3) - Thu, 03 Oct 2024 12:17:38 +0200*
+
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/732
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/734
 * Small bug fix in the visualization of polarization cubes.
