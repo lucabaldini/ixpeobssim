@@ -11,6 +11,7 @@ Release notes
       * https://github.com/lucabaldini/ixpeobssim/issues/728
       * https://github.com/lucabaldini/ixpeobssim/issues/733
 
+
 *ixpeobssim (31.0.2) - Thu, 22 Aug 2024 16:07:35 +0200*
 
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/731
