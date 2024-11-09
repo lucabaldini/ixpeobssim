@@ -320,28 +320,10 @@ class xEphemeris:
         dt = self._dt(met)
         return self.nu0 * dt + self.nudot0 * (dt**2.) / 2. + self.nuddot * (dt**3.) / 6.
 
-    def fold(self, met, start_met, phi0=0.):
-        """Fold the MET values to return the corresponding arrays of pulse phase.
-
-        .. warning::
-
-            This is creating a new xEphemeris object with the reference MET set
-            to start_met, and the frequency derivatives changed accordingly, and
-            then calling the met_to_phase() method of this new object. This is
-            supposed to roundtrip with the rvs() method to a decent accuracy,
-            and is therefore the interface used in the xpphase application.
-            Note, however, that there is a lot of numerical (more or less random)
-            rounding going on under the hood, and this is not intended
-            for "professional" use. (In a sense, the function internals are
-            tweaked specifically for the numerical noise to play in such a way
-            that we're making approximately the same errors in rvs() and fold()).
+    def pulse_phase(self, met, phi0=0.):
+        """Convert an array of MET values into the corresponding pulse phases.
         """
-        met0 = start_met
-        nu0 = self.nu(start_met)
-        nudot0 = self.nudot(start_met)
-        phase = xEphemeris(met0, nu0, nudot0, self.nuddot).met_to_phase(met)
-        pulse_phase = numpy.mod(phase + phi0, 1)
-        return pulse_phase
+        return numpy.mod(self.met_to_phase(met) + phi0, 1)
 
     def phase_spline(self, start_met, duration, num_points=1000):
         """Return an interpolated univariate spline with the phase values for
@@ -424,9 +406,9 @@ class xEphemeris:
         # Calculate the number of periods spanned by the target met interval.
         # Note that we split the calculation into the integer and fractional
         # parts, that need to be handled separately.
-        phase_min = self.met_to_phase(start_met)
-        phase_max = self.met_to_phase(start_met + duration)
-        delta_phase = phase_max - phase_min
+        start_phase = self.met_to_phase(start_met)
+        end_phase = self.met_to_phase(start_met + duration)
+        delta_phase = end_phase - start_phase
         reminder, num_periods = numpy.modf(delta_phase)
         # Calculate the number of events to be extracted in the last fraction
         # of a period.
@@ -436,13 +418,13 @@ class xEphemeris:
         # pulse phase.
         period = numpy.random.randint(0, num_periods, num_events - num_extra_events)
         pulse_phase = pulse_profile.rvs(period.shape)
-        phase = phase_min + period + pulse_phase
+        phase = start_phase + period + pulse_phase
         # Step 2: if the target duration does not span exactly an integer number
         # of periods, we take care of the last fractional part.
         if num_extra_events > 0:
             _pulse_phase = pulse_profile.rvs_bounded(num_extra_events, rvmax=reminder)
             pulse_phase = numpy.append(pulse_phase, _pulse_phase)
-            phase = numpy.append(phase, phase_min + num_periods + _pulse_phase)
+            phase = numpy.append(phase, start_phase + num_periods + _pulse_phase)
         # Transfor the phase to MET values.
         met = self.phase_to_met(phase, start_met, duration)
         # Sort the event times (and phases accordingly).
