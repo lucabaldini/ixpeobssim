@@ -19,6 +19,7 @@
 from __future__ import print_function, division
 
 
+import itertools
 import numpy
 import scipy.stats
 
@@ -318,11 +319,11 @@ class xFitModelBase:
         """
         m1 = self
         m2 = other
-        xmin = min(m1.DEFAULT_PLOTTING_RANGE[0], m2.DEFAULT_PLOTTING_RANGE[0])
-        xmax = max(m1.DEFAULT_PLOTTING_RANGE[1], m2.DEFAULT_PLOTTING_RANGE[1])
+        xmin = min(m1.xmin, m2.xmin)
+        xmax = max(m1.xmax, m2.xmax)
         name = '%s + %s' % (m1.__class__.__name__, m2.__class__.__name__)
         # In order to correctly propagate the parameter boundaries of the two
-        # input models to their sum, we need to handle the case where one or
+        # input models to their sum, we neaed to handle the case where one or
         # both of them do not define their PARAMETER_DEFAULT_BOUNDS, relying
         # on the base class default. In that case we simply repeat those
         # default values for as many parameters as there are in that model.
@@ -336,9 +337,17 @@ class xFitModelBase:
                 lower_bounds += m.bounds[0]
                 upper_bounds += m.bounds[1]
 
+        # Handle the case of duplicated parameter names
+        parameter_names = []
+        for _name in itertools.chain(m1.PARAMETER_NAMES, m2.PARAMETER_NAMES):
+            if _name not in parameter_names:
+                parameter_names.append(_name)
+            else:
+                parameter_names.append(f'{_name}2')
+
         class _model(xFitModelBase):
 
-            PARAMETER_NAMES = m1.PARAMETER_NAMES + m2.PARAMETER_NAMES
+            PARAMETER_NAMES = tuple(parameter_names)
             PARAMETER_DEFAULT_VALUES = m1.PARAMETER_DEFAULT_VALUES + \
                                        m2.PARAMETER_DEFAULT_VALUES
             DEFAULT_PLOTTING_RANGE = (xmin, xmax)
@@ -347,16 +356,31 @@ class xFitModelBase:
             def __init__(self):
                 self.__class__.__name__ = name
                 xFitModelBase.__init__(self)
+                self.set_parameters(*itertools.chain(m1.parameters, m2.parameters))
 
             @staticmethod
             def value(x, *parameters):
                 return m1.value(x, *parameters[:len(m1)]) +\
-                    m2.value(x, *parameters[len(m1):])
+                       m2.value(x, *parameters[len(m1):])
 
+            def plot(self, *parameters, **kwargs):
+                """Plot the model.
+                """
+                xFitModelBase.plot(self, *parameters, **kwargs)
+                m1.set_plotting_range(self.xmin, self.xmax)
+                m2.set_plotting_range(self.xmin, self.xmax)
+                m1.plot(*self.parameters[:len(m1)], display_stat_box=False,
+                        linestyle='dashed')
+                m2.plot(*self.parameters[len(m1):], display_stat_box=False,
+                        linestyle='dashed')
+
+        # Dynamically add the jacobian method only if both the addenda provide one
+        if hasattr(m1, 'jacobian') and hasattr(m2, 'jacobian'):
             @staticmethod
             def jacobian(x, *parameters):
                 return numpy.hstack((m1.jacobian(x, *parameters[:len(m1)]),
                                      m2.jacobian(x, *parameters[len(m1):])))
+            setattr(_model, 'jacobian', jacobian)
 
         return _model()
 
