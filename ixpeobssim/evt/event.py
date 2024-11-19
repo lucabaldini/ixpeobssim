@@ -1431,7 +1431,7 @@ class xEventFileFriend:
         """
         if self.file_list1 == None:
             return None
-        outvalues = numpy.hstack([fl1.event_data[val] for fl1 in self.file_list1])
+        outvalues = numpy.concatenate([fl1.event_data[val] for fl1 in self.file_list1], axis=0)
         if all_events:
             return outvalues
         else:
@@ -1440,7 +1440,7 @@ class xEventFileFriend:
     def l2value(self, val):
         """
         """
-        return numpy.hstack([fl2.event_data[val] for fl2 in self.file_list2])
+        return numpy.concatenate([fl2.event_data[val] for fl2 in self.file_list2], axis=0)
 
     def time_data(self, all_events=False):
         """
