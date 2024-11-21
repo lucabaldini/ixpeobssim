@@ -104,6 +104,53 @@ class xBinTableHDUPCUBE(xBinTableHDUBase):
     POL_COL_NAMES = COL_NAMES[2:]
 
 
+class xBinTableHDUPTCUBE(xBinTableHDUBase):
+
+    """Binary table for binned PCUBE data.
+    """
+
+    NAME = 'POLARIZATION'
+    HEADER_KEYWORDS = []
+    # Be careful: if you change any of these, make sure you update the
+    # MDP_COLUMNS and POL_COLUMNS class members below, as this all need to be
+    # in synch with the MDP and polarization maps and map cubes.
+    DATA_SPECS = [
+        ('TIME_LO' , 'D', 's'  , 'low time bound'),
+        ('TIME_HI' , 'D', 's'  , 'high time bound'),
+        ('T_MEAN'  , 'D', 's'  , 'average time within the bin'),
+        ('E_MEAN'  , 'E', 'keV', 'average energy within the bin'),
+        ('COUNTS'  , 'J', ''   , 'number of counts'),
+        ('MU'      , 'E', ''   , 'effective modulation factor'),
+        ('W2'      , 'E', ''   , 'sum of weights squared'),
+        ('N_EFF'   , 'E', ''   , 'effective number of events w/o acceptance correction'),
+        ('FRAC_W'  , 'E', ''   , 'N_EFF / COUNTS'),
+        ('MDP_99'  , 'E', ''   , 'minimum detectable polarization at the 99% CL'),
+        ('I'       , 'E', ''   , 'I Stokes parameter'),
+        ('I_ERR'   , 'E', ''   , '1-sigma uncertainty on I'),
+        ('Q'       , 'E', ''   , 'Q Stokes parameter'),
+        ('Q_ERR'   , 'E', ''   , '1-sigma uncertainty on Q'),
+        ('U'       , 'E', ''   , 'U Stokes parameter'),
+        ('U_ERR'   , 'E', ''   , '1-sigma uncertainty on U'),
+        ('QN'      , 'E', ''   , 'normalized Q Stokes parameter Q/I'),
+        ('QN_ERR'  , 'E', ''   , '1-sigma uncertainty on Q/I'),
+        ('UN'      , 'E', ''   , 'normalized U Stokes parameter Q/I'),
+        ('UN_ERR'  , 'E', ''   , '1-sigma uncertainty on U/I'),
+        ('QUN_COV' , 'E', ''   , 'covariance between QN and UN'),
+        ('PD'      , 'E', ''   , 'measured polarization degree'),
+        ('PD_ERR'  , 'E', ''   , '1-sigma uncertainty on the polarization degree'),
+        ('PA'      , 'E', 'deg', 'measured polarization angle'),
+        ('PA_ERR'  , 'E', 'deg', '1-sigma uncertainty on the polarization angle'),
+        ('P_VALUE' , 'E', ''   , 'p-value for the null hypothesis (no polarization)'),
+        ('CONFID'  , 'E', ''   , 'confidence of the polarization detection'),
+        ('SIGNIF'  , 'E', ''   , 'detection significance in equivalent gaussian sigma')
+        ]
+    COL_NAMES = [col_name for col_name, *_ in DATA_SPECS]
+    # Be careful: these need to be in synch with the DATA_SPECS above.
+    # MDP_COL_NAMES defines the extensions of the MDP maps and map cubes.
+    # POL_COL_NAMES defines the extensions of the polarization maps and map cubes.
+    MDP_COL_NAMES = COL_NAMES[3:11]
+    POL_COL_NAMES = COL_NAMES[3:]
+
 
 class xBinTableHDUEBOUNDS(xBinTableHDUBase):
 

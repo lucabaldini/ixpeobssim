@@ -28,7 +28,7 @@ import numpy
 import scipy
 
 from ixpeobssim.binning.base import xEventBinningBase, xBinnedFileBase
-from ixpeobssim.binning.fmt import xBinTableHDUPHA1, xBinTableHDUPCUBE, xBinTableHDUEBOUNDS
+from ixpeobssim.binning.fmt import xBinTableHDUPHA1, xBinTableHDUPCUBE, xBinTableHDUPTCUBE, xBinTableHDUEBOUNDS
 from ixpeobssim.core.fitsio import xFITSImageBase
 from ixpeobssim.core.hist import xScatterPlot
 from ixpeobssim.core.stokes import xModelStokesParameters
@@ -329,6 +329,46 @@ class xEventBinningPCUBE(xEventBinningBase):
         data = [table[key] for key in xBinTableHDUPCUBE.spec_names()]
         primary_hdu = self.build_primary_hdu()
         bin_table_hdu = xBinTableHDUPCUBE(data)
+        bin_table_hdu.setup_header(self.event_file.primary_keywords())
+        gti_hdu = self.event_file.hdu_list['GTI']
+        hdu_list = fits.HDUList([primary_hdu, bin_table_hdu, gti_hdu])
+        self.write_output_file(hdu_list)
+
+
+class xEventBinningPTCUBE(xEventBinningBase):
+
+    """Class for PTCUBE binning.
+
+    .. versionadded:: 12.0.0
+    """
+
+    INTENT = 'polarization cube (in time layers)'
+    SUPPORTED_KWARGS = ['mc', 'acceptcorr', 'weights', 'weightcol'] + \
+        xEventBinningBase._time_binning_kwargs()
+
+    def bin_(self):
+        """Overloaded method.
+        """
+        if self.irf_name is None:
+            abort('Please set --irfname command-line switch explicitely')
+        energy = self.event_file.energy_data(self.get('mc'))
+        time = self.event_file.time_data()
+        # Defaults.
+        if self.kwargs['tmin'] is None:
+            self.kwargs['tmin'] = numpy.min(time)
+        if self.kwargs['tmax'] is None:
+            self.kwargs['tmax'] = numpy.max(time)
+        tbinning = self.make_time_binning(time, **self.kwargs)
+        q, u = self.event_file.stokes_data()
+        modf = load_modf(self.irf_name, self.event_file.du_id())
+        aeff = load_arf(self.irf_name, self.event_file.du_id())
+        self.check_pcube_weighting_scheme(aeff)
+        analysis = xStokesAnalysis(q, u, energy, modf, aeff, self.event_file.livetime(),
+            self.weight_data(), self.get('acceptcorr'), time)
+        table = analysis.polarization_table_time(tbinning)
+        data = [table[key] for key in xBinTableHDUPTCUBE.spec_names()]
+        primary_hdu = self.build_primary_hdu()
+        bin_table_hdu = xBinTableHDUPTCUBE(data)
         bin_table_hdu.setup_header(self.event_file.primary_keywords())
         gti_hdu = self.event_file.hdu_list['GTI']
         hdu_list = fits.HDUList([primary_hdu, bin_table_hdu, gti_hdu])
@@ -642,6 +682,306 @@ class xBinnedPolarizationCube(xBinnedFileBase):
         """
         return '%s content:\n%s' % (self.__class__.__name__, self.as_table())
 
+
+class xBinnedPolarizationTimeCube(xBinnedFileBase):
+
+    """Read-mode interface to a PCUBE FITS file.
+
+    .. versionadded:: 12.0.0
+    """
+
+    def _read_data(self):
+        """Overloaded method.
+        """
+        self._read_binary_table_data(xBinTableHDUPTCUBE.NAME)
+
+    def backscal(self):
+        """Return the value of the BACKSCAL header keyword, if present.
+        """
+        try:
+            return self.primary_header['BACKSCAL']
+        except KeyError:
+            logger.warning('Polarization cube has no BACKSCAL header keyword set')
+            return None
+
+    def __check_compat(self, other):
+        """Check the basic polarization cube data structure before attempting
+        to do operations with other polarization cubes.
+        """
+        same_shape = xBinTableHDUPCUBE.POL_COL_NAMES
+        same_values = ('TIME_LO', 'TIME_HI')
+        self._check_iadd(other, same_shape, same_values)
+
+    def __recalculate_derived(self):
+        """Recalculate all the derived quantities after arithmetic operations.
+        """
+        # Recalculate the normalized Stokes parameters, and propagate the errors.
+        args = self.I, self.Q, self.U, self.MU, self.W2
+        self.QN, self.UN, self.I_ERR, self.Q_ERR, self.U_ERR, self.QN_ERR, self.UN_ERR, \
+            self.QUN_COV, self.P_VALUE, self.CONFID, self.SIGNIF = \
+                xStokesAnalysis.calculate_stokes_errors(*args)
+        # Update the MDP.
+        self.MDP_99 = xStokesAnalysis.calculate_mdp99(self.MU, self.I, self.W2)
+        self.N_EFF, self.FRAC_W = xStokesAnalysis.calculate_n_eff(self.COUNTS, self.I, self.W2)
+        # Recalculate the polarization degree and angle.
+        self.PD, self.PD_ERR, self.PA, self.PA_ERR = \
+            xStokesAnalysis.calculate_polarization(*args, degrees=True)
+
+    def __iadd__(self, other):
+        """Overloaded method for PCUBE binned data addition.
+        """
+        self.__check_compat(other)
+        self.E_MEAN = self._weighted_average(other, 'E_MEAN', 'I')
+        self.MU = self._weighted_average(other, 'MU', 'I')
+        self.COUNTS += other.COUNTS
+        self.W2 += other.W2
+        self.I += other.I
+        self.Q += other.Q
+        self.U += other.U
+        self.__recalculate_derived()
+        return self
+
+    def __isub__(self, other):
+        """Overloaded method for polarization cube subtraction.
+        """
+        self.__check_compat(other)
+        self.E_MEAN = self._weighted_average(other, 'E_MEAN', 'I', invert_w2=True)
+        self.MU = self._weighted_average(other, 'MU', 'I', invert_w2=True)
+        self.COUNTS -= other.COUNTS
+        # Note W2 must always be added.
+        self.W2 += other.W2
+        self.I -= other.I
+        self.Q -= other.Q
+        self.U -= other.U
+        # Propagate the uncertainties in the polarization cube difference.
+        # This was added in response to https://bitbucket.org/ixpesw/ixpeobssim/issues/614
+        # and should be considered as a short-term fix, waiting for a full
+        # refactoring of the polarization cube arithmetic.
+        self.I_ERR = numpy.sqrt(self.I_ERR**2. + other.I_ERR**2.)
+        self.Q_ERR = numpy.sqrt(self.Q_ERR**2. + other.Q_ERR**2.)
+        self.U_ERR = numpy.sqrt(self.U_ERR**2. + other.U_ERR**2.)
+        args = self.I, self.Q, self.U, self.I_ERR, self.Q_ERR, self.U_ERR
+        self.QN, self.UN, self.QN_ERR, self.UN_ERR = \
+            xStokesAnalysis.normalized_stokes_parameters(*args)
+        self.QUN_COV = xStokesAnalysis.stokes_covariance(self.I, self.QN, self.UN, self.W2)
+        self.P_VALUE, self.CONFID, self.SIGNIF = \
+            xStokesAnalysis.significance(self.Q, self.U, self.Q_ERR, self.U_ERR)
+        self.MDP_99 = xStokesAnalysis.calculate_mdp99(self.MU, self.I, self.W2)
+        self.N_EFF, self.FRAC_W = xStokesAnalysis.calculate_n_eff(self.COUNTS, self.I, self.W2)
+        self.PD, self.PD_ERR, self.PA, self.PA_ERR = \
+            xStokesAnalysis.calculate_polarization_sub(*args, degrees=True)
+        return self
+
+    def __imul__(self, other):
+        """Overloaded method for polarization cube multiplication by a scalar.
+        """
+        assert isinstance(other, numbers.Number)
+        # Need to be careful, here, as the counts are supposed to be integer.
+        counts = (self.COUNTS * other + 0.5).astype(int)
+        self.COUNTS = counts
+        # Note the square in W2!
+        self.W2 *= other**2
+        self.I *= other
+        self.Q *= other
+        self.U *= other
+        self.__recalculate_derived()
+        return self
+
+    def polarization(self):
+        """Return the polarization information in the form of a four element
+        tuple (PD, PD_err, PA, PA_err) of arrays.
+        """
+        return self.PD, self.PD_ERR, self.PA, self.PA_ERR
+
+    def _time_scatter_plot(self, y, dy, ylabel=None):
+        """Make a scatter plot of a given quanity vs. energy.
+
+        Basic function for plot_polarization_degree() and plot_polarization_angle().
+        """
+        x = self.T_MEAN
+        dx = [self.T_MEAN - self.TIME_LO, self.TIME_HI - self.T_MEAN]
+        return xScatterPlot(x, y, dy, dx, xlabel='Time [s]', ylabel=ylabel)
+
+    def plot_polarization_degree(self, min_num_sigmas=0., **kwargs):
+        """Plot the polarization degree as a function of time.
+
+        .. warning::
+
+           This is deprecated in favor of the standard plots of the Stokes parameters.
+        """
+        ylabel = 'Polarization degree'
+        limits = (self.PD / self.PD_ERR) < min_num_sigmas
+        PD = self.PD + limits * min_num_sigmas * self.PD_ERR
+        scatter = self._time_scatter_plot(PD, self.PD_ERR, ylabel)
+        scatter.plot(uplims=limits, **kwargs)
+
+    def plot_polarization_angle(self, **kwargs):
+        """Plot the polarization angle as a function of time.
+
+        .. warning::
+
+           This is deprecated in favor of the standard plots of the Stokes parameters.
+        """
+        ylabel = 'Polarization angle [$^\\circ$]'
+        scatter = self._time_scatter_plot(self.PA, self.PA_ERR, ylabel)
+        scatter.plot(**kwargs)
+
+    def plot(self, **kwargs):
+        """Default plotting for the polarization cubes.
+
+        .. warning::
+
+           This should be considered in evolution, and the API might change.
+
+        This is plotting the polarization cube in normalized Stokes parameters
+        space, with custom grids to help reading out the polarization degree and
+        angle.
+
+        A brief explanation of the supporte keywords arduments.
+
+        Arguments
+        ---------
+        side : float, optional
+            The absolute value of the maximum Q/I and U/I to be displayed
+            (note the aspect ratio of the plot is set to 'equal', and the
+            plot is assumed to be squared). By default this is driven by the
+            maximum value of the polarization degree over the polarization cube.
+
+        pd_grid : array_like
+            The polarization degree radial grid in correspondence of which the
+            gridding circumpherences are plotted to guide the eye.
+
+        pd_grid_label_angle : float
+            The angle at which the text labels for the PD grids are plotted.
+
+        pa_grid_step : float
+            The step of the tangential grid in the polarization angle.
+
+        sigma_levels : array_like
+            The sigma levels at which the ellipses repesenting the normalized
+            Stokes parameter contours are plotted.
+
+        sigma_ls : tuple of the same size as sigma_levels
+            The line styles corresponding to sigma levels---by default the
+            innermost ellipse is solid and the others are dashed.
+
+        colors : array_like or str, optional
+            The colors for the elliptical contours (by deafult the proper color
+            for the specific DU in the polarization cube is picked).
+
+        label : str, optional
+            Optional label to be displayed in the legend---this is only used if
+            the marker boolean flag is True and only associated to the first
+            layer in the cube.
+
+        marker : bool
+            If True, a marker is plotted at the center of the elliptical contours.
+
+        marker_size : float
+            The size for the optional markers.
+
+        annotate_times : bool
+            If true, the time layers are annotated with nice arrows and text
+            labels (note the positioning is still fragile).
+
+        setup_axes : bool
+            Call the underlying setup_gca_stokes() hook at the end. (This flag
+            is provided to allow disingaging multiple grid plotting in case one
+            wants to overlay multiple polarization cubes.)
+        """
+        # Cache all the relevant command-line arguments.
+        side = kwargs.get('side', None)
+        pd_grid = kwargs.get('pd_grid')
+        pd_grid_label_angle = kwargs.get('pd_grid_label_angle', 45.)
+        pa_grid_step = kwargs.get('pa_grid_step', 30.)
+        sigma_levels = kwargs.get('sigma_levels', (1., 2., 3.))
+        sigma_ls = kwargs.get('sigma_ls', None)
+        colors = kwargs.get('colors', None)
+        label = kwargs.get('label', None)
+        marker = kwargs.get('marker', True)
+        marker_size = kwargs.get('marker_size', 4)
+        annotate_times = kwargs.get('annotate_times', True)
+        setup_axes = kwargs.get('setup_axes', True)
+
+        # Setup the default side---this is just the maximum of the polarization
+        # degree across the cube plus twice the associated sigma.
+        if side is None:
+            index = numpy.argmax(self.PD)
+            side = min(self.PD[index] + 2. * self.PD_ERR[index], 1.)
+        # Setup the radial grid for the polarization angle. In order to have a
+        # sensible default, here, we judge based on the plot side and try and
+        # setup a sensible regular grid.
+        if pd_grid is None:
+            if side <= 0.05:
+                step = 0.01
+            elif side <= 0.1:
+                step = 0.02
+            elif side <= 0.25:
+                step = 0.05
+            else:
+                step = 0.1
+            pd_grid = numpy.arange(step, side, step)
+        # If the color is not set, default to the color for the DU.
+        if colors is None:
+            colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+        elif isinstance(colors, str):
+            colors = [colors] * len(self.QN)
+        # Default line style is solid for the first level, and dashed for the others.
+        if sigma_ls is None:
+            sigma_ls = ['solid'] + ['dashed'] * (len(sigma_levels) - 1)
+
+        # Loop over the actual data.
+        args = self.QN, self.UN, self.QN_ERR, self.UN_ERR, self.TIME_LO, self.TIME_HI, colors
+        for i, (q, u, dq, du, tmin, tmax, color) in enumerate(zip(*args)):
+            # Plot all the contours relative to the desired sigma levels.
+            for scale, ls in zip(sigma_levels, sigma_ls):
+                plot_ellipse((q, u), 2. * scale * dq, 2. * scale * du, color=color,
+                    ls=ls, zorder=10)
+            # Plot the markers.
+            if marker:
+                _kwargs = dict(ms=marker_size, color=color, zorder=10)
+                # For the first layer, we also set the label, so that we can
+                # effectively use a legend downstream.
+                if i == 0:
+                    plt.plot(q, u, 'o', label=label, **_kwargs)
+                else:
+                    plt.plot(q, u, 'o', **_kwargs)
+            # Annotations for the energy layers.
+            if annotate_times:
+                label = '%.2f-%.2f s' % (tmin, tmax)
+                if q > 0:
+                    xtext = q - 0.05 + 0.02 * i
+                else:
+                    xtext = q + 0.05 - 0.02 * i
+                if u > 0:
+                    ytext = u - 0.05 - 0.02 * i
+                else:
+                    ytext = u + 0.05 + 0.02 * i
+                plt.gca().annotate(label, xy=(q, u), xycoords='data', xytext=(xtext, ytext),
+                    textcoords='data', size='small', ha='center', zorder=10, color=color,
+                    arrowprops=dict(arrowstyle="->", color=color, lw=0.75,
+                    shrinkA=5, shrinkB=1, patchA=None, patchB=None,
+                    connectionstyle='angle3,angleA=90,angleB=0'))
+        # Finally, set up the axes.
+        if setup_axes:
+            setup_gca_stokes(side, pd_grid, pd_grid_label_angle, pa_grid_step)
+
+    def as_table(self):
+        """Return the polarization cube as an astropy table.
+        """
+        col_names = ['Quantity']
+        col_names += ['%.2f--%.2f s' % (tmin, tmax) for tmin, tmax in \
+            zip(self.TIME_LO, self.TIME_HI)]
+        col_types = [str] + [float] * (len(col_names) - 1)
+        table = astropy.table.Table(names=col_names, dtype=col_types)
+        for col_name, *_ in xBinTableHDUPTCUBE.DATA_SPECS[2:]:
+            table.add_row([col_name] + list(self.__getattr__(col_name)))
+        return table
+
+    def __str__(self):
+        """String formatting.
+        """
+        return '%s content:\n%s' % (self.__class__.__name__, self.as_table())
 
 
 class xEventBinningMDPMAPCUBE(xEventBinningBase):
