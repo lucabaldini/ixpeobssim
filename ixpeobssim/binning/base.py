@@ -404,7 +404,7 @@ class xBinnedFileBase:
         retained, as is now pervasive in the code and it would be too disruptive
         to change it.
         """
-        # Mind we Initialize this to avoid isses in the destructor, where we
+        # Mind we Initialize this to avoid issues in the destructor, where we
         # clean things up.
         self.__data_dict = {}
         self.hdu_list = read_hdu_list_in_memory(file_path)
@@ -469,6 +469,114 @@ class xBinnedFileBase:
         val[mask] = v2[mask]
         assert numpy.isfinite(val).all()
         return val
+
+    def _invsquare_weighted_average(self, other, col_name, weights_col_name, default=0., invert_w2=False):
+        """Convenience function to calculate the weighted average of two                                                                                        
+        different binned objects for a particular column, using the inverse 
+        squares of the 'weights' column as weights.
+        This comes handy for inverse variance weighting.
+        Note we make all efforts to avoid any zero-division error.                                                                                              
+        """
+        v1 = self.__data_dict[col_name]
+        w1 = 1./(self.__data_dict[weights_col_name])**2
+        mask1 = 1./w1 > 0.
+        v2 = other.__data_dict[col_name]
+        w2 = 1./(other.__data_dict[weights_col_name])**2
+        mask2 = 1./w2 > 0.
+        if invert_w2:
+            w2 = -w2
+        # Initialize the array holding the weighted average to the default value.                                                               
+        val = numpy.full(v1.shape, default)
+        # Both weights are non-zero---we can do the actual weighted average.                                                                    
+        mask = numpy.logical_and(mask1, mask2)
+        val[mask] = (v1 * w1 + v2 * w2)[mask] / (w1 + w2)[mask]
+        # Weights for other are zero.                                                                                                           
+        mask = numpy.logical_and(mask1, numpy.logical_not(mask2))
+        val[mask] = v1[mask]
+        # Weights for self are zero.
+        mask = numpy.logical_and(numpy.logical_not(mask1), mask2)
+        val[mask] = v2[mask]
+        assert numpy.isfinite(val).all()
+        return val
+
+    def _invsquare_sum(self, other, col_name, default=0., invert_v2=False):
+        """Convenience function to calculate the sum of inverse squares                                         
+        of two different binned objects for a particular column.                                                
+        Note we make all efforts to avoid any zero-division error.                                              
+        """
+        v1 = self.__data_dict[col_name]
+        mask1 = v1 > 0.
+        v2 = other.__data_dict[col_name]
+        mask2 = v2 > 0.
+        if invert_v2:
+            v2 = -v2
+        # Initialize the array holding the weighted average to the default value.          
+        val = numpy.full(v1.shape, default)
+        # Both elements are non-zero---we can do the actual sum.                                                
+        mask = numpy.logical_and(mask1, mask2)
+        val[mask] = 1./numpy.sqrt(1./v1**2 + 1./v2**2)[mask]
+        # Other is zero                                                                                         
+        mask = numpy.logical_and(mask1, numpy.logical_not(mask2))
+        val[mask] = v1[mask]
+        # Self is zero                                                                                          
+        mask = numpy.logical_and(numpy.logical_not(mask1), mask2)
+        val[mask] = v2[mask]
+        assert numpy.isfinite(val).all()
+        return val
+
+
+    def _invsq_pxsum_w_ave(self, other, col_name, weights_col_name, default=0., invert_w2=False):
+        """Convenience function to calculate the weighted average of two                                                                           
+        different binned objects for a particular column, using the inverse                                                                                               
+        squares of the 'weights' column quadratic sum as weights.                                                                                                 
+        Used for errors in inverse variance weighting, where each inverse variance                                                                         
+        was previously summed over all pixels of the considered DU.                                                                                           
+        Note we make all efforts to avoid any zero-division error."""
+        v1 = self.__data_dict[col_name]
+        w1 = 1./numpy.sum((self.__data_dict[weights_col_name])**2)
+        mask1 = 1./w1 > 0.
+        v2 = other.__data_dict[col_name]
+        w2 = 1./numpy.sum((other.__data_dict[weights_col_name])**2)
+        mask2 = 1./w2 > 0.
+        if invert_w2:
+            w2 = -w2
+        # Initialize the array holding the weighted average to the default value.                                                                             
+        val = numpy.full(v1.shape, default)
+        # Both weights are non-zero---we can do the actual weighted average.                                                                         
+        mask = numpy.logical_and(mask1, mask2)
+        val[mask] = (v1 * w1 + v2 * w2)[mask] / (w1 + w2)[mask]
+        # Weights for other are zero.                                                                                                                    
+        mask = numpy.logical_and(mask1, numpy.logical_not(mask2))
+        val[mask] = v1[mask]
+        # Weights for self are zero.                                                                                                            
+        mask = numpy.logical_and(numpy.logical_not(mask1), mask2)
+        val[mask] = v2[mask]
+        assert numpy.isfinite(val).all()
+        return val
+
+
+    def _invsq_pxsum_sq_w_ave(self, other, col_name, weights_col_name, default=0., invert_w2=False):
+        """Convenience function to calculate the squared weighted average of two                                                          
+        different binned objects for a particular column, using the inverse                                              
+        squares of the 'weights' column quadratic sums as weights.                                                                                    
+        Used for errors in inverse variance weighting, where each inverse
+        variance was previously summed over all pixels of the considered DU.                                                                                
+        Note we make all efforts to avoid any zero-division error."""
+        v1 = self.__data_dict[col_name]
+        w1 = 1./numpy.sum((self.__data_dict[weights_col_name])**2)
+        v2 = other.__data_dict[col_name]
+        w2 = 1./numpy.sum((other.__data_dict[weights_col_name])**2)
+        if invert_w2:
+           w2 = -w2
+        # Initialize the array holding the weighted average to the default value.                                                                                       
+        val = numpy.full(v1.shape, default)
+        if (w1+w2) == 0. :
+            logger.error('zero division error, %s header values are all null.',header_key)
+            abort()
+        val = numpy.sqrt(((v1 * w1)**2 + (v2 * w2)**2)) / (w1 + w2)
+        assert numpy.isfinite(val).all()
+        return val
+
 
     def __getattr__(self, name):
         """Proxy method to retrieve the underlying data as if they were class

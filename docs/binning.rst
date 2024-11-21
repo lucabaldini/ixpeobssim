@@ -279,6 +279,17 @@ which reduce to the actual number of counts (and to 1, respectrively), in the
 un-weighted case. Incidentally, these quantities are used to build the effective
 area in the weighted case.
 
+The effective area is also used to calculate the energy flux, defined as:
+
+.. math::
+   F = \frac{1}{T} \sum_{i \in S} \frac{E_i}{A_{\rm eff}(E_i)}
+
+where the livetime T is the value of the primary header keyword `LIVETIME`.
+The error on the energy flux is propagated as:
+
+.. math::
+   \sigma_F = \frac{1}{T} \sqrt{\sum_{i \in S} \left(\frac{E_i}{A_{\rm eff}(E_i)}\right)^2}.
+
 .. warning::
 
    The polarization cubes, maps and map cubes are not equipped (yet) to treat
