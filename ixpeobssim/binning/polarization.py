@@ -283,6 +283,23 @@ class xBinnedCountSpectrum(xBinnedFileBase):
         self.STAT_ERR = numpy.sqrt(self.STAT_ERR**2. + other.STAT_ERR**2.)
         return self
 
+    def __isub__(self, other):
+        """ Overloaded method for PHA1 binned file subtraction.
+        """
+        # pylint: disable=no-member, attribute-defined-outside-init
+        self._check_iadd(other, ('RATE', 'STAT_ERR'), ('CHANNEL', ))
+        self.RATE -= other.RATE
+        self.STAT_ERR = numpy.sqrt(self.STAT_ERR**2. + other.STAT_ERR**2.)
+        return self
+    
+    def __imul__(self, other):
+        """ Overloaded method for PHA1 binned file subtraction.
+        """
+        # pylint: disable=no-member, attribute-defined-outside-init
+        self.RATE *= other
+        self.STAT_ERR *= other
+        return self
+
     def respfile(self):
         """Return the value of the RESPFILE keyword in the SPECTRUM extension
         header, stripped from the first part of the pathe (i.e., the file name
