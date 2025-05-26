@@ -751,7 +751,33 @@ class xBinnedMDPMapCube(xBinnedFileBase):
         self.MDP_99 = xStokesAnalysis.calculate_mdp99(self.MU, self.I, self.W2)
         self.N_EFF, self.FRAC_W = xStokesAnalysis.calculate_n_eff(self.COUNTS, self.I, self.W2)
         return self
-
+    
+    def __isub__(self, other):
+        """Overloaded method for binned data subtraction.
+        """
+        same_shape = xBinTableHDUPCUBE.MDP_COL_NAMES
+        same_values = ('ENERG_LO', 'ENERG_HI')
+        self._check_iadd(other, same_shape, same_values)
+        self.E_MEAN = self._weighted_average(other, 'E_MEAN', 'I')
+        self.COUNTS -= other.COUNTS
+        self.MU = self._weighted_average(other, 'MU', 'I')
+        self.W2 += other.W2
+        self.I -= other.I
+        self.MDP_99 = xStokesAnalysis.calculate_mdp99(self.MU, self.I, self.W2)
+        self.N_EFF, self.FRAC_W = xStokesAnalysis.calculate_n_eff(self.COUNTS, self.I, self.W2)
+        return self
+    
+    def __imul__(self, value):
+        """Overloaded method for binned data multiplication by a scalar
+        """
+        counts = (self.COUNTS * value + 0.5).astype(int)
+        self.COUNTS = counts
+        self.I *= value
+        self.W2 *= value**2
+        self.MDP_99 = xStokesAnalysis.calculate_mdp99(self.MU, self.I, self.W2)
+        self.N_EFF, self.FRAC_W = xStokesAnalysis.calculate_n_eff(self.COUNTS, self.I, self.W2)
+        return self
+    
     def map_shape(self):
         """Return the shape of the underlying sky-maps.
 
@@ -1011,6 +1037,26 @@ class xBinnedPolarizationMapCube(xBinnedMDPMapCube):
         self.U += other.U
         self.__recalculate()
         return self
+    
+    def __isub__(self, other):
+        """Overloaded method for binned data subtraction.
+        """
+        self._check_iadd(other, ('Q', 'U'))
+        xBinnedMDPMapCube.__isub__(self, other)
+        self.Q -= other.Q
+        self.U -= other.U
+        self.__recalculate()
+        return self
+    
+    def __imul__(self, value):
+        """Overloaded method for binned data multiplication by a scalar
+        """
+        xBinnedMDPMapCube.__imul__(self, value)
+        self.Q *= value
+        self.U *= value
+        self.__recalculate()
+        return self
+
 
     def convolve(self, kernel):
         """Convolve the polarization cube with a generic binned kernel.
