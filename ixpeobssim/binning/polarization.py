@@ -293,7 +293,7 @@ class xBinnedCountSpectrum(xBinnedFileBase):
         return self
     
     def __imul__(self, other):
-        """ Overloaded method for PHA1 binned file subtraction.
+        """ Overloaded method for PHA1 binned file multiplication by a scalar.
         """
         # pylint: disable=no-member, attribute-defined-outside-init
         self.RATE *= other
