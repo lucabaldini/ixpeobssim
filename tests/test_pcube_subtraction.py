@@ -16,7 +16,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-"""Unit tests for pmap rescaling and subtration.
+"""Unit tests for pcube rescaling and subtration.
 """
 
 from __future__ import print_function, division
