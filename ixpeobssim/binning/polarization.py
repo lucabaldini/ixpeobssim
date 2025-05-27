@@ -770,6 +770,7 @@ class xBinnedMDPMapCube(xBinnedFileBase):
     def __imul__(self, value):
         """Overloaded method for binned data multiplication by a scalar
         """
+        assert isinstance(value, numbers.Number)
         counts = (self.COUNTS * value + 0.5).astype(int)
         self.COUNTS = counts
         self.I *= value
@@ -1051,6 +1052,7 @@ class xBinnedPolarizationMapCube(xBinnedMDPMapCube):
     def __imul__(self, value):
         """Overloaded method for binned data multiplication by a scalar
         """
+        assert isinstance(value, numbers.Number)
         xBinnedMDPMapCube.__imul__(self, value)
         self.Q *= value
         self.U *= value
