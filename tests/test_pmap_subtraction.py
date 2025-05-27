@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright (C) 2021, the ixpeobssim team.
+# Copyright (C) 2025, the ixpeobssim team.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,18 +21,16 @@
 
 from __future__ import print_function, division
 
-import os
 import unittest
 
 import numpy
 from astropy.io import fits
 
-from ixpeobssim import IXPEOBSSIM_DATA
-from ixpeobssim.utils.matplotlib_ import plt
 from ixpeobssim.binning.polarization import xBinnedPolarizationMapCube
 from ixpeobssim.core import pipeline
 
 # pylint: disable=invalid-name
+# pylint: disable=no-member
 
 
 class TestPmapSubtraction(unittest.TestCase):
@@ -47,21 +45,21 @@ class TestPmapSubtraction(unittest.TestCase):
         DURATION_SRC_ONLY = 25000
         DURATION_BKG=100000
         pipeline.reset('toy_point_source_bkg', overwrite=True)
-        cls.source_list = pipeline.xpobssim(duration=DURATION_SRC, 
+        cls.source_list = pipeline.xpobssim(duration=DURATION_SRC,
                                              saa=False, occult=False)
         pipeline.reset('instrumental_bkg_smcx1', overwrite=True)
-        cls.bkg_list = pipeline.xpobssim(duration=DURATION_BKG, 
+        cls.bkg_list = pipeline.xpobssim(duration=DURATION_BKG,
                                           saa=False, occult=False)
         pipeline.reset('toy_point_source_subtest', overwrite=True)
-        cls.src_only_list = pipeline.xpobssim(duration=DURATION_SRC_ONLY, 
+        cls.src_only_list = pipeline.xpobssim(duration=DURATION_SRC_ONLY,
                                                saa=False, occult=False)
-        cls.src_lt = numpy.array([fits.open(file)[0].header['LIVETIME'] for 
+        cls.src_lt = numpy.array([fits.open(file)[0].header['LIVETIME'] for
                           file in cls.source_list]).sum()
-        cls.bkg_lt = numpy.array([fits.open(file)[0].header['LIVETIME'] for 
+        cls.bkg_lt = numpy.array([fits.open(file)[0].header['LIVETIME'] for
                           file in cls.bkg_list]).sum()
-        cls.src_only_lt = numpy.array([fits.open(file)[0].header['LIVETIME'] for 
+        cls.src_only_lt = numpy.array([fits.open(file)[0].header['LIVETIME'] for
                                file in cls.src_only_list]).sum()
-    
+
     def test(self):
         """
         """
