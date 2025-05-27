@@ -21,6 +21,10 @@ This is documented for developers in the APIs.
    `__iadd__() <https://docs.python.org/3/reference/datamodel.html#object.__iadd__>`_
    dunder that allows to sum multiple files transparently---which is customarily
    done, e.g., over the three detector units.
+   Additional methods such as subtraction `__isub__()` and multiplication by 
+   a scalar `__imul__()` are implemented for polarization data cubes, maps and
+   count spectra, for the purpose of rescaling (e.g.: by the livetime or backscal)
+   and subtracting data (as for background subtraction).
 
    When manipulating binned files programmatically you can call the class
    constructor directly or, more commonly, use the ``from_file_list()`` hook,
