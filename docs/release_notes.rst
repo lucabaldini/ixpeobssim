@@ -4,6 +4,12 @@ Release notes
 =============
 
 
+* Merging pull request https://github.com/lucabaldini/ixpeobssim/pull/732
+* ``__isub__``  and ``__imul__`` dunder methods implemented for xBinnedCountSpectrum,
+  xBinnedMDPMapCube and xBinnedPolarizationMapCube.
+* Unit tests added.
+
+
 *ixpeobssim (31.0.3) - Thu, 03 Oct 2024 12:17:38 +0200*
 
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/732

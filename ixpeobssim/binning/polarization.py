@@ -291,11 +291,14 @@ class xBinnedCountSpectrum(xBinnedFileBase):
         self.RATE -= other.RATE
         self.STAT_ERR = numpy.sqrt(self.STAT_ERR**2. + other.STAT_ERR**2.)
         return self
-    
+
     def __imul__(self, other):
         """ Overloaded method for PHA1 binned file multiplication by a scalar.
         """
         # pylint: disable=no-member, attribute-defined-outside-init
+        if not isinstance(value, numbers.Number):
+            raise TypeError('%s cannot be multiplied by %s (not a number)' % \
+                            (self.__class__.__name, other))
         self.RATE *= other
         self.STAT_ERR *= other
         return self
@@ -445,7 +448,9 @@ class xBinnedPolarizationCube(xBinnedFileBase):
     def __imul__(self, other):
         """Overloaded method for polarization cube multiplication by a scalar.
         """
-        assert isinstance(other, numbers.Number)
+        if not isinstance(value, numbers.Number):
+            raise TypeError('%s cannot be multiplied by %s (not a number)' % \
+                            (self.__class__.__name, other))
         # Need to be careful, here, as the counts are supposed to be integer.
         counts = (self.COUNTS * other + 0.5).astype(int)
         self.COUNTS = counts
@@ -751,7 +756,7 @@ class xBinnedMDPMapCube(xBinnedFileBase):
         self.MDP_99 = xStokesAnalysis.calculate_mdp99(self.MU, self.I, self.W2)
         self.N_EFF, self.FRAC_W = xStokesAnalysis.calculate_n_eff(self.COUNTS, self.I, self.W2)
         return self
-    
+
     def __isub__(self, other):
         """Overloaded method for binned data subtraction.
         """
@@ -766,11 +771,13 @@ class xBinnedMDPMapCube(xBinnedFileBase):
         self.MDP_99 = xStokesAnalysis.calculate_mdp99(self.MU, self.I, self.W2)
         self.N_EFF, self.FRAC_W = xStokesAnalysis.calculate_n_eff(self.COUNTS, self.I, self.W2)
         return self
-    
+
     def __imul__(self, value):
         """Overloaded method for binned data multiplication by a scalar
         """
-        assert isinstance(value, numbers.Number)
+        if not isinstance(value, numbers.Number):
+            raise TypeError('%s cannot be multiplied by %s (not a number)' % \
+                            (self.__class__.__name, other))
         counts = (self.COUNTS * value + 0.5).astype(int)
         self.COUNTS = counts
         self.I *= value
@@ -778,7 +785,7 @@ class xBinnedMDPMapCube(xBinnedFileBase):
         self.MDP_99 = xStokesAnalysis.calculate_mdp99(self.MU, self.I, self.W2)
         self.N_EFF, self.FRAC_W = xStokesAnalysis.calculate_n_eff(self.COUNTS, self.I, self.W2)
         return self
-    
+
     def map_shape(self):
         """Return the shape of the underlying sky-maps.
 
@@ -1038,7 +1045,7 @@ class xBinnedPolarizationMapCube(xBinnedMDPMapCube):
         self.U += other.U
         self.__recalculate()
         return self
-    
+
     def __isub__(self, other):
         """Overloaded method for binned data subtraction.
         """
@@ -1048,11 +1055,13 @@ class xBinnedPolarizationMapCube(xBinnedMDPMapCube):
         self.U -= other.U
         self.__recalculate()
         return self
-    
+
     def __imul__(self, value):
         """Overloaded method for binned data multiplication by a scalar
         """
-        assert isinstance(value, numbers.Number)
+        if not isinstance(value, numbers.Number):
+            raise TypeError('%s cannot be multiplied by %s (not a number)' % \
+                            (self.__class__.__name, other))
         xBinnedMDPMapCube.__imul__(self, value)
         self.Q *= value
         self.U *= value
