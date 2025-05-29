@@ -292,15 +292,15 @@ class xBinnedCountSpectrum(xBinnedFileBase):
         self.STAT_ERR = numpy.sqrt(self.STAT_ERR**2. + other.STAT_ERR**2.)
         return self
 
-    def __imul__(self, other):
+    def __imul__(self, value):
         """ Overloaded method for PHA1 binned file multiplication by a scalar.
         """
         # pylint: disable=no-member, attribute-defined-outside-init
         if not isinstance(value, numbers.Number):
             raise TypeError('%s cannot be multiplied by %s (not a number)' % \
-                            (self.__class__.__name, other))
-        self.RATE *= other
-        self.STAT_ERR *= other
+                            (self.__class__.__name, value))
+        self.RATE *= value
+        self.STAT_ERR *= value
         return self
 
     def respfile(self):
@@ -445,20 +445,20 @@ class xBinnedPolarizationCube(xBinnedFileBase):
             xStokesAnalysis.calculate_polarization_sub(*args, degrees=True)
         return self
 
-    def __imul__(self, other):
+    def __imul__(self, value):
         """Overloaded method for polarization cube multiplication by a scalar.
         """
         if not isinstance(value, numbers.Number):
             raise TypeError('%s cannot be multiplied by %s (not a number)' % \
-                            (self.__class__.__name, other))
+                            (self.__class__.__name, value))
         # Need to be careful, here, as the counts are supposed to be integer.
-        counts = (self.COUNTS * other + 0.5).astype(int)
+        counts = (self.COUNTS * value + 0.5).astype(int)
         self.COUNTS = counts
         # Note the square in W2!
-        self.W2 *= other**2
-        self.I *= other
-        self.Q *= other
-        self.U *= other
+        self.W2 *= value**2
+        self.I *= value
+        self.Q *= value
+        self.U *= value
         self.__recalculate_derived()
         return self
 
@@ -777,7 +777,7 @@ class xBinnedMDPMapCube(xBinnedFileBase):
         """
         if not isinstance(value, numbers.Number):
             raise TypeError('%s cannot be multiplied by %s (not a number)' % \
-                            (self.__class__.__name, other))
+                            (self.__class__.__name, value))
         counts = (self.COUNTS * value + 0.5).astype(int)
         self.COUNTS = counts
         self.I *= value
@@ -1061,7 +1061,7 @@ class xBinnedPolarizationMapCube(xBinnedMDPMapCube):
         """
         if not isinstance(value, numbers.Number):
             raise TypeError('%s cannot be multiplied by %s (not a number)' % \
-                            (self.__class__.__name, other))
+                            (self.__class__.__name, value))
         xBinnedMDPMapCube.__imul__(self, value)
         self.Q *= value
         self.U *= value
