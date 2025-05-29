@@ -8,6 +8,7 @@ Release notes
 * ``__isub__``  and ``__imul__`` dunder methods implemented for xBinnedCountSpectrum,
   xBinnedMDPMapCube and xBinnedPolarizationMapCube.
 * Unit tests added.
+* Continuous integration re-enabled on github.
 
 
 *ixpeobssim (31.0.3) - Thu, 03 Oct 2024 12:17:38 +0200*
