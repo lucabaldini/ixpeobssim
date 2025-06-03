@@ -25,7 +25,7 @@ from matplotlib.dates import date2num, DateFormatter, DayLocator, WeekdayLocator
 import numpy
 
 from ixpeobssim.targets.__artl__ import TWG_LIST, COLOR_DICT, _TARGET_DATA,\
-    _Y1_ARTL_DATA, SOURCE_LEGEND_HANDLES
+    _Y1_ARTL_DATA, _Y2_ARTL_DATA, _ARTL_DATA, SOURCE_LEGEND_HANDLES
 from ixpeobssim.utils.matplotlib_ import plt
 
 
@@ -165,7 +165,7 @@ class xARTL(dict):
 
     MAP_FIGSIZE = (14., 9.)
 
-    def __init__(self, data=_Y1_ARTL_DATA):
+    def __init__(self, data):
         """Constructor.
         """
         dict.__init__(self)
@@ -335,9 +335,9 @@ class xARTL(dict):
 
 
 if __name__ == '__main__':
-    artl = xARTL()
-    print(artl)
+    y1artl = xARTL(_Y1_ARTL_DATA)
+    artl = xARTL(_ARTL_DATA)
     artl.plot_equatorial_coodinates()
     artl.plot_galactic_coodinates()
-    artl.plot_timeline()
+    y1artl.plot_timeline()
     plt.show()

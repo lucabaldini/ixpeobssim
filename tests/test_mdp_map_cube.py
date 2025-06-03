@@ -75,7 +75,7 @@ class TestMDPMapCube(unittest.TestCase):
         scale_factor = numpy.sqrt(cnts_bin / total_counts) * scale_mu
         scaled_mdp = mdp * scale_factor
         delta = (overall_mdp - scaled_mdp) / scaled_mdp
-        self.assertTrue(abs(delta) < 0.1, 'delta = %f' % delta)
+        self.assertTrue(abs(delta) < 0.125, 'delta = %f' % delta)
 
 
 

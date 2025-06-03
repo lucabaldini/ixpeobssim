@@ -35,8 +35,27 @@ illustrated below.
 IRF summary
 -----------
 
-This is a short, top level description of the version v12 of the default IXPE
-response functions used by ixpeobssim.
+This is a short, top level description of the version v13 of the default IXPE
+response functions used by ixpeobssim. As explained down in this page, these maps
+one-to-one with the response files shipped with the official IXPE CALDB released
+to the public with HEASoft version 6.33.
+
+.. warning::
+
+  .. versionadded:: 31.0.0
+
+     As of version 31.0.0, ixpeobssim comes with a default set of response files
+     (dubbed v13) whose validity time is binned in 6-month interval. The beginning
+     of each interval is encoded in the file name, in a way that should be
+     human-readable.
+
+     Contrary to the HEASOFT framework, ixpeobssim has no internal mechanism
+     to automatically pick the right set of response files for the analysis of a
+     given observation, and it is a responsibility of the user to make sure that
+     the start of the observation is included within the validity interval of the
+     files themselves. (The latter is properly encoded with each file in the form
+     of the canonical header keywords.)
+
 
 All the response functions are defined between 1 and 12 keV in steps of 40 eV,
 and are detector-unit based (the pulse-invariant channel space is defined
@@ -57,7 +76,7 @@ we shall see in a second, the increase in the modulation factor drives the
 overall sensitivity slightly up.
 
 .. _figure-ixpe_effective_area:
-.. figure:: figures/irf/ixpe_effective_area_v12.*
+.. figure:: figures/irf/ixpe_effective_area_v13.*
    :width: 80%
 
    On-axis effective area as a function of the energy. The solid lines represent
@@ -83,20 +102,20 @@ contributions, namely:
 The plots below show the principal ingredients that go into the calculation.
 
 .. _figure-mma_effective_area:
-.. figure:: figures/irf/mma_effective_area_v12.*
+.. figure:: figures/irf/mma_effective_area_v13.*
    :width: 80%
 
    On-axis effective area as a function of the energy for three Mirror-Module
    Assemblies (MMA) and for a single module.
 
 .. _figure-uv_filter_transparency:
-.. figure:: figures/irf/uv_filter_transparency_v12.*
+.. figure:: figures/irf/uv_filter_transparency_v13.*
    :width: 80%
 
    Transparency of the UV filter as a function of the photon energy.
 
 .. _figure-gpd_quantum_efficiency:
-.. figure:: figures/irf/gpd_quantum_efficiency_v12.*
+.. figure:: figures/irf/gpd_quantum_efficiency_v13.*
    :width: 80%
 
    Quantum efficiency of the GPD as a function of the energy, broken up in its
@@ -109,7 +128,7 @@ based upon ray-trace simulations for a perfect mirror module assembly, and is
 relevant for the simulation of extended sources.
 
 .. _figure-mma_vignetting:
-.. figure:: figures/irf/mma_vignetting_v12.*
+.. figure:: figures/irf/mma_vignetting_v13.*
    :width: 80%
 
    Preliminary estimation of the vignetting of the optics as a function of
@@ -121,14 +140,14 @@ as shown in the following two plots. (Note that above 6 keV the drop of the
 effective area at the edge of the field of view is relatively more important.)
 
 .. _figure-field_of_view_at_3_kev:
-.. figure:: figures/irf/field_of_view_at_3_kev_v12.*
+.. figure:: figures/irf/field_of_view_at_3_kev_v13.*
    :width: 80%
 
    Relative exposure at 3 keV across the field of view for the set of three
    telescopes clocked in the IXPE configuration.
 
 .. _figure-field_of_view_at_8_kev:
-.. figure:: figures/irf/field_of_view_at_8_kev_v12.*
+.. figure:: figures/irf/field_of_view_at_8_kev_v13.*
    :width: 80%
 
    Relative exposure at 8 keV across the field of view for the set of three
@@ -151,7 +170,7 @@ which is essentially the content of the binary table in the ``MATRIX`` extension
 the rmf file.
 
 .. _figure-energy_dispersion:
-.. figure:: figures/irf/energy_dispersion_v12.*
+.. figure:: figures/irf/energy_dispersion_v13.*
    :width: 80%
 
    Representation of the GPD response matrix.
@@ -161,7 +180,7 @@ at a few fixed true energies (i.e., these are just vertical slices of the
 color plot above).
 
 .. _figure-energy_resolution:
-.. figure:: figures/irf/energy_resolution_v12.*
+.. figure:: figures/irf/energy_resolution_v13.*
    :width: 80%
 
    Energy dispersion (one-dimensional probability density function) at a set
@@ -183,7 +202,7 @@ has a significantly better PSF (less than 20 arcsec HPD) than MMAs 2 and 3
 
 
 .. _figure-psf_eef:
-.. figure:: figures/irf/psf_eef_v12.*
+.. figure:: figures/irf/psf_eef_v13.*
    :width: 80%
 
    Encircled energy fraction (EEF) for the PSF of the three IXPE telescopes.
@@ -202,7 +221,7 @@ Monte Carlo simulations, informed by the ground calibrations of the three
 detector units.
 
 .. _figure-ixpe_modulation_factor:
-.. figure:: figures/irf/ixpe_modulation_factor_v12.*
+.. figure:: figures/irf/ixpe_modulation_factor_v13.*
    :width: 80%
 
    Modulation factor as a function of the photon energy for the IXPE detectors.
@@ -225,7 +244,7 @@ Below is an alternative representation of the overall IXPE spectro-polarimetric
 response, combining the elements described above.
 
 .. _figure-ixpe_response:
-.. figure:: figures/irf/ixpe_response_v12.*
+.. figure:: figures/irf/ixpe_response_v13.*
    :width: 80%
 
    Overall IXPE spectro-polarimetric response (all the elements are described in
@@ -244,7 +263,7 @@ performance plot below for each iteration of the response functions using
 source flux and the observing time.
 
 .. _figure-ixpe_mdp:
-.. figure:: figures/irf/ixpe_mdp_v12.*
+.. figure:: figures/irf/ixpe_mdp_v13.*
    :width: 80%
 
    IXPE Minimum Detectable Polarization (MDP) as a function of the source flux
@@ -353,6 +372,11 @@ Response file versioning
 This is a short description of the main features of different sets of response
 files that are useful for simulation and science analysis:
 
+* ``ixpe:obssim*:v13``: compared to the previous iteration (``ixpe:obssim:v12``),
+  this `collection` of response files includes an updated parametrization of the
+  MMA effective area at high energy (that should improve the spectral residual and
+  the spectral fitting in general), as well as a better estimate of the pressure
+  inside the gas pixel detectors.
 * ``ixpe:obssim:v12``: compared to the previous iteration (``ixpe:obssim:v11``),
   this version includes an updated parametrization of the effective area for
   MMA 3, accounting for its thicker thermal shield (the effect is of a few % at
@@ -378,6 +402,7 @@ effective area, the response matrix and the modulation response function)
 have a definite, one-to-one correspondence between the two databases---meaning
 that they are `identical`, modulo a few header keywords.
 
+* ``ixpe:obssim*:v13`` maps to equivalent files in the CALDB with the same starting date.
 * ``ixpe:obssim:v12`` maps to ``20170101_02``
 * ``ixpe:obssim:v11`` maps to ``20170101_01``
 * ``ixpe:obssim:v10`` maps to ``20170101_01``
@@ -447,6 +472,9 @@ Historical notes
 The release process and the differences with respect to the previous iterations
 are summarized on our issue tracker at:
 
+* ixpeirfgen `issue #21 <https://bitbucket.org/ixpesw/ixpeirfgen/issues/21>`_
+  and `issue #22 <https://bitbucket.org/ixpesw/ixpeirfgen/issues/22>`_
+  (release of version 13);
 * ixpeirfgen `issue #10 <https://bitbucket.org/ixpesw/ixpeirfgen/issues/10>`_
   (release of version 12);
 * ixpeobssim `issue #580 <https://github.com/lucabaldini/ixpeobssim/issues/580>`_

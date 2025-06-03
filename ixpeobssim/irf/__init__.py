@@ -55,7 +55,7 @@ from ixpeobssim.utils.os_ import check_input_file
 
 
 # Name of the IRF set to be used by default throughout the package.
-DEFAULT_IRF_NAME = 'ixpe:obssim:v12'
+DEFAULT_IRF_NAME = 'ixpe:obssim20240101:v13'
 
 # Private dictionary to cache the objects that have already been loaded.
 __CACHE = {}

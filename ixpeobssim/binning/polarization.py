@@ -283,6 +283,26 @@ class xBinnedCountSpectrum(xBinnedFileBase):
         self.STAT_ERR = numpy.sqrt(self.STAT_ERR**2. + other.STAT_ERR**2.)
         return self
 
+    def __isub__(self, other):
+        """ Overloaded method for PHA1 binned file subtraction.
+        """
+        # pylint: disable=no-member, attribute-defined-outside-init
+        self._check_iadd(other, ('RATE', 'STAT_ERR'), ('CHANNEL', ))
+        self.RATE -= other.RATE
+        self.STAT_ERR = numpy.sqrt(self.STAT_ERR**2. + other.STAT_ERR**2.)
+        return self
+
+    def __imul__(self, value):
+        """ Overloaded method for PHA1 binned file multiplication by a scalar.
+        """
+        # pylint: disable=no-member, attribute-defined-outside-init
+        if not isinstance(value, numbers.Number):
+            raise TypeError('%s cannot be multiplied by %s (not a number)' % \
+                            (self.__class__.__name, value))
+        self.RATE *= value
+        self.STAT_ERR *= value
+        return self
+
     def respfile(self):
         """Return the value of the RESPFILE keyword in the SPECTRUM extension
         header, stripped from the first part of the pathe (i.e., the file name
@@ -425,18 +445,20 @@ class xBinnedPolarizationCube(xBinnedFileBase):
             xStokesAnalysis.calculate_polarization_sub(*args, degrees=True)
         return self
 
-    def __imul__(self, other):
+    def __imul__(self, value):
         """Overloaded method for polarization cube multiplication by a scalar.
         """
-        assert isinstance(other, numbers.Number)
+        if not isinstance(value, numbers.Number):
+            raise TypeError('%s cannot be multiplied by %s (not a number)' % \
+                            (self.__class__.__name, value))
         # Need to be careful, here, as the counts are supposed to be integer.
-        counts = (self.COUNTS * other + 0.5).astype(int)
+        counts = (self.COUNTS * value + 0.5).astype(int)
         self.COUNTS = counts
         # Note the square in W2!
-        self.W2 *= other**2
-        self.I *= other
-        self.Q *= other
-        self.U *= other
+        self.W2 *= value**2
+        self.I *= value
+        self.Q *= value
+        self.U *= value
         self.__recalculate_derived()
         return self
 
@@ -573,6 +595,10 @@ class xBinnedPolarizationCube(xBinnedFileBase):
                 step = 0.05
             else:
                 step = 0.1
+            # Deal with an edge case reported in issue #733.
+            print(side, step)
+            if side <= 2 * step:
+                side = 2.01 * step
             pd_grid = numpy.arange(step, side, step)
         # If the color is not set, default to the color for the DU.
         if colors is None:
@@ -602,14 +628,16 @@ class xBinnedPolarizationCube(xBinnedFileBase):
             # Annotations for the energy layers.
             if annotate_energies:
                 label = '%.2f-%.2f keV' % (emin, emax)
+                delta_offset = min(0.75 * side, 0.05)
+                delta_slope = min(0.75 * side, 0.02)
                 if q > 0:
-                    xtext = q - 0.05 + 0.02 * i
+                    xtext = q - delta_offset + delta_slope * i
                 else:
-                    xtext = q + 0.05 - 0.02 * i
+                    xtext = q + delta_offset - delta_slope * i
                 if u > 0:
-                    ytext = u - 0.05 - 0.02 * i
+                    ytext = u - delta_offset - delta_slope * i
                 else:
-                    ytext = u + 0.05 + 0.02 * i
+                    ytext = u + delta_offset + delta_slope * i
                 plt.gca().annotate(label, xy=(q, u), xycoords='data', xytext=(xtext, ytext),
                     textcoords='data', size='small', ha='center', zorder=10, color=color,
                     arrowprops=dict(arrowstyle="->", color=color, lw=0.75,
@@ -725,6 +753,35 @@ class xBinnedMDPMapCube(xBinnedFileBase):
         self.MU = self._weighted_average(other, 'MU', 'I')
         self.W2 += other.W2
         self.I += other.I
+        self.MDP_99 = xStokesAnalysis.calculate_mdp99(self.MU, self.I, self.W2)
+        self.N_EFF, self.FRAC_W = xStokesAnalysis.calculate_n_eff(self.COUNTS, self.I, self.W2)
+        return self
+
+    def __isub__(self, other):
+        """Overloaded method for binned data subtraction.
+        """
+        same_shape = xBinTableHDUPCUBE.MDP_COL_NAMES
+        same_values = ('ENERG_LO', 'ENERG_HI')
+        self._check_iadd(other, same_shape, same_values)
+        self.E_MEAN = self._weighted_average(other, 'E_MEAN', 'I')
+        self.COUNTS -= other.COUNTS
+        self.MU = self._weighted_average(other, 'MU', 'I')
+        self.W2 += other.W2
+        self.I -= other.I
+        self.MDP_99 = xStokesAnalysis.calculate_mdp99(self.MU, self.I, self.W2)
+        self.N_EFF, self.FRAC_W = xStokesAnalysis.calculate_n_eff(self.COUNTS, self.I, self.W2)
+        return self
+
+    def __imul__(self, value):
+        """Overloaded method for binned data multiplication by a scalar
+        """
+        if not isinstance(value, numbers.Number):
+            raise TypeError('%s cannot be multiplied by %s (not a number)' % \
+                            (self.__class__.__name, value))
+        counts = (self.COUNTS * value + 0.5).astype(int)
+        self.COUNTS = counts
+        self.I *= value
+        self.W2 *= value**2
         self.MDP_99 = xStokesAnalysis.calculate_mdp99(self.MU, self.I, self.W2)
         self.N_EFF, self.FRAC_W = xStokesAnalysis.calculate_n_eff(self.COUNTS, self.I, self.W2)
         return self
@@ -988,6 +1045,29 @@ class xBinnedPolarizationMapCube(xBinnedMDPMapCube):
         self.U += other.U
         self.__recalculate()
         return self
+
+    def __isub__(self, other):
+        """Overloaded method for binned data subtraction.
+        """
+        self._check_iadd(other, ('Q', 'U'))
+        xBinnedMDPMapCube.__isub__(self, other)
+        self.Q -= other.Q
+        self.U -= other.U
+        self.__recalculate()
+        return self
+
+    def __imul__(self, value):
+        """Overloaded method for binned data multiplication by a scalar
+        """
+        if not isinstance(value, numbers.Number):
+            raise TypeError('%s cannot be multiplied by %s (not a number)' % \
+                            (self.__class__.__name, value))
+        xBinnedMDPMapCube.__imul__(self, value)
+        self.Q *= value
+        self.U *= value
+        self.__recalculate()
+        return self
+
 
     def convolve(self, kernel):
         """Convolve the polarization cube with a generic binned kernel.

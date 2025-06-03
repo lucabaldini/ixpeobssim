@@ -4,6 +4,56 @@ Release notes
 =============
 
 
+*ixpeobssim (31.1.0) - Thu, 29 May 2025 17:33:30 +0200*
+
+* Merging pull request https://github.com/lucabaldini/ixpeobssim/pull/732
+* ``__isub__``  and ``__imul__`` dunder methods implemented for xBinnedCountSpectrum,
+  xBinnedMDPMapCube and xBinnedPolarizationMapCube.
+* Unit tests added.
+* Continuous integration re-enabled on github.
+
+
+*ixpeobssim (31.0.3) - Thu, 03 Oct 2024 12:17:38 +0200*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/732
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/734
+* Small bug fix in the visualization of polarization cubes.
+* Year-2 target list updated.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/728
+      * https://github.com/lucabaldini/ixpeobssim/issues/733
+
+
+*ixpeobssim (31.0.2) - Thu, 22 Aug 2024 16:07:35 +0200*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/731
+* Small bug fix in the significance calculation, germane to that fixed in
+  issue #709.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/727
+
+
+*ixpeobssim (31.0.1) - Fri, 08 Mar 2024 08:38:15 +0100*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/726
+* Fix for a critical bug that was preventing from using weights in a model-independent
+  analysis with the latest iteration of the response files.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/725
+
+
+*ixpeobssim (31.0.0) - Thu, 07 Mar 2024 15:21:06 +0100*
+
+* Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/723
+* Initial import of version 13 of the response files, in synch with the official
+  IXPE CALDB shipped with HEASoft 6.33.
+* Default IRF name bumped to one of the new sets of response files (more specifically,
+  'ixpe:obssim20240101:v13') now provided in 6-months time intervals.
+* Documentation updated.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/724
+
+
 *ixpeobssim (30.6.4) - Tue, 12 Dec 2023 14:22:42 +0100*
 
 * Merging in pull request https://github.com/lucabaldini/ixpeobssim/pull/718
