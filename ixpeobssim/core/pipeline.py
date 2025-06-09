@@ -44,6 +44,7 @@ import ixpeobssim.utils.os_
 from ixpeobssim.utils.os_ import check_input_file
 
 from xpancrkey import xpancrkey as _xpancrkey, PARSER as XPANCRKEY_PARSER
+from xpbkgtemplate import xpbkgtemplate as _xpbkgtemplate, PARSER as XPBKGTEMPLATE_PARSER
 from xpbin import xpbin as _xpbin, PARSER as XPBIN_PARSER
 from xpbinview import xpbinview as _xpbinview, PARSER as XPBINVIEW_PARSER
 from xpchrgmap import xpchrgmap as _xpchrgmap, PARSER as XPCHRGMAP_PARSER
@@ -370,6 +371,12 @@ def xpancrkey(*args, **kwargs):
     """App wrapper.
     """
     return _xpancrkey(**_parse_args(XPANCRKEY_PARSER, *args, **kwargs))
+
+
+def xpbkgtemplate(*args, **kwargs):
+    """App wrapper.
+    """
+    return _xpbkgtemplate(**_parse_args(XPBKGTEMPLATE_PARSER, *args, **kwargs))
 
 
 def xpbin(*args, **kwargs):

@@ -187,7 +187,8 @@ def save_all_figures(output_folder, file_extensions=('png', 'pdf')):
 
 
 def residual_plot(figure_name=None, separation=0.3, padding=0.01,
-                  ylabel_offset=-0.085, figsize=DEFAULT_FIG_SIZE):
+                  ylabel_offset=-0.085, figsize=DEFAULT_FIG_SIZE,
+                  sharex=False):
     """Create a new figure with two axes objects for residual plots.
 
     Arguments
@@ -209,6 +210,9 @@ def residual_plot(figure_name=None, separation=0.3, padding=0.01,
     ax2 = fig.add_axes((left, bot, right - left, separation - bot - padding))
     plt.sca(ax1)
     ax2.get_yaxis().set_label_coords(ylabel_offset, 0.5)
+    if sharex:
+        ax1.sharex(ax2)
+        ax2.autoscale() ## call autoscale if needed
     return ax1, ax2
 
 
