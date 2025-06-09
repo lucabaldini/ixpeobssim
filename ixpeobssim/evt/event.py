@@ -36,6 +36,7 @@ from ixpeobssim.evt.fmt import xLvl2PrimaryHDU, xBinTableHDUEvents, xBinTableHDU
     xBinTableHDUOCTI
 from ixpeobssim.evt.fmt import _TIME_HEADER_KEYWORDS, WCS_ORIGIN, _SKYCOORD_NUM_SIDE_PIXELS
 from ixpeobssim.evt.fmt import standard_xy_to_radec, build_standard_wcs
+from ixpeobssim.evt.gti import xGTIList
 from ixpeobssim.evt.kislat2015 import xStokesAnalysis
 from ixpeobssim.instrument.charging import xEnergyFluxCube, read_charging_parameters
 from ixpeobssim.instrument.charging import read_charging_map, create_charging_map_extension
@@ -795,7 +796,7 @@ class xEventFile:
     def __init__(self, file_path):
         """Constructor.
         """
-        check_input_file(file_path, 'fits')
+        check_input_file(file_path, ['fits', 'fits.gz'])
         logger.info('Opening input event file %s...', file_path)
         self.hdu_list = fits.open(file_path)
         self.hdu_list.info()
@@ -1141,6 +1142,17 @@ class xEventFile:
         """Return the OCTI data.
         """
         return self._extension_data(xBinTableHDUOCTI.NAME)
+
+    def get_gti_list(self):
+        """ Return a xGTIList object
+        """
+        gti_data = self.gti_data()
+        gti_start = gti_data['START']
+        gti_stop = gti_data['STOP']
+        gtis = []
+        for start, stop in zip(gti_start, gti_stop):
+            gtis.append([start, stop])
+        return xGTIList(self.start_met(), self.stop_met(), *gtis)
 
     def average_deadtime_per_event(self):
         """Calculate the average deadtime per event.
@@ -1533,7 +1545,7 @@ class xEventFileFriend:
 
     def gti_data(self, lv1=False):
         """ Warning: This gets the GTI from either level 1 or level 2 file
-        (default). The level 2 definition is more estrictive than other
+        (default). The level 2 definition is more restrictive than other
         definitions of GTIs, and passes the following selection:
 
         • Data has been received and processed at the SOC
