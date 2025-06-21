@@ -1,7 +1,9 @@
 from enum import IntEnum
+import os
 import pathlib
 
 from astropy.io import fits
+from astropy.table import Table
 import matplotlib.patches as mpatches
 import numpy as np
 
@@ -9,7 +11,7 @@ from ixpeobssim.core import pipeline
 from ixpeobssim.binning.misc import xBinnedLightCurve
 from ixpeobssim.evt.gti import xGTIList
 from ixpeobssim.evt.fmt import xBinTableHDUGTI
-from ixpeobssim.evt.event import xEventFile
+from ixpeobssim.evt.event import xEventFile, xEventFileFriend
 from ixpeobssim.utils.matplotlib_ import plt
 
 
@@ -224,11 +226,73 @@ def plot_gtis(gti_data, color='g', alpha=0.3, label=None, **plot_opts):
         plt.legend()
 
 
+def write_gti_extension(obs_file_path, gti_extension, tag='inecl'):
+    ''' Creates a new file with the GTI table from the inecl/insun GTI 
+    extension
+    '''
+    out_path = os.path.splitext(obs_file_path)[0]+f'_{tag}.fits'
+    hdul = fits.open(obs_file_path)
+    primary = fits.PrimaryHDU(header = hdul[0].header)
+    table1 = fits.BinTableHDU(Table(hdul[1].data))
+    table1.header.extend(hdul[1].header, update=True)
+    table2 = gti_extension
+    new_hdul = fits.HDUList([primary, table1, table2])
+    hdul.close()
+    new_hdul.writeto(out_path, overwrite=True)
+    filter_gtis(out_path)
+    return(out_path)
+
+
+def filter_gtis(file_path):
+    ''' Filter a level 2 file according to its GTI table
+    '''
+    gti = fits.open(file_path)['GTI'].data
+    evt = xEventFile(file_path)
+    segs = []
+    for j in range(len(gti)):
+        segs.append(np.logical_and((evt.time_data()>gti[j]['START']),
+                    (evt.time_data()<gti[j]['STOP'])))
+    mask = np.logical_or.reduce(segs)
+    evt.filter(mask)
+    evt.write(file_path, overwrite=True)
+    evt.close()
+
+
+def update_livetime(lvl2_file_path, lvl1_file_path):
+    '''
+    '''
+    friend = xEventFileFriend(lvl2_file_path, lvl1_file_path)
+    gti = fits.open(lvl2_file_path)['GTI'].data
+    time = friend.l1value('TIME', all_events=True)
+    filter = []
+    for j in range (len(gti['START'])):
+        start = gti['START'][j]
+        stop = gti['STOP'][j]
+        filter.append(np.logical_and((time>start), (time<stop)))
+    time_mask = np.logical_or.reduce(filter)
+    lt_microsec = np.sum((friend.l1value('LIVETIME', all_events=True)
+                            )*time_mask)
+    #gti.close()
+    hdul = fits.open(lvl2_file_path, mode='update')
+    for hdu in hdul:
+        hdu.header['LIVETIME'] = lt_microsec/1.e6
+    input (f'new_lt = {lt_microsec/1.e6}')
+    hdul.flush()
+    hdul.close()
+
+
 if __name__ == '__main__':
-    obs_file_path = '/media/alberto/TOSHIBA EXT/xpe/bkg/01006499/event_l2/ixpe01006499_det2_evt2_v01.fits'
-    hk_file_paths = ['/media/alberto/TOSHIBA EXT/xpe/bkg/01006499/hk/ixpe01006401_all_adc_0110_v02.fits',
-                    '/media/alberto/TOSHIBA EXT/xpe/bkg/01006499/hk/ixpe01006402_all_adc_0110_v02.fits']
+    obs_file_path = '/work/04002301/event_l2/ixpe04002301_det2_evt2_v03.fits'
+    hk_file_paths = ['/work/04002301/hk/ixpe04002301_all_adc_0110_v02.fits.gz']
+    lvl1_file_paths = ['/work/04002301/event_l1/ixpe04002301_det2_evt1_v05.fits']
+                       #'/work/04002301/event_l1/ixpe04002301_det2_evt1_v06_c01.fits',
+                       #'/work/04002301/event_l1/ixpe04002301_det2_evt1_v06_c02.fits']
     ineclipse_gti_ext = create_ineclipse_gti_extension(obs_file_path, *hk_file_paths)
+    inecl_path = write_gti_extension(obs_file_path, ineclipse_gti_ext, tag='inecl')
+    update_livetime(inecl_path, lvl1_file_paths)
+    insun_gti_ext = create_insun_gti_extension(obs_file_path, *hk_file_paths)
+    insun_path = write_gti_extension(obs_file_path, insun_gti_ext, tag='insun')
+    update_livetime(insun_path, lvl1_file_paths)
     plt.figure()
     plot_gtis(ineclipse_gti_ext.data, label='INECLIPSE')
     insun_gtis = create_insun_gti_extension(obs_file_path, *hk_file_paths)
@@ -240,5 +304,5 @@ if __name__ == '__main__':
     plt.errorbar(light_curve.TIME, rate, rate_error, fmt='o')
     plt.show()
 
-
+213456 + 270415
     
