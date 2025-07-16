@@ -20,6 +20,7 @@
 from __future__ import print_function, division
 
 from ixpeobssim.core.fitsio import xPrimaryHDU, xBinTableHDUBase
+from ixpeobssim.evt.gti import xGTIList
 from ixpeobssim.instrument.du import du_physical_name, du_logical_name
 from ixpeobssim.utils.astro import xy_columns_kwargs, set_xy_header_limits, build_wcs
 from ixpeobssim.utils.logging_ import logger
@@ -317,6 +318,16 @@ class xBinTableHDUGTI(xBinTableHDUBase):
         ('START', 'D', 's', 'GTI start time'),
         ('STOP' , 'D', 's', 'GTI stop time')
     ]
+
+    def get_gti_list(self):
+        """ Build a xGTIList object out of the binary table data
+        """
+        gtis = []
+        tstarts = self.data['START']
+        tstops = self.data['STOP']
+        for start, stop in zip(tstarts, tstops):
+            gtis.append([start, stop])
+        return xGTIList(self.header['TSTART'], self.header['TSTOP'], *gtis)
 
 
 class xBinTableHDURoiTable(xBinTableHDUBase):

@@ -1,6 +1,3 @@
-from enum import IntEnum
-import pathlib
-
 from astropy.io import fits
 import matplotlib.patches as mpatches
 import numpy as np
@@ -12,125 +9,6 @@ from ixpeobssim.evt.fmt import xBinTableHDUGTI
 from ixpeobssim.evt.event import xEventFile
 from ixpeobssim.utils.matplotlib_ import plt
 
-
-class EdgeType(IntEnum):
-    """
-    Enumeration representing the types of edges that can occur in Good Time Intervals (GTIs) 
-    and Bad Time Intervals (BTIs).
-
-    Members:
-        GTI_START: Beginning of a good time interval.
-        GTI_STOP: End of a good time interval.
-        BTI_START: Beginning of a bad time interval.
-        BTI_STOP: End of a bad time interval.
-    """
-    GTI_START = 0
-    GTI_STOP = 1
-    BTI_START = 2
-    BTI_STOP = 3
-
-
-class UnexpectedEdgeType(RuntimeError):
-    """
-    Custom exception raised when an unexpected sequence of GTI/BTI edges is encountered.
-
-    Attributes:
-        msg (str): A detailed error message describing the unexpected edge and current state.
-    """
-    def __init__(self, edge_time, edge_type, in_old_gti, in_bti):
-        """
-        Initialize the exception with the edge time, type, and current interval state.
-
-        Args:
-            edge_time: The time of the edge event.
-            edge_type: The type of the edge (GTI_START, GTI_STOP, etc.).
-            in_old_gti (bool): True if currently inside an old GTI.
-            in_bti (bool): True if currently inside a BTI.
-        """
-        self.msg = f'Unexpected edge type {str(EdgeType(edge_type))} at time '\
-                   f'{edge_time}, when "in_old_gti" is {in_old_gti} and '\
-                   f'"in_bti" is {in_bti}'
-
-    def __str__(self):
-        return self.msg
-
-
-def update_gti(gti_start, gti_stop, bti_start, bti_stop):
-    """
-    Update Good Time Intervals (GTIs) by removing Bad Time Intervals (BTIs) from them.
-
-    This function merges and processes the GTI and BTI edges in chronological order, producing
-    new GTIs that exclude the periods defined as BTIs.
-
-    Args:
-        gti_start (np.ndarray): Array of start times for the original GTIs.
-        gti_stop (np.ndarray): Array of stop times for the original GTIs.
-        bti_start (np.ndarray): Array of start times for BTIs.
-        bti_stop (np.ndarray): Array of stop times for BTIs.
-
-    Returns:
-        Tuple[np.ndarray, np.ndarray]: Arrays of start and stop times for the new GTIs.
-    """
-    # Combine all edge times and types
-    edge_times = np.hstack((gti_start, gti_stop, bti_start, bti_stop))
-    edge_types = np.array(
-        [EdgeType.GTI_START] * len(gti_start) +
-        [EdgeType.GTI_STOP] * len(gti_stop) +
-        [EdgeType.BTI_START] * len(bti_start) +
-        [EdgeType.BTI_STOP] * len(bti_stop)
-    )
-
-    # Sort edges by time (stable sort ensures start precedes stop if times are equal)
-    idx = np.argsort(edge_times, kind='mergesort')
-    edge_times = edge_times[idx]
-    edge_types = edge_types[idx]
-
-    # State trackers
-    in_old_gti = False
-    in_bti = False
-    new_gti_start = []
-    new_gti_stop = []
-
-    # Process each edge in time order
-    for edge_time, edge_type in zip(edge_times, edge_types):
-        # Case 1: outside both GTI and BTI
-        if not in_old_gti and not in_bti:
-            if edge_type == EdgeType.GTI_START:
-                new_gti_start.append(edge_time)
-                in_old_gti = True
-            elif edge_type == EdgeType.BTI_START:
-                in_bti = True
-            else:
-                raise UnexpectedEdgeType(edge_time, edge_type, in_old_gti, in_bti)
-        # Case 2: inside BTI but not GTI
-        elif not in_old_gti and in_bti:
-            if edge_type == EdgeType.GTI_START:
-                in_old_gti = True
-            elif edge_type == EdgeType.BTI_STOP:
-                in_bti = False
-            else:
-                raise UnexpectedEdgeType(edge_time, edge_type, in_old_gti, in_bti)
-        # Case 3: inside GTI but not BTI
-        elif in_old_gti and not in_bti:
-            if edge_type == EdgeType.GTI_STOP:
-                in_old_gti = False
-                new_gti_stop.append(edge_time)
-            elif edge_type == EdgeType.BTI_START:
-                in_bti = True
-                new_gti_stop.append(edge_time)  # End current GTI at BTI start
-            else:
-                raise UnexpectedEdgeType(edge_time, edge_type, in_old_gti, in_bti)
-        # Case 4: inside both GTI and BTI
-        else:
-            if edge_type == EdgeType.GTI_STOP:
-                in_old_gti = False
-            elif edge_type == EdgeType.BTI_STOP:
-                in_bti = False
-                new_gti_start.append(edge_time)  # Start new GTI after BTI ends
-            else:
-                raise UnexpectedEdgeType(edge_time, edge_type, in_old_gti, in_bti)
-
-    return np.array(new_gti_start), np.array(new_gti_stop)
 
 
 def create_ineclipse_gtis(*hk_file_paths, complement=False):
@@ -180,11 +58,9 @@ def update_obs_gti(obs_file_path, starts, stops):
     If complement is True use the complement of the given starts and stops to
     compute the intersection (see ixpeobssim.evt.gti.xGTIList.complement()). """
     obs_file = xEventFile(obs_file_path)
-    gti_data = obs_file.gti_data()
-    original_gti_start = gti_data['START']
-    original_gti_stop = gti_data['STOP']
-    new_gtis = update_gti(original_gti_start, original_gti_stop,
-                          starts, stops)
+    gti_extension = obs_file.hdu_list['GTI']
+    gti_list = gti_extension.get_gti_list()
+    new_gtis = gti_list.update(starts, stops)
     return create_gti_extension(obs_file.start_met(), obs_file.stop_met(),
                                 *new_gtis)
 
