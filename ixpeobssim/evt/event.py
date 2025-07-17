@@ -1146,7 +1146,13 @@ class xEventFile:
     def get_gti_list(self):
         """ Return a xGTIList object from the GTI extension
         """
-        return self.hdu_list[xBinTableHDUGTI.NAME].get_gti_list()
+        gti_ext = self.hdu_list[xBinTableHDUGTI.NAME]
+        gtis = []
+        tstarts = gti_ext.data['START']
+        tstops = gti_ext.data['STOP']
+        for start, stop in zip(tstarts, tstops):
+            gtis.append([start, stop])
+        return xGTIList(gti_ext.header['TSTART'], gti_ext.header['TSTOP'], *gtis)
 
     def average_deadtime_per_event(self):
         """Calculate the average deadtime per event.
