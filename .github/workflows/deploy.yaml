@@ -21,7 +21,7 @@ jobs:
         if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
         runs-on: ubuntu-latest
         permissions:
-          id-token: write        
+          id-token: write
         steps:
             - name: Checkout source
               uses: actions/checkout@v4
@@ -38,8 +38,6 @@ jobs:
             - name: Publish
               uses: pypa/gh-action-pypi-publish@release/v1
               with:
-                  user: __token__
-                  password: ${{ secrets.PYPI_API_TOKEN }}
                   skip-existing: true
 
     test-publish-pypi:
