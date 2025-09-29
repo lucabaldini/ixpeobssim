@@ -3,6 +3,9 @@
 Release notes
 =============
 
+
+*ixpeobssim (31.1.1) - Mon, 29 Sep 2025 13:51:39 +0200*
+
 * Merging pull request https://github.com/lucabaldini/ixpeobssim/pull/742
 * Merging pull request https://github.com/lucabaldini/ixpeobssim/pull/743
 * Tentative fix to get the package up and running again on PyPI.
