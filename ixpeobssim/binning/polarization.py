@@ -330,7 +330,7 @@ class xEventBinningPCUBE(xEventBinningBase):
     """
 
     INTENT = 'polarization cube (in energy layers)'
-    SUPPORTED_KWARGS = ['mc', 'acceptcorr', 'weights', 'weightcol', 'grayfilter'] + \
+    SUPPORTED_KWARGS = ['mc', 'acceptcorr', 'lep', 'weights', 'weightcol', 'grayfilter'] + \
         xEventBinningBase._energy_binning_kwargs()
 
     def bin_(self):
@@ -345,7 +345,7 @@ class xEventBinningPCUBE(xEventBinningBase):
         aeff = self.load_aeff_for_polarization_analysis()
         analysis = xStokesAnalysis(q, u, energy, modf, aeff, self.event_file.livetime(),
             self.weight_data(), self.get('acceptcorr'))
-        table = analysis.polarization_table(ebinning)
+        table = analysis.polarization_table(ebinning, lep=self.get('lep'))
         data = [table[key] for key in xBinTableHDUPCUBE.spec_names()]
         primary_hdu = self.build_primary_hdu()
         bin_table_hdu = xBinTableHDUPCUBE(data)
