@@ -134,7 +134,9 @@ PARSER.add_suffix(None)
 PARSER.add_irfname(default=None)
 PARSER.add_grayfilter()
 PARSER.add_boolean('--acceptcorr', default=True,
-    help='enable/disable the acceptance correction for polarization cubse and maps')
+    help='enable/disable the acceptance correction for polarization cubes and maps')
+PARSER.add_boolean('--lep', default=False,
+    help='enable/disable the linearized error propagation for polarization cubes')
 PARSER.add_weights(default=False)
 PARSER.add_weightcol()
 PARSER.add_argument('--tbinalg', choices=TBIN_ALGS, default='LIN',
