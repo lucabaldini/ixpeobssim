@@ -145,7 +145,7 @@ class xStokesAnalysis:
         # Since the modulation factor is only defined between 1 and 12 keV, and
         # potentially we have events much above 12 keV we need this filtering
         # stage---this kind of polarization analysis makes only sense where the
-        # modulation factor is defined or can be realiably extrapolated.
+        # modulation factor is defined or can be reliably extrapolated.
         # This was added in response to
         # https://bitbucket.org/ixpesw/ixpeobssim/issues/539
         # Note we are fairly liberal an take everything from 0 to 15 keV.
@@ -567,6 +567,17 @@ class xStokesAnalysis:
     @staticmethod
     def calculate_stokes_errors(I, Q, U, mu, W2):
         """Calculation of the errors on the Stokes parameters.
+
+        Note in this context all the function arguments are already being summed
+        up in the proper energy range and/or spatial bin. More specifically, this
+        function is called exactly in two places:
+
+        * from the polarization_table() method, where all the arguments are
+        scalars (I, Q and U are the summed Stokes parameters in the given
+        energy range, mu is the effective modulation factor and W2 is the
+        sum of the weights squared);
+        * from the polarization_map_cube() method, where all the arguments are
+        three-dimensional arrays.
         """
         # Initialize the output arrays.
         QN = numpy.zeros(I.shape)
@@ -584,9 +595,9 @@ class xStokesAnalysis:
         mask = I > 0.
         QN[mask] = Q[mask] / I[mask]
         UN[mask] = U[mask] / I[mask]
-        # From this point on, for the errors to be defined, we need a sligthly
+        # From this point on, for the errors to be defined, we need a slightly
         # different mask, and we nee to cast it in such a way we're not dividing
-        # by the effective modulation factor, which is zero wherevere there are
+        # by the effective modulation factor, which is zero wherever there are
         # no events. We define the new mask and cache the values, so that
         # the formulae downstream look easier.
         mask = numpy.logical_and(mask, (QN * mu)**2. <= 2.)
@@ -625,7 +636,36 @@ class xStokesAnalysis:
             numpy.sqrt(Q[_mask]**2. * dQ[_mask]**2. + U[_mask]**2. * dU[_mask]**2.)
         return QN, UN, dI, dQ, dU, dQN, dUN, cov, pval, conf, sig
 
-    def polarization_table(self, ebinning, degrees=True):
+    def calculate_stokes_errors_lep(self, mask):
+        """Alternative calculation of the errors on the Stokes parameters, using
+        the linear error propagation, after issue #741.
+
+        .. warning::
+
+            This is just an initial implementation, where we only handle the
+            polarization cube case, and we do not take care of all the edge
+            cases (e.g., zero division errors, etc.).
+        """
+        I, Q, U = self._sum_stokes_parameters(mask)
+        QN = Q / I
+        UN = U / I
+        dI = numpy.sqrt(self.W2(mask))
+        _w2n = self._w[mask]**2 / I**2
+        _mu = self._mu[mask]
+        # Note that if we just replace _mu with the effective mu, we recover the
+        # previous behavior, so probably we really want one function with an
+        # if statement around the following two lines.
+        dQN = numpy.sqrt((_w2n * (2. / _mu**2. - QN**2.)).sum())
+        dUN = numpy.sqrt((_w2n * (2. / _mu**2. - UN**2.)).sum())
+        dQ = I * dQN
+        dU = I * dUN
+        cov = -_w2n.sum() * QN * UN
+        pval = numpy.exp(-0.5 * (Q**2. / dQ**2. + U**2. / dU**2.))
+        conf = 1. - pval
+        sig = (Q**2. + U**2.) / numpy.sqrt(Q**2. * dQ**2. + U**2. * dU**2.)
+        return I, Q, U, QN, UN, dI, dQ, dU, dQN, dUN, cov, pval, conf, sig
+
+    def polarization_table(self, ebinning, degrees=True, lep=False):
         """Return a table with all the relevant polarization parameters.
 
         Note the column names, here, are taken from the definition of the
@@ -651,10 +691,21 @@ class xStokesAnalysis:
             mu = self._effective_mu(mask)
             counts = numpy.count_nonzero(mask)
             W2 = self.W2(mask)
+
             # Stokes parameters and associated uncertainties.
-            I, Q, U = self._sum_stokes_parameters(mask)
-            QN, UN, dI, dQ, dU, dQN, dUN, cov, pval, conf, sig = \
-                self.calculate_stokes_errors(I, Q, U, mu, W2)
+            # Note this has two branches since issue #741, but eventually we most
+            # likely want to refactor the code and move the branching into the
+            # function calculating the errors.
+            if lep:
+                logger.debug('Using linearized error propagation for Q and U...')
+                I, Q, U, QN, UN, dI, dQ, dU, dQN, dUN, cov, pval, conf, sig = \
+                    self.calculate_stokes_errors_lep(mask)
+            else:
+                logger.debug('Using legacy error propagation for Q and U...')
+                I, Q, U = self._sum_stokes_parameters(mask)
+                QN, UN, dI, dQ, dU, dQN, dUN, cov, pval, conf, sig = \
+                    self.calculate_stokes_errors(I, Q, U, mu, W2)
+
             # Effective number of counts, and MDP.
             n_eff, frac_w = self.calculate_n_eff(counts, I, W2)
             mdp = self.calculate_mdp99(mu, I, W2)
