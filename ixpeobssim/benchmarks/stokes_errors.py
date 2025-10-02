@@ -42,14 +42,15 @@ SUMMARY_FILE_PATH = os.path.join(IXPEOBSSIM_DATA_BENCHMARKS, SUMMARY_FILE_NAME)
 #INPUT_PARAMS = (srcmod.pl_index, srcmod.pl_norm, srcmod.pd, srcmod.pa)
 
 
-def _process(file_list, mc=True):
+def _process(file_list):
     """Custom processing routine---we only need the polarization cubes, here.
 
     Note by default we bin in mc energy, which makes the comparison with
     analytical calculations easier.
     """
-    kwargs = dict(emin=2., emax=8., ebins=1, mc=mc)
-    pipeline.xpbin(*file_list, algorithm='PCUBE', **kwargs)
+    kwargs = dict(emin=2., emax=8., ebins=4, ebinalg='LOG')
+    pipeline.xpbin(*file_list, algorithm='PCUBE', lep=False, **kwargs)
+    pipeline.xpbin(*file_list, algorithm='PCUBE', lep=True, suffix='pcube_lep', **kwargs)
 
 
 def generate(size=1000):
