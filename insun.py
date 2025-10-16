@@ -5,52 +5,24 @@ from astropy.io import fits
 from astropy.table import Table
 import numpy
 
-from ixpeobssim.core import pipeline
 from ixpeobssim.binning.misc import xBinnedLightCurve
+from ixpeobssim.core import pipeline
 from ixpeobssim.evt.gti import xGTIList
 from ixpeobssim.evt.fmt import xBinTableHDUGTI
 from ixpeobssim.evt.event import xEventFile, xEventFileFriend
 from ixpeobssim.instrument import DU_IDS
-from ixpeobssim.utils.matplotlib_ import plt
+from ixpeobssim.instrument.sc import create_ineclipse_gtis
 from ixpeobssim.utils.argparse_ import xArgumentParser
 from ixpeobssim.utils.logging_ import logger
+from ixpeobssim.utils.matplotlib_ import plt
+from ixpeobssim.utils.os_ import filter_input_file_list
 
 
 PARSER = xArgumentParser()
 PARSER.add_argument('folder', type=str,
                     help='path to the input observation folder')
-
 PARSER.add_argument('--l2files', type=str, default=None, nargs='+',
                     help='level 2 file list')
-
-
-def create_ineclipse_gtis(*hk_file_paths, complement=False):
-    """ Create arrays of TSTART and TSTOP corresponding to time periods when 
-    the spacecraft is not INSUN (a.k.a. not illuminated by the sun).
-    If complement is True, return the INSUN intervals instead"""
-    tstart = []
-    tstop = []
-    for file_path in hk_file_paths:
-        hdul = fits.open(file_path)
-        data = hdul['HK'].data
-        adsec2ecl = data['ADSEC2ECL']
-        adsec2sun = data['ADSEC2SUN']
-        time = data['TIME']
-        if complement:
-            mask = (adsec2ecl >= 0) * (adsec2sun < 0)
-        else:
-            mask = (adsec2ecl < 0) | (adsec2sun >= 0)
-        mask = mask.astype(int)
-        mask_switch = numpy.ediff1d(mask)
-        start_idx = numpy.where(mask_switch > 0)[0] + 1
-        if mask[0]:
-            start_idx = numpy.append(numpy.array([0]), start_idx)
-        stop_idx = numpy.where(mask_switch < 0)[0]
-        if mask[-1]:
-            stop_idx = numpy.append(stop_idx, numpy.array([len(mask)-1]))
-        tstart.append(time[start_idx])
-        tstop.append(time[stop_idx])
-    return numpy.concatenate(tstart), numpy.concatenate(tstop)
     
 
 def create_gti_extension(start_met, stop_met, tstarts, tstops):
@@ -173,9 +145,10 @@ def build_l2_file_dict_from_folder(folder):
     logger.debug('Searching for LEVEL 2 files in %s' % l2_folder)
     file_dict = {}
     for du_id in DU_IDS:
-        file_list = sorted(glob.glob(
-            os.path.join(l2_folder, 'ixpe*_det%s_evt2_v??.fits' % du_id)
-        ))
+        match_list = glob.glob(
+            os.path.join(l2_folder, 'ixpe*_det%s_evt2_v??' % du_id)
+        )
+        file_list = sorted(filter_input_file_list(match_list))
         logger.debug('%d LV2 files found for DU %d: %s' \
                      % (len(file_list), du_id, file_list))
         file_dict[du_id] = file_list
@@ -210,22 +183,25 @@ def build_l1_file_dict_from_folder(folder, du_ids=DU_IDS):
     logger.debug('Searching for LEVEL 1 files in %s' % l1_folder)
     file_dict = {}
     for du_id in du_ids:
-        file_list = sorted(glob.glob(
-            os.path.join(l1_folder, 'ixpe*_det%s_evt1_v??.fits' % du_id)
-        ))
+        match_list = glob.glob(
+            os.path.join(l1_folder, 'ixpe*_det%s_evt1_v??' % du_id)
+        )
+        file_list = sorted(filter_input_file_list(match_list))
         logger.debug('%d LV1 files found for DU %d: %s' \
                      % (len(file_list), du_id, file_list))
         file_dict[du_id] = file_list
     return file_dict
+
 
 def find_hk_file_list_in_folder(folder):
     """
     """
     hk_folder = os.path.join(folder, 'hk')
     logger.debug('Searching for HK files in %s' % hk_folder)
-    file_list = sorted(glob.glob(
-        os.path.join(hk_folder, 'ixpe*_all_adc_0110_v??.fits')
-    ))
+    match_list = glob.glob(
+        os.path.join(hk_folder, 'ixpe*_all_adc_0110_v??')
+    )
+    file_list = sorted(filter_input_file_list(match_list))
     if len(file_list) == 0:
         raise ValueError('Cannot find the appropriate hk file(s) in folder %s' % hk_folder)
     logger.debug('%d hk files found: %s'  % (len(file_list), file_list))
@@ -261,7 +237,8 @@ if __name__ == '__main__':
             plot_gtis(ineclipse_gti_ext.data, label='INECLIPSE')
             plot_gtis(insun_gti_ext.data, color='r', label='INSUN')
             l2_file_path = l2_file_path.replace(' ', '\ ')
-            light_curve_path = pipeline.xpbin(l2_file_path, tbins=100000, algorithm='LC', overwrite=True)
+            light_curve_path = pipeline.xpbin(l2_file_path, tbins=100000, 
+                                              algorithm='LC', overwrite=True)
             light_curve = xBinnedLightCurve.from_file_list(light_curve_path)
             rate, rate_error = light_curve.rate(), light_curve.rate_error()
             plt.errorbar(light_curve.TIME, rate, rate_error, fmt='o')

@@ -33,6 +33,15 @@ import shutil
 from ixpeobssim.utils.logging_ import logger, abort
 
 
+
+def filter_input_file_list(file_list):
+    """ Out of a list of files return only those with valid input file
+    extensions, .e. '.fits', or '.fits.gz' """
+    return [name for name in file_list if 
+            name.endswith('.fits') or name.endswith('.fits.gz')]
+
+
+
 def check_input_file(file_path, extension=None):
     """Make sure that an input file exists (and, optionally, has the right
     extension).

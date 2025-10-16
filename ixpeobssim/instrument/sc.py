@@ -23,6 +23,8 @@ from __future__ import print_function, division
 
 import numpy
 
+from astropy.io import fits
+
 from ixpeobssim.core.spline import xInterpolatedUnivariateSpline
 
 
@@ -121,3 +123,32 @@ def pointing_direction(sc_data, met):
     """
     ra_spline, dec_spline = pointing_splines(sc_data)
     return ra_spline(met), dec_spline(met)
+
+
+def create_ineclipse_gtis(*hk_file_paths, complement=False):
+    """ Create arrays of start and stop times corresponding to time periods when 
+    the spacecraft is not INSUN (a.k.a. not illuminated by the sun).
+    If complement is True, return the INSUN intervals instead"""
+    tstart = []
+    tstop = []
+    for file_path in hk_file_paths:
+        hdul = fits.open(file_path)
+        data = hdul['HK'].data
+        adsec2ecl = data['ADSEC2ECL']
+        adsec2sun = data['ADSEC2SUN']
+        time = data['TIME']
+        if complement:
+            mask = (adsec2ecl >= 0) * (adsec2sun < 0)
+        else:
+            mask = (adsec2ecl < 0) | (adsec2sun >= 0)
+        mask = mask.astype(int)
+        mask_switch = numpy.ediff1d(mask)
+        start_idx = numpy.where(mask_switch > 0)[0] + 1
+        if mask[0]:
+            start_idx = numpy.append(numpy.array([0]), start_idx)
+        stop_idx = numpy.where(mask_switch < 0)[0]
+        if mask[-1]:
+            stop_idx = numpy.append(stop_idx, numpy.array([len(mask)-1]))
+        tstart.append(time[start_idx])
+        tstop.append(time[stop_idx])
+    return numpy.concatenate(tstart), numpy.concatenate(tstop)
