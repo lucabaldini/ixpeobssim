@@ -202,7 +202,8 @@ class xGTIList(list):
                 elif edge_type == EdgeType.BTI_START:
                     in_bti = True
                 else:
-                    raise UnexpectedEdgeType(edge_time, edge_type, in_old_gti, in_bti)
+                    raise UnexpectedEdgeType(edge_time, edge_type, in_old_gti,
+                                             in_bti)
             # Case 2: inside BTI but not GTI
             elif not in_old_gti and in_bti:
                 if edge_type == EdgeType.GTI_START:
@@ -210,7 +211,8 @@ class xGTIList(list):
                 elif edge_type == EdgeType.BTI_STOP:
                     in_bti = False
                 else:
-                    raise UnexpectedEdgeType(edge_time, edge_type, in_old_gti, in_bti)
+                    raise UnexpectedEdgeType(edge_time, edge_type, in_old_gti,
+                                             in_bti)
             # Case 3: inside GTI but not BTI
             elif in_old_gti and not in_bti:
                 if edge_type == EdgeType.GTI_STOP:
@@ -220,7 +222,8 @@ class xGTIList(list):
                     in_bti = True
                     new_gti_stop.append(edge_time)  # End current GTI at BTI start
                 else:
-                    raise UnexpectedEdgeType(edge_time, edge_type, in_old_gti, in_bti)
+                    raise UnexpectedEdgeType(edge_time, edge_type, in_old_gti,
+                                             in_bti)
             # Case 4: inside both GTI and BTI
             else:
                 if edge_type == EdgeType.GTI_STOP:
@@ -229,7 +232,8 @@ class xGTIList(list):
                     in_bti = False
                     new_gti_start.append(edge_time)  # Start new GTI after BTI ends
                 else:
-                    raise UnexpectedEdgeType(edge_time, edge_type, in_old_gti, in_bti)
+                    raise UnexpectedEdgeType(edge_time, edge_type, in_old_gti,
+                                             in_bti)
 
         return numpy.array(new_gti_start), numpy.array(new_gti_stop)
  
@@ -240,7 +244,8 @@ class xGTIList(list):
             (self.total_good_time(), self.span)
         for i, (start, stop) in enumerate(self):
             text = '%s\n[%3d] (%.3f--%.3f) or (%.3f--%.3f)' %\
-                (text, i + 1, start, stop, start - self.start_met, stop - self.start_met)
+                (text, i + 1, start, stop, start - self.start_met,
+                 stop - self.start_met)
         return text
 
 
