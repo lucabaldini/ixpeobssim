@@ -368,15 +368,6 @@ class xBinnedPolarizationCube(xBinnedFileBase):
         """
         self._read_binary_table_data(xBinTableHDUPCUBE.NAME)
 
-    def backscal(self):
-        """Return the value of the BACKSCAL header keyword, if present.
-        """
-        try:
-            return self.primary_header['BACKSCAL']
-        except KeyError:
-            logger.warning('Polarization cube has no BACKSCAL header keyword set')
-            return None
-
     def __check_compat(self, other):
         """Check the basic polarization cube data structure before attempting
         to do operations with other polarization cubes.

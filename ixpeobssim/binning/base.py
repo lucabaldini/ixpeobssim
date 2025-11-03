@@ -633,6 +633,16 @@ class xBinnedFileBase:
         """String formatting.
         """
         return '%s content:\n%s' % (self.__class__.__name__, self.__data_dict)
+    
+    def backscal(self):
+        """Return the value of the BACKSCAL header keyword, if present.
+        """
+        try:
+            return self.primary_header['BACKSCAL']
+        except KeyError:
+            logger.warning('%s has no BACKSCAL header keyword set' % \
+                           self.__class__.__name__)
+            return None
 
 
 
