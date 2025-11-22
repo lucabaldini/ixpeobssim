@@ -264,8 +264,10 @@ if __name__ == '__main__':
             update_livetime(insun_path, l1_file_paths)
 
             plt.figure()
-            plot_gtis(ineclipse_gti_ext.data, label='INECLIPSE')
-            plot_gtis(insun_gti_ext.data, color='r', label='INSUN')
+            plot_gtis(ineclipse_gti_ext.data, label='INECLIPSE', hatch='/',
+                      edgecolor=None)
+            plot_gtis(insun_gti_ext.data, color='r', label='INSUN', hatch='x',
+                      edgecolor=None)
             l2_file_path = l2_file_path.replace(' ', '\ ')
             light_curve_path = pipeline.xpbin(l2_file_path, tbins=100000, 
                                               algorithm='LC', overwrite=True)
