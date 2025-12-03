@@ -135,14 +135,16 @@ def xpbin(**kwargs):
             continue
         else:
             event_binning.bin_()
+        evt_binned = BINNING_READ_DICT[binning_algorithm](event_binning.get('outfile'))
+        evt_backscal = evt_binned.backscal()
         if kwargs['ineclipse'] is not None:
+            ineclipse_binning = binning_class(kwargs['ineclipse'], **kwargs)
+            insun_binning = binning_class(kwargs['insun'], **kwargs)
+            ineclipse_binning.bin_()
+            insun_binning.bin_()
+            ineclipse_outfile = ineclipse_binning.get('outfile')
+            insun_outfile = insun_binning.get('outfile')
             if binning_algorithm in ['PHA1', 'PHA1Q', 'PHA1U']:
-                ineclipse_binning = binning_class(kwargs['ineclipse'], **kwargs)
-                insun_binning = binning_class(kwargs['insun'], **kwargs)
-                ineclipse_binning.bin_()
-                insun_binning.bin_()
-                ineclipse_outfile = ineclipse_binning.get('outfile')
-                insun_outfile = insun_binning.get('outfile')
                 ineclipse_binned = BINNING_READ_DICT[binning_algorithm](ineclipse_outfile)
                 insun_binned = BINNING_READ_DICT[binning_algorithm](insun_outfile)
                 insun_binned -= ineclipse_binned
@@ -153,8 +155,6 @@ def xpbin(**kwargs):
                     flare_backscal = fiducial_backscal(
                                             GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X,
                                             GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y)
-                evt_binned = BINNING_READ_DICT[binning_algorithm](event_binning.get('outfile'))
-                evt_backscal = evt_binned.backscal()
                 if evt_backscal is None:
                     evt_backscal = fiducial_backscal(
                                             GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X,
@@ -162,6 +162,30 @@ def xpbin(**kwargs):
                 flare_binned *= (evt_backscal / flare_backscal)
                 evt_binned -= flare_binned
                 evt_binned.write(file_path=outfile)
+            elif binning_algorithm == 'PCUBE':
+                ineclipse_binned = BINNING_READ_DICT[binning_algorithm](ineclipse_outfile)
+                insun_binned = BINNING_READ_DICT[binning_algorithm](insun_outfile)
+                insun_lt = insun_binned.primary_header['LIVETIME']
+                inecl_lt = ineclipse_binned.hdu_list[1].header['LIVETIME']
+                #Rescale the inecl to the insun lt to subtract it to get 
+                #the full flare content
+                ineclipse_binned *= insun_lt/inecl_lt
+                insun_binned -= ineclipse_binned
+                flare_binned = insun_binned 
+                flare_backscal = flare_binned.backscal()
+                if flare_backscal is None:
+                    flare_backscal = fiducial_backscal(
+                                            GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X,
+                                            GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y)
+                if evt_backscal is None:
+                    evt_backscal = fiducial_backscal(
+                                            GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X,
+                                            GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y)
+                flare_binned *= (evt_backscal / flare_backscal)
+                evt_binned -= flare_binned
+                evt_binned.write(file_path=outfile)
+            elif binning_algorithm in ['CMAP', 'MDPMAP', 'MDPMAPCUBE', 'PMAP', 'PMAPCUBE']:
+                pass
     return outlist
 
 
