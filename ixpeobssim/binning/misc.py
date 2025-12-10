@@ -87,6 +87,7 @@ class xBinnedMap(xBinnedFileBase):
         self.__data_dict = {}
         self._xBinnedFileBase__data_dict = self.__data_dict
         self.hdu_list = self.fits_image.hdu_list
+        self.primary_header = self.fits_image.hdu_list[0].header
 
     def __iadd__(self, other):
         """Overloaded method for CMAP binned data addition.

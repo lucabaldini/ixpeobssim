@@ -160,8 +160,8 @@ def subtract_flare_pcube(evt_binned, inecl_out, insun_out, outfile):
     read = BINNING_READ_DICT['PCUBE']
     inecl = read(inecl_out)
     insun = read(insun_out)
-    insun_lt = insun.event_header['LIVETIME']
-    inecl_lt = inecl.event_header['LIVETIME']
+    insun_lt = insun.primary_header['LIVETIME']
+    inecl_lt = inecl.primary_header['LIVETIME']
     # Normalize inecl to insun livetime
     inecl *= (insun_lt / inecl_lt)
     # Flare content is contained only in the insun part, no need to rescale
@@ -187,8 +187,8 @@ def subtract_flare_map(evt_binned, algorithm, inecl_out, insun_out, outfile):
     read = BINNING_READ_DICT[algorithm]
     inecl = read(inecl_out)
     insun = read(insun_out)
-    insun_lt = insun.event_header['LIVETIME']
-    inecl_lt = inecl.event_header['LIVETIME']
+    insun_lt = insun.primary_header['LIVETIME']
+    inecl_lt = inecl.primary_header['LIVETIME']
     # Normalize inecl to insun livetime
     inecl *= (insun_lt / inecl_lt)
     # Flare content is contained only in the insun part, no need to rescale
@@ -199,7 +199,6 @@ def subtract_flare_map(evt_binned, algorithm, inecl_out, insun_out, outfile):
     evt_binned -= flare_average
     evt_binned.write(file_path=outfile)
     return evt_binned
-
 
 
 def xpbin(**kwargs):
