@@ -94,6 +94,18 @@ class xBinnedMap(xBinnedFileBase):
         self._check_iadd(other)
         self.fits_image += other.fits_image
         return self
+    
+    def __isub__(self, other):
+        """Overloaded method for CMAP binned data addition.
+        """
+        self._check_iadd(other)
+        self.fits_image -= other.fits_image
+        return self
+
+    def average(self):
+        """
+        """
+        return self.data.mean()
 
     def plot(self, **kwargs):
         """Plot the data. The kwargs passed to plt.imshow().

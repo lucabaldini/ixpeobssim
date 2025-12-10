@@ -381,12 +381,13 @@ class xBinnedPolarizationCube(xBinnedFileBase):
         """
         # Recalculate the normalized Stokes parameters, and propagate the errors.
         args = self.I, self.Q, self.U, self.MU, self.W2
-        self.QN, self.UN, self.I_ERR, self.Q_ERR, self.U_ERR, self.QN_ERR, self.UN_ERR, \
-            self.QUN_COV, self.P_VALUE, self.CONFID, self.SIGNIF = \
-                xStokesAnalysis.calculate_stokes_errors(*args)
+        self.QN, self.UN, self.I_ERR, self.Q_ERR, self.U_ERR, self.QN_ERR, \
+            self.UN_ERR, self.QUN_COV, self.P_VALUE, self.CONFID, \
+            self.SIGNIF = xStokesAnalysis.calculate_stokes_errors(*args)
         # Update the MDP.
         self.MDP_99 = xStokesAnalysis.calculate_mdp99(self.MU, self.I, self.W2)
-        self.N_EFF, self.FRAC_W = xStokesAnalysis.calculate_n_eff(self.COUNTS, self.I, self.W2)
+        self.N_EFF, self.FRAC_W = xStokesAnalysis.calculate_n_eff(
+                                                   self.COUNTS, self.I, self.W2)
         # Recalculate the polarization degree and angle.
         self.PD, self.PD_ERR, self.PA, self.PA_ERR = \
             xStokesAnalysis.calculate_polarization(*args, degrees=True)
@@ -787,13 +788,15 @@ class xBinnedMDPMapCube(xBinnedFileBase):
         """
         return self.I.shape[1:]
 
+    def num_map_pixels(self):
+        return self.map_shape()[0] * self.map_shape()[1]
+
     def pixel_size(self):
         """Return the pixel size of the underlying spatial map.
         """
         cdelt1, cdelt2, _ = self.wcs.wcs.get_cdelt()
         assert abs(cdelt1) == abs(cdelt2)
         return abs(cdelt1)
-
 
     def ds9_region_mask(self, region_list, region_slice=None):
         """Return the (spatial) array map corresponding to a given ds9 region list.
@@ -837,6 +840,23 @@ class xBinnedMDPMapCube(xBinnedFileBase):
         W2 = self._sum_image_pixels(self.W2, *args)
         mdp = xStokesAnalysis.calculate_mdp99(mu, I, W2)
         return {'COUNTS': counts, 'I': I, 'MU': mu, 'W2': W2, 'MDP_99': mdp}
+
+    def average(self):
+        """
+        Compute the average over the map, then create an identical map filled 
+        with the average value.
+        """
+        average_map = self.__class__(self.file_path)
+        num_pixels = self.num_map_pixels()
+        average_map.COUNTS = self.COUNTS.sum(axis=(1, 2)) / num_pixels
+        average_map.I = self.I.sum(axis=(1, 2)) / num_pixels
+        average_map.W2= self.W2.sum(axis=(1, 2)) / num_pixels
+        average_map.MU = (self.I * self.MU).sum(axis=(1, 2)) / average_map.I
+        average_map.MDP_99 = xStokesAnalysis.calculate_mdp99(
+                                 average_map.MU, average_map.I, average_map.W2)
+        average_map.N_EFF, average_map.FRAC_W = xStokesAnalysis.calculate_n_eff(
+                              average_map.COUNTS, average_map.I, average_map.W2)
+        return average_map
 
     def energy_binning(self):
         """Return the underlying energy binning in the form of a numpy array.
@@ -1127,6 +1147,26 @@ class xBinnedPolarizationMapCube(xBinnedMDPMapCube):
             'QN_ERR': qn_err, 'UN_ERR': un_err, 'QUN_COV': qun_cov, 'P_VALUE': p_value,
             'CONFID': confid, 'SIGNIF': signif})
         return data
+    
+    def average(self):
+        """
+        Compute the average over the map, then create an identical map filled 
+        with the average value.
+        """
+        average_map = super().average()
+        average_map.Q = self.Q.sum(axis=(1,2)) / self.num_map_pixels()
+        average_map.U = self.U.sum(axis=(1,2)) / self.num_map_pixels()
+        args = average_map.I, average_map.Q, average_map.U, average_map.MU,\
+               average_map.W2
+        average_map.PD, average_map.PD_ERR, average_map.PA, average_map.PA_ERR \
+                   = xStokesAnalysis.calculate_polarization(*args, degrees=True)
+        average_map.QN, average_map.UN, average_map.I_ERR, average_map.Q_ERR,\
+        average_map.U_ERR, average_map.QN_ERR, average_map.UN_ERR, \
+            average_map.QUN_COV, average_map.P_VALUE, average_map.CONFID,\
+            average_map.SIGNIF = \
+                xStokesAnalysis.calculate_stokes_errors(*args)
+        return average_map
+
 
     def calculate_significance_mask(self, num_sigma=2., intensity_percentile=0.):
         """Utitlity function to calculate a mask on the underlying pixel cube

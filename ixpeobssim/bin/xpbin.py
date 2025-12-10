@@ -113,25 +113,30 @@ def build_deflaring_binning(kwargs, algorithm):
     insun.bin_()
     return inecl, insun
 
-def flare_subtraction(evt_binned, evt_backscal, kwargs, algorithm, file_path, outfile):
+def flare_subtraction(evt_binned, evt_backscal, kwargs, algorithm, file_path,
+                      outfile):
     """
     """
     inecl_bin, insun_bin = build_deflaring_binning(kwargs, algorithm)
     inecl_out = inecl_bin.get('outfile')
     insun_out = insun_bin.get('outfile')
-    if algorithm in ['PHA1', 'PHA1Q', 'PHA1U']:
-        return subtract_flare_PHA(evt_binned, evt_backscal, algorithm, inecl_out,
-                                  insun_out, outfile)
+    if algorithm in ['PP', 'ARMAP', 'EFLUX', 'LC', 'LTCUBE']:
+        logger.error('Flare subtraction not implemented for %s algorithm' \
+                     %algorithm)
+    if algorithm in ['PHA1', 'PHA1Q', 'PHA1U', 'PHA1QN', 'PHA1UN']:
+        return subtract_flare_pha(evt_binned, evt_backscal, algorithm,
+                                  inecl_out, insun_out, outfile)
     if algorithm == 'PCUBE':
-        return subtract_flare_PCUBE(evt_binned, evt_backscal, inecl_out, insun_out,
-                                    outfile)
+        return subtract_flare_pcube(evt_binned, evt_backscal, inecl_out,
+                                    insun_out, outfile)
     # to be defined
     if algorithm in ['CMAP', 'MDPMAP', 'MDPMAPCUBE', 'PMAP', 'PMAPCUBE']:
-        pass
+        subtract_flare_map(evt_binned, evt_backscal, algorithm, inecl_out,
+                           insun_out, outfile)
     return evt_binned
 
-def subtract_flare_PHA(evt_binned, evt_backscal, algorithm, inecl_out, insun_out,
-                       outfile):
+def subtract_flare_pha(evt_binned, evt_backscal, algorithm, inecl_out,
+                       insun_out, outfile):
     """
     """
     read = BINNING_READ_DICT[algorithm]
@@ -152,32 +157,62 @@ def subtract_flare_PHA(evt_binned, evt_backscal, algorithm, inecl_out, insun_out
     evt_binned.write(file_path=outfile)
     return evt_binned
 
-def subtract_flare_PCUBE(evt_binned, evt_backscal, inecl_out, insun_out, outfile):
+def subtract_flare_pcube(evt_binned, evt_backscal, inecl_out, insun_out,
+                         outfile):
     """
     """
     read = BINNING_READ_DICT['PCUBE']
     inecl = read(inecl_out)
     insun = read(insun_out)
-    # Achtung: I'm using the livetime of the first file. That's okay if you are
-    # not integrating multiple segments. Idealy, we should sum them all.
     insun_lt = insun.primary_header['LIVETIME']
-    inecl_lt = inecl.hdu_list[1].header['LIVETIME']
+    inecl_lt = inecl.primary_header['LIVETIME']
     # Normalize inecl to insun livetime
     inecl *= (insun_lt / inecl_lt)
-    # Falre content is contained only in the insun part, no need to rescale
+    # Flare content is contained only in the insun part, no need to rescale
     flare = insun
     flare -= inecl
+    flare.write(file_path=insun_out.replace('insun', 'flare'))
     flare_backscal = flare.backscal()
     if flare_backscal is None:
         flare_backscal = fiducial_backscal(GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X,
-                                            GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y)
+                                           GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y)
     if evt_backscal is None:
         evt_backscal = fiducial_backscal(GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X,
-                                            GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y)
+                                         GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y)
     flare *= (evt_backscal / flare_backscal)
     evt_binned -= flare
     evt_binned.write(file_path=outfile)
     return evt_binned
+
+def subtract_flare_map(evt_binned, evt_backscal, algorithm, inecl_out,
+                       insun_out, outfile):
+    """
+    Docstring for subtract_flare_map
+    
+    :param evt_binned: Description
+    :param evt_backscal: Description
+    :param algorithm: Description
+    :param inecl_out: Description
+    :param insun_out: Description
+    :param outfile: Description
+    """
+    read = BINNING_READ_DICT[algorithm]
+    inecl = read(inecl_out)
+    insun = read(insun_out)
+    insun_lt = insun.primary_header['LIVETIME']
+    inecl_lt = inecl.primary_header['LIVETIME']
+    # Normalize inecl to insun livetime
+    inecl *= (insun_lt / inecl_lt)
+    # Flare content is contained only in the insun part, no need to rescale
+    flare = insun
+    flare -= inecl
+    flare.write(file_path=insun_out.replace('insun', 'flare'))
+    flare_average = flare.average()
+    evt_binned -= flare_average
+    evt_binned.write(file_path=outfile)
+    return evt_binned
+
+
 
 def xpbin(**kwargs):
     """Application to bin the data.
@@ -211,11 +246,13 @@ def xpbin(**kwargs):
             continue
         else:
             event_binning.bin_()
-        evt_binned = BINNING_READ_DICT[binning_algorithm](event_binning.get('outfile'))
+        evt_binned = BINNING_READ_DICT[binning_algorithm](
+                                                   event_binning.get('outfile'))
         evt_backscal = evt_binned.backscal()
         if kwargs['ineclipse'] is not None:
             evt_binned = flare_subtraction(evt_binned, evt_backscal, kwargs,
-                                    binning_algorithm, file_path, outfile)
+                                           binning_algorithm, file_path,
+                                           outfile)
     return outlist
 
 
