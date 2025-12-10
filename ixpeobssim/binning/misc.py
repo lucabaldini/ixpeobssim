@@ -112,7 +112,7 @@ class xBinnedMap(xBinnedFileBase):
     def average(self):
         """
         """
-        return self.data.mean()
+        return self.fits_image.data.mean()
 
     def plot(self, **kwargs):
         """Plot the data. The kwargs passed to plt.imshow().
