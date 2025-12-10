@@ -83,7 +83,7 @@ class xBinnedMap(xBinnedFileBase):
         """
         self.fits_image = xFITSImageBase(file_path)
         # These are needed to equip the class instance with all the members
-        # that are necessary to call the wite() method of xBinnedFile.
+        # that are necessary to call the write() method of xBinnedFile.
         self.__data_dict = {}
         self._xBinnedFileBase__data_dict = self.__data_dict
         self.hdu_list = self.fits_image.hdu_list
