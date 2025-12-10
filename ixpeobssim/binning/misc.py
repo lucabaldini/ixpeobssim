@@ -102,6 +102,12 @@ class xBinnedMap(xBinnedFileBase):
         self._check_iadd(other)
         self.fits_image -= other.fits_image
         return self
+    
+    def __imul__(self, scalar):
+        """Multiplication by a scalar
+        """
+        self.fits_image *= scalar
+        return self
 
     def average(self):
         """

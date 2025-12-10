@@ -364,6 +364,12 @@ class xFITSImageBase:
         assert self.data.shape == other.data.shape
         self.data += other.data
         return self
+    
+    def __imul__(self, scalar):
+        """Multiplication by a scalar
+        """
+        self.data *= scalar
+        return self
 
     def get(self, keyword, default=None):
         """Retrieve the value of a primary header keyword.
