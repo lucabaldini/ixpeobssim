@@ -113,8 +113,7 @@ def build_deflaring_binning(kwargs, algorithm):
     insun.bin_()
     return inecl, insun
 
-def flare_subtraction(evt_binned, evt_backscal, kwargs, algorithm, file_path,
-                      outfile):
+def flare_subtraction(evt_binned, kwargs, algorithm, outfile):
     """
     """
     inecl_bin, insun_bin = build_deflaring_binning(kwargs, algorithm)
@@ -124,19 +123,16 @@ def flare_subtraction(evt_binned, evt_backscal, kwargs, algorithm, file_path,
         logger.error('Flare subtraction not implemented for %s algorithm' \
                      %algorithm)
     if algorithm in ['PHA1', 'PHA1Q', 'PHA1U', 'PHA1QN', 'PHA1UN']:
-        return subtract_flare_pha(evt_binned, evt_backscal, algorithm,
-                                  inecl_out, insun_out, outfile)
+        return subtract_flare_pha(evt_binned, algorithm, inecl_out, insun_out,
+                                  outfile)
     if algorithm == 'PCUBE':
-        return subtract_flare_pcube(evt_binned, evt_backscal, inecl_out,
-                                    insun_out, outfile)
+        return subtract_flare_pcube(evt_binned, inecl_out, insun_out, outfile)
     # to be defined
     if algorithm in ['CMAP', 'MDPMAP', 'MDPMAPCUBE', 'PMAP', 'PMAPCUBE']:
-        subtract_flare_map(evt_binned, evt_backscal, algorithm, inecl_out,
-                           insun_out, outfile)
+        subtract_flare_map(evt_binned, algorithm, inecl_out, insun_out, outfile)
     return evt_binned
 
-def subtract_flare_pha(evt_binned, evt_backscal, algorithm, inecl_out,
-                       insun_out, outfile):
+def subtract_flare_pha(evt_binned, algorithm, inecl_out, insun_out, outfile):
     """
     """
     read = BINNING_READ_DICT[algorithm]
@@ -149,6 +145,7 @@ def subtract_flare_pha(evt_binned, evt_backscal, algorithm, inecl_out,
     if flare_backscal is None:
         flare_backscal = fiducial_backscal(GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X,
                                             GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y)
+    evt_backscal = evt_binned.backscal()
     if evt_backscal is None:
         evt_backscal = fiducial_backscal(GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X,
                                             GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y)
@@ -157,8 +154,7 @@ def subtract_flare_pha(evt_binned, evt_backscal, algorithm, inecl_out,
     evt_binned.write(file_path=outfile)
     return evt_binned
 
-def subtract_flare_pcube(evt_binned, evt_backscal, inecl_out, insun_out,
-                         outfile):
+def subtract_flare_pcube(evt_binned, inecl_out, insun_out, outfile):
     """
     """
     read = BINNING_READ_DICT['PCUBE']
@@ -176,6 +172,7 @@ def subtract_flare_pcube(evt_binned, evt_backscal, inecl_out, insun_out,
     if flare_backscal is None:
         flare_backscal = fiducial_backscal(GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X,
                                            GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y)
+    evt_backscal = evt_binned.backscal()
     if evt_backscal is None:
         evt_backscal = fiducial_backscal(GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X,
                                          GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y)
@@ -184,17 +181,8 @@ def subtract_flare_pcube(evt_binned, evt_backscal, inecl_out, insun_out,
     evt_binned.write(file_path=outfile)
     return evt_binned
 
-def subtract_flare_map(evt_binned, evt_backscal, algorithm, inecl_out,
-                       insun_out, outfile):
+def subtract_flare_map(evt_binned, algorithm, inecl_out, insun_out, outfile):
     """
-    Docstring for subtract_flare_map
-    
-    :param evt_binned: Description
-    :param evt_backscal: Description
-    :param algorithm: Description
-    :param inecl_out: Description
-    :param insun_out: Description
-    :param outfile: Description
     """
     read = BINNING_READ_DICT[algorithm]
     inecl = read(inecl_out)
@@ -248,11 +236,9 @@ def xpbin(**kwargs):
             event_binning.bin_()
         evt_binned = BINNING_READ_DICT[binning_algorithm](
                                                    event_binning.get('outfile'))
-        evt_backscal = evt_binned.backscal()
         if kwargs['ineclipse'] is not None:
-            evt_binned = flare_subtraction(evt_binned, evt_backscal, kwargs,
-                                           binning_algorithm, file_path,
-                                           outfile)
+            evt_binned = flare_subtraction(evt_binned, kwargs,
+                                           binning_algorithm, outfile)
     return outlist
 
 
