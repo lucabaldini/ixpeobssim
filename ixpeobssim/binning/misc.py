@@ -94,6 +94,7 @@ class xBinnedMap(xBinnedFileBase):
         """
         self._check_iadd(other)
         self.fits_image += other.fits_image
+        self.hdu_list[0].data = self.fits_image.data
         return self
     
     def __isub__(self, other):
@@ -101,12 +102,14 @@ class xBinnedMap(xBinnedFileBase):
         """
         self._check_iadd(other)
         self.fits_image -= other.fits_image
+        self.hdu_list[0].data = self.fits_image.data
         return self
     
     def __imul__(self, scalar):
         """Multiplication by a scalar
         """
         self.fits_image *= scalar
+        self.hdu_list[0].data = self.fits_image.data
         return self
 
     def average(self):
@@ -114,6 +117,7 @@ class xBinnedMap(xBinnedFileBase):
         """
         mean_bkg = numpy.mean(self.fits_image.data[self.fits_image.data>0])
         self.fits_image.data = numpy.full(self.fits_image.data.shape, mean_bkg)
+        self.hdu_list[0].data = self.fits_image.data
         return self
 
     def plot(self, **kwargs):
