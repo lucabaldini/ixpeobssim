@@ -97,7 +97,7 @@ class xBinnedMap(xBinnedFileBase):
         return self
     
     def __isub__(self, other):
-        """Overloaded method for CMAP binned data addition.
+        """Overloaded method for CMAP binned data subtracion.
         """
         self._check_iadd(other)
         self.fits_image -= other.fits_image
@@ -112,7 +112,9 @@ class xBinnedMap(xBinnedFileBase):
     def average(self):
         """
         """
-        return self.fits_image.data.mean()
+        mean_bkg = numpy.mean(self.fits_image.data[self.fits_image.data>0])
+        self.fits_image.data = numpy.full(self.fits_image.data.shape, mean_bkg)
+        return self
 
     def plot(self, **kwargs):
         """Plot the data. The kwargs passed to plt.imshow().
