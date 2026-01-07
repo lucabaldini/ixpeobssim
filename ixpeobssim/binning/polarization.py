@@ -27,7 +27,7 @@ from astropy.io import fits
 import numpy
 import scipy
 
-from ixpeobssim.binning.base import xEventBinningBase, xBinnedFileBase
+from ixpeobssim.binning.base import xEventBinningBase, xBinnedFileBase, broadcast_to_map_shape
 from ixpeobssim.binning.fmt import xBinTableHDUPHA1, xBinTableHDUPCUBE, xBinTableHDUEBOUNDS
 from ixpeobssim.core.fitsio import xFITSImageBase
 from ixpeobssim.core.hist import xScatterPlot
@@ -846,16 +846,51 @@ class xBinnedMDPMapCube(xBinnedFileBase):
         Compute the average over the map, then create an identical map filled 
         with the average value.
         """
-        average_map = self.__class__(self.file_path)
+        # This avoids calling the constructor and the file_path
+        average_map = object.__new__(self.__class__)
+        # Set some required attributes by hand
+        object.__setattr__(average_map, '_xBinnedFileBase__data_dict', {})
+        object.__setattr__(average_map, 'primary_header', getattr(self, 'primary_header', None))
+        object.__setattr__(average_map, 'hdu_list', getattr(self, 'hdu_list', None))
+        shape = self.COUNTS.shape
         num_pixels = self.num_map_pixels()
-        average_map.COUNTS = self.COUNTS.sum(axis=(1, 2)) / num_pixels
-        average_map.I = self.I.sum(axis=(1, 2)) / num_pixels
-        average_map.W2= self.W2.sum(axis=(1, 2)) / num_pixels
-        average_map.MU = (self.I * self.MU).sum(axis=(1, 2)) / average_map.I
-        average_map.MDP_99 = xStokesAnalysis.calculate_mdp99(
-                                 average_map.MU, average_map.I, average_map.W2)
-        average_map.N_EFF, average_map.FRAC_W = xStokesAnalysis.calculate_n_eff(
-                              average_map.COUNTS, average_map.I, average_map.W2)
+
+        # Compute per-energy averages (1D arrays)
+        counts_per_energy = self.COUNTS.sum(axis=(1, 2))
+        avg_COUNTS = counts_per_energy / num_pixels
+        I_sum = self.I.sum(axis=(1, 2))
+        avg_I = I_sum / num_pixels
+        W2_sum = self.W2.sum(axis=(1, 2))
+        avg_W2 = W2_sum / num_pixels
+
+        # Weighting mu by I pixel by pixel now, i'm not sure it this was ok
+        avg_MU = numpy.zeros_like(avg_I)
+        mask = I_sum != 0.
+        avg_MU[mask] = (self.I * self.MU).sum(axis=(1, 2))[mask] / I_sum[mask]
+
+        #Prepare base map values and broadcast to the full map shape
+        e_mean = numpy.array(self.E_MEAN)
+        mdp_99 = xStokesAnalysis.calculate_mdp99(avg_MU, avg_I, avg_W2)
+        n_eff, frac_w = xStokesAnalysis.calculate_n_eff(avg_COUNTS, avg_I, avg_W2)
+
+        base_map_values = {
+            'COUNTS': avg_COUNTS,
+            'I': avg_I,
+            'W2': avg_W2,
+            'MU': avg_MU,
+            'E_MEAN': e_mean,
+            'MDP_99': mdp_99,
+            'N_EFF': n_eff,
+            'FRAC_W': frac_w,
+        }
+
+        for name, val in base_map_values.items():
+            average_map.set_data(name, broadcast_to_map_shape(val, shape))
+
+        # Set energy bounds.
+        average_map.set_data('ENERG_LO', numpy.array(self.ENERG_LO))
+        average_map.set_data('ENERG_HI', numpy.array(self.ENERG_HI))
+
         return average_map
 
     def energy_binning(self):
@@ -1151,20 +1186,46 @@ class xBinnedPolarizationMapCube(xBinnedMDPMapCube):
     def average(self):
         """
         Compute the average over the map, then create an identical map filled 
-        with the average value.
+        with the average value, broadcasting everything to the map shape.
         """
         average_map = super().average()
-        average_map.Q = self.Q.sum(axis=(1,2)) / self.num_map_pixels()
-        average_map.U = self.U.sum(axis=(1,2)) / self.num_map_pixels()
-        args = average_map.I, average_map.Q, average_map.U, average_map.MU,\
-               average_map.W2
-        average_map.PD, average_map.PD_ERR, average_map.PA, average_map.PA_ERR \
-                   = xStokesAnalysis.calculate_polarization(*args, degrees=True)
-        average_map.QN, average_map.UN, average_map.I_ERR, average_map.Q_ERR,\
-        average_map.U_ERR, average_map.QN_ERR, average_map.UN_ERR, \
-            average_map.QUN_COV, average_map.P_VALUE, average_map.CONFID,\
-            average_map.SIGNIF = \
-                xStokesAnalysis.calculate_stokes_errors(*args)
+        # Compute per-energy Q/U averages (1D) and derived quantities (1D)
+        num_pixels = self.num_map_pixels()
+        avg_Q = self.Q.sum(axis=(1, 2)) / num_pixels
+        avg_U = self.U.sum(axis=(1, 2)) / num_pixels
+        # Broadcast Q/U and derived quantities in a loop
+        shape = self.COUNTS.shape
+        pol_map_values = {
+            'Q': avg_Q,
+            'U': avg_U,
+        }
+        for name, val in pol_map_values.items():
+            average_map.set_data(name, broadcast_to_map_shape(val, shape))
+
+        args = average_map.I, average_map.Q, average_map.U, average_map.MU, average_map.W2
+        pd, pd_err, pa, pa_err = xStokesAnalysis.calculate_polarization(*args, degrees=True)
+        qn, un, i_err, q_err, u_err, qn_err, un_err, qun_cov, p_value, confid, signif = \
+            xStokesAnalysis.calculate_stokes_errors(*args)
+
+        derived_map_values = {
+            'PD': pd,
+            'PD_ERR': pd_err,
+            'PA': pa,
+            'PA_ERR': pa_err,
+            'QN': qn,
+            'UN': un,
+            'I_ERR': i_err,
+            'Q_ERR': q_err,
+            'U_ERR': u_err,
+            'QN_ERR': qn_err,
+            'UN_ERR': un_err,
+            'QUN_COV': qun_cov,
+            'P_VALUE': p_value,
+            'CONFID': confid,
+            'SIGNIF': signif,
+        }
+        for name, val in derived_map_values.items():
+            average_map.set_data(name, broadcast_to_map_shape(val, shape))
         return average_map
 
 
