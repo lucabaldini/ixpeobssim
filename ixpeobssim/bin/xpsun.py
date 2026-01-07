@@ -273,5 +273,7 @@ if __name__ == '__main__':
                                               algorithm='LC', overwrite=True)
             light_curve = xBinnedLightCurve.from_file_list(light_curve_path)
             rate, rate_error = light_curve.rate(), light_curve.rate_error()
+            plt.ylabel('Rate [Hz]')
+            plt.xlabel('MET[s]')
             plt.errorbar(light_curve.TIME, rate, rate_error, fmt='o')
             plt.show()
