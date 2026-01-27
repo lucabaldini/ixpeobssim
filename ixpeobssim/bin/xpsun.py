@@ -32,8 +32,6 @@ import glob
 import os
 
 from astropy.io import fits
-from astropy.table import Table
-import numpy
 
 from ixpeobssim.binning.misc import xBinnedLightCurve
 from ixpeobssim.core import pipeline
@@ -55,15 +53,11 @@ PARSER.add_argument('--l2files', type=str, default=None, nargs='+',
                     help='level 2 file list')
     
 
-def create_gti_extension(start_met, stop_met, tstarts, tstops):
+def create_gti_extension(obs_start_met, obs_stop_met, tstarts, tstops):
     """ Create a 'GTI' extension from the given arrays of tstarts and tstops.
-    This is essentially converting the two arrays of start and stop to 
-    an array of tuples (start, stop), as required by the constructor of
-    xGTIList."""
-    gtis = []
-    for start, stop in zip(tstarts, tstops):
-        gtis.append([start, stop])
-    gti_list = xGTIList(start_met, stop_met, *gtis)
+    """
+    gti_list = xGTIList.from_arrays(obs_start_met, obs_stop_met, 
+                                    tstarts, tstops)
     return xBinTableHDUGTI([gti_list.start_mets(), gti_list.stop_mets()]) 
  
 
@@ -95,11 +89,6 @@ def create_insun_gti_extension(obs_file_path, *hk_file_paths):
     return intersect_obs_gti(obs_file_path, insun_starts, insun_stops)
 
 
-def gti_mask(obs_file):
-    gti_list = obs_file.get_gti_list()
-    return gti_list.filter_event_times(obs_file.time_data())
-
-
 def plot_gtis(gti_data, color='g', alpha=0.3, label=None, **plot_opts):
     """
     """
@@ -112,57 +101,35 @@ def plot_gtis(gti_data, color='g', alpha=0.3, label=None, **plot_opts):
         plt.legend()
 
 
-def write_gti_extension(obs_file_path, gti_extension, tag='inecl'):
-    ''' Creates a new file with the GTI table from the inecl/insun GTI 
-    extension
-    '''
+def filter_through_gti(obs_file_path, gti_extension, tag='filtered'):
+    """ Update the observation with the a new GTI table (filtering the events
+    accordingly).
+    Write the content to a new file using the given name tag.
+    """
     out_path = os.path.splitext(obs_file_path)[0]+f'_{tag}.fits'
-    hdul = fits.open(obs_file_path)
-    primary = fits.PrimaryHDU(header = hdul[0].header)
-    table1 = fits.BinTableHDU(Table(hdul[1].data))
-    table1.header.extend(hdul[1].header, update=True)
-    table2 = gti_extension
-    new_hdul = fits.HDUList([primary, table1, table2])
-    hdul.close()
-    new_hdul.writeto(out_path, overwrite=True)
-    filter_gtis(out_path)
+    #hdul = fits.open(obs_file_path)
+    #primary = fits.PrimaryHDU(header = hdul[0].header)
+    #table1 = fits.BinTableHDU(Table(hdul[1].data))
+    #table1.header.extend(hdul[1].header, update=True)
+    #table2 = gti_extension
+    #new_hdul = fits.HDUList([primary, table1, table2])
+    #hdul.close()
+    #new_hdul.writeto(out_path, overwrite=True)
+    evt = xEventFile(obs_file_path)
+    evt.hdu_list['GTI'] = gti_extension
+    filtered = evt.filter_gtis()
+    filtered.writeto(out_path, overwrite=True)
     return(out_path)
-
-
-def filter_gtis(file_path):
-    ''' Filter a level 2 file according to its GTI table
-    '''
-    gti = fits.open(file_path)['GTI'].data
-    evt = xEventFile(file_path)
-    segs = []
-    for j in range(len(gti)):
-        segs.append(numpy.logical_and((evt.time_data()>gti[j]['START']),
-                    (evt.time_data()<gti[j]['STOP'])))
-    mask = numpy.logical_or.reduce(segs)
-    evt.filter(mask)
-    evt.write(file_path, overwrite=True)
-    evt.close()
-
-
+    
 def update_livetime(lvl2_file_path, lvl1_file_path):
-    '''
-    '''
+    """
+    """
     friend = xEventFileFriend(lvl2_file_path, lvl1_file_path)
-    gti = fits.open(lvl2_file_path)['GTI'].data
-    time = friend.l1value('TIME', all_events=True)
-    filter = []
-    for j in range (len(gti['START'])):
-        start = gti['START'][j]
-        stop = gti['STOP'][j]
-        filter.append(numpy.logical_and((time>start), (time<stop)))
-    time_mask = numpy.logical_or.reduce(filter)
-    lt_microsec = numpy.sum((friend.l1value('LIVETIME', all_events=True)
-                            )*time_mask)
-    #gti.close()
+    livetime = friend.livetime()
     hdul = fits.open(lvl2_file_path, mode='update')
     for hdu in hdul:
-        hdu.header['LIVETIME'] = lt_microsec/1.e6
-    print (f'new_lt = {lt_microsec/1.e6}')
+        hdu.header['LIVETIME'] = livetime
+    print (f'new_lt = {livetime}')
     hdul.flush()
     hdul.close()
 
@@ -195,6 +162,7 @@ def build_l2_file_dict_from_file_list(file_list):
             raise ValueError('Cannot find a valid DU number for file %s' % file_path)
         file_name = os.path.basename(file_path)
         pieces = file_name.split('det')
+        print(pieces[1])
         du_id = int(pieces[1][0])
         if (du_id not in DU_IDS):
             raise ValueError('Cannot find a valid DU number for file %s' % file_path)
@@ -233,12 +201,15 @@ def find_hk_file_list_in_folder(folder):
     )
     file_list = sorted(filter_input_file_list(match_list))
     if len(file_list) == 0:
-        raise ValueError('Cannot find the appropriate hk file(s) in folder %s' % hk_folder)
+        raise ValueError('Cannot find the appropriate hk file(s) in '\
+                         'folder %s' % hk_folder)
     logger.debug('%d hk files found: %s'  % (len(file_list), file_list))
     return file_list
 
 
-if __name__ == '__main__':
+def main():
+    """
+    """
     args = PARSER.parse_args()
     if args.l2files is not None:
         l2_file_dict = build_l2_file_dict_from_file_list(args.l2files)
@@ -254,21 +225,20 @@ if __name__ == '__main__':
             logger.info('Processing file %s ...' % l2_file_path)
             ineclipse_gti_ext = create_ineclipse_gti_extension(l2_file_path,
                                                                *hk_file_list)
-            inecl_path = write_gti_extension(l2_file_path, ineclipse_gti_ext,
+            inecl_path = filter_through_gti(l2_file_path, ineclipse_gti_ext,
                                              tag='inecl')
             update_livetime(inecl_path, l1_file_paths)
             insun_gti_ext = create_insun_gti_extension(l2_file_path,
                                                        *hk_file_list)
-            insun_path = write_gti_extension(l2_file_path, insun_gti_ext,
+            insun_path = filter_through_gti(l2_file_path, insun_gti_ext,
                                              tag='insun')
             update_livetime(insun_path, l1_file_paths)
 
-            plt.figure()
+            plt.figure(f'DU{du_id}')
             plot_gtis(ineclipse_gti_ext.data, label='INECLIPSE', hatch='/',
                       edgecolor=None)
             plot_gtis(insun_gti_ext.data, color='r', label='INSUN', hatch='x',
                       edgecolor=None)
-            l2_file_path = l2_file_path.replace(' ', '\ ')
             light_curve_path = pipeline.xpbin(l2_file_path, tbins=100000, 
                                               algorithm='LC', overwrite=True)
             light_curve = xBinnedLightCurve.from_file_list(light_curve_path)
@@ -276,4 +246,9 @@ if __name__ == '__main__':
             plt.ylabel('Rate [Hz]')
             plt.xlabel('MET[s]')
             plt.errorbar(light_curve.TIME, rate, rate_error, fmt='o')
-            plt.show()
+        
+    plt.show()
+
+
+if __name__ == '__main__':
+    main()    

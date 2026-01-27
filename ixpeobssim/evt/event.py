@@ -1393,7 +1393,27 @@ class xEventFile:
         hdu_list.info()
         hdu_list.writeto(file_path, overwrite=overwrite)
         logger.info('Done.')
-
+    
+    def gti_mask(self):
+        gti_list = self.get_gti_list()
+        return gti_list.filter_event_times(self.time_data())
+    
+    def filter_gtis(self):
+        """
+        Filter the file according to its GTI list. This is relevant when the
+        GTI list is updated after file creation.
+        """
+        gti = self.gti_data()
+        if gti is None:
+            logger.error('GTI extension not present. Cannot filter the observation')
+            return self.hdu_list
+        gti_masks = []
+        gti_start = gti['START']
+        gti_stop = gti['STOP']
+        _time = self.time_data()
+        for start, stop in zip(gti_start, gti_stop):
+            gti_masks.append((_time < stop) * (_time > start))
+        return self.filter(numpy.logical_or.reduce(gti_masks))
 
 class xEventFileFriend:
 
@@ -1433,6 +1453,8 @@ class xEventFileFriend:
                                         assume_unique=False, return_indices=True)
 
     def l1_paths(self):
+        if self.file_list1 == None:
+            raise ValueError('No level 1 file path present')
         return [f1.file_path() for f1 in self.file_list1]
 
     def l2_paths(self):
@@ -1516,19 +1538,24 @@ class xEventFileFriend:
     def wcs_reference(self):
         return [f.wcs_reference() for f in self.file_list2]
 
-    def livetime(self, time_mask=None):
-        """ Get the observation livetime, possibly applying a time
-        selection mask. Note: the mask must be of the size of the full LV1
-        sample.
+    def livetime(self, time_mask=None, lv1_gti=False):
+        """ Get the observation livetime by summing the LIVETIME columns after
+        GTI filtering, possibly applying an additional time selection mask.
+        If lv1_gti is True, use GTI from level 1 (default is 2).
+        Note: the mask must be of the size of the full LV1 sample.
         """
         if time_mask is None:
             lvt = self.file_list2[0].livetime()
         else:
             lvt_array = self.l1value('LIVETIME', all_events=True)
-            gti_mask = self.gti_clip_mask(all_events=True)
+            if lvt_array is None:
+                raise ValueError('Livetime cannot be computed when LV1 is missing')
+            gti_mask = self.gti_clip_mask(all_events=True, lv1_gti=lv1_gti)
             tot_lvt = lvt_array[gti_mask].sum() / 1.e6
             logger.info ('Total livetime: %s', tot_lvt)
-            rej_lt = numpy.sum(lvt_array[(~time_mask) * gti_mask]) / 1.e6
+            if time_mask is not None:
+                gti_mask *= (~time_mask)
+            rej_lt = numpy.sum(lvt_array[gti_mask]) / 1.e6
             logger.info ('Rejected livetime: %s', rej_lt)
             lvt = tot_lvt - rej_lt
             logger.info ('Final livetime: %s ', lvt)

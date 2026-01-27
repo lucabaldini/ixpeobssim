@@ -77,7 +77,7 @@ class xGTIList(list):
 
     """Small convenience class representing a list of good time interval.
 
-    The interfaces are fairly minimal,  but since we use this in quite
+    The interfaces are fairly minimal, but since we use this in quite
     different places, it was handy to collect the useful stuff in one place.
     """
 
@@ -90,6 +90,19 @@ class xGTIList(list):
         self.span = self.stop_met - self.start_met
         for start, stop in gtis:
             self.append_gti(start, stop)
+
+    @classmethod
+    def from_arrays(cls, start_met, stop_met, tstarts, tstops):
+        """
+        Initialize from two arrays (of start and stop).
+        This is essentially converting the two arrays of start and stop to 
+        an array of tuples (start, stop), as required by the constructor of
+        the class.
+        """
+        gtis = []
+        for start, stop in zip(tstarts, tstops):
+            gtis.append([start, stop])
+        return cls(start_met, stop_met, *gtis)
 
     def append_gti(self, start, stop):
         """Append a new GTI to the list.
