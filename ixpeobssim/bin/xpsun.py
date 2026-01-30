@@ -31,13 +31,9 @@ of the two parts is updated based on LV1 data.
 import glob
 import os
 
-from astropy.io import fits
-
 from ixpeobssim.binning.misc import xBinnedLightCurve
 from ixpeobssim.core import pipeline
-from ixpeobssim.evt.event import xEventFile, xEventFileFriend
-from ixpeobssim.evt.fmt import xBinTableHDUGTI
-from ixpeobssim.evt.gti import xGTIList
+from ixpeobssim.evt.event import xEventFile, intersect_gti
 from ixpeobssim.instrument import DU_IDS
 from ixpeobssim.instrument.sc import create_ineclipse_gtis
 from ixpeobssim.utils.argparse_ import xArgumentParser
@@ -51,88 +47,9 @@ PARSER.add_argument('folder', type=str,
                     help='path to the input observation folder')
 PARSER.add_argument('--l2files', type=str, default=None, nargs='+',
                     help='level 2 file list')
-    
-
-def create_gti_extension(obs_start_met, obs_stop_met, tstarts, tstops):
-    """ Create a 'GTI' extension from the given arrays of tstarts and tstops.
-    """
-    gti_list = xGTIList.from_arrays(obs_start_met, obs_stop_met, 
-                                    tstarts, tstops)
-    return xBinTableHDUGTI([gti_list.start_mets(), gti_list.stop_mets()]) 
- 
-
-def intersect_obs_gti(obs_file_path, starts, stops):
-    """ Create a new 'GTI' extension (of type xBinTableHDUGTI) intersecting the 
-    GTIs of the observation with the given starts and stops."""
-    obs_file = xEventFile(obs_file_path)
-    gti_list = obs_file.get_gti_list()
-    new_gtis = gti_list.update(starts, stops)
-    return create_gti_extension(obs_file.start_met(), obs_file.stop_met(),
-                                *new_gtis)
-
-def create_ineclipse_gti_extension(obs_file_path, *hk_file_paths):
-    """ Create a new 'GTI' extension (of type xBinTableHDUGTI) intersecting the 
-    GTIs of the observation with the times where the spacecraft is INECLIPSE,
-    i.e. not illuminated by the sun.
-    """
-    inecl_starts, inecl_stops = create_ineclipse_gtis(*hk_file_paths)
-    return intersect_obs_gti(obs_file_path, inecl_starts, inecl_stops)
-
-
-def create_insun_gti_extension(obs_file_path, *hk_file_paths):
-    """ Create a new 'GTI' extension (of type xBinTableHDUGTI) intersecting the 
-    GTIs of the observation with the times where the spacecraft is INSUN,
-    i.e. illuminated by the sun.
-    """
-    insun_starts, insun_stops = create_ineclipse_gtis(*hk_file_paths,
-                                                      complement=True)
-    return intersect_obs_gti(obs_file_path, insun_starts, insun_stops)
-
-
-def plot_gtis(gti_data, color='g', alpha=0.3, label=None, **plot_opts):
-    """
-    """
-    starts = gti_data['START']
-    stops = gti_data['STOP']
-    for start, stop in zip(starts, stops):
-        span = plt.axvspan(start, stop, color=color, alpha=alpha, **plot_opts)
-    if label is not None:
-        span.set_label(label)
-        plt.legend()
-
-
-def filter_through_gti(obs_file_path, gti_extension, tag='filtered'):
-    """ Update the observation with the a new GTI table (filtering the events
-    accordingly).
-    Write the content to a new file using the given name tag.
-    """
-    out_path = os.path.splitext(obs_file_path)[0]+f'_{tag}.fits'
-    #hdul = fits.open(obs_file_path)
-    #primary = fits.PrimaryHDU(header = hdul[0].header)
-    #table1 = fits.BinTableHDU(Table(hdul[1].data))
-    #table1.header.extend(hdul[1].header, update=True)
-    #table2 = gti_extension
-    #new_hdul = fits.HDUList([primary, table1, table2])
-    #hdul.close()
-    #new_hdul.writeto(out_path, overwrite=True)
-    evt = xEventFile(obs_file_path)
-    evt.hdu_list['GTI'] = gti_extension
-    filtered = evt.filter_gtis()
-    filtered.writeto(out_path, overwrite=True)
-    return(out_path)
-    
-def update_livetime(lvl2_file_path, lvl1_file_path):
-    """
-    """
-    friend = xEventFileFriend(lvl2_file_path, lvl1_file_path)
-    livetime = friend.livetime()
-    hdul = fits.open(lvl2_file_path, mode='update')
-    for hdu in hdul:
-        hdu.header['LIVETIME'] = livetime
-    print (f'new_lt = {livetime}')
-    hdul.flush()
-    hdul.close()
-
+PARSER.add_argument('--show', type=bool, action='store_true', default=False,
+                    help='show selection plot')
+       
 
 def build_l2_file_dict_from_folder(folder):
     """ Note: this is sorting the files alphabetically, in case this is
@@ -207,10 +124,42 @@ def find_hk_file_list_in_folder(folder):
     return file_list
 
 
+def make_plot(obs_path, insun_path, inecl_path, figname=''):
+    """
+    """
+    inecl_file = xEventFile(inecl_path)
+    insun_file = xEventFile(insun_path)
+    plt.figure(f'{figname}')
+    plot_gtis(inecl_file.gti_data, label='INECLIPSE', hatch='/',
+              edgecolor=None)
+    plot_gtis(insun_file.gti_data, color='r', label='INSUN', hatch='x',
+              edgecolor=None)
+    light_curve_path = pipeline.xpbin(obs_path, tbins=100000, 
+                                      algorithm='LC', overwrite=True)
+    light_curve = xBinnedLightCurve.from_file_list(light_curve_path)
+    rate, rate_error = light_curve.rate(), light_curve.rate_error()
+    plt.ylabel('Rate [Hz]')
+    plt.xlabel('MET[s]')
+    plt.errorbar(light_curve.TIME, rate, rate_error, fmt='o')
+
+
+def plot_gtis(gti_data, color='g', alpha=0.3, label=None, **plot_opts):
+    """
+    """
+    starts = gti_data['START']
+    stops = gti_data['STOP']
+    for start, stop in zip(starts, stops):
+        span = plt.axvspan(start, stop, color=color, alpha=alpha, **plot_opts)
+    if label is not None:
+        span.set_label(label)
+        plt.legend()
+
+
 def main():
     """
     """
     args = PARSER.parse_args()
+    show = True
     if args.l2files is not None:
         l2_file_dict = build_l2_file_dict_from_file_list(args.l2files)
     else:
@@ -223,31 +172,21 @@ def main():
         l1_file_paths = l1_file_dict[du_id]
         for l2_file_path in l2_file_paths:
             logger.info('Processing file %s ...' % l2_file_path)
-            ineclipse_gti_ext = create_ineclipse_gti_extension(l2_file_path,
-                                                               *hk_file_list)
-            inecl_path = filter_through_gti(l2_file_path, ineclipse_gti_ext,
-                                             tag='inecl')
-            update_livetime(inecl_path, l1_file_paths)
-            insun_gti_ext = create_insun_gti_extension(l2_file_path,
-                                                       *hk_file_list)
-            insun_path = filter_through_gti(l2_file_path, insun_gti_ext,
-                                             tag='insun')
-            update_livetime(insun_path, l1_file_paths)
-
-            plt.figure(f'DU{du_id}')
-            plot_gtis(ineclipse_gti_ext.data, label='INECLIPSE', hatch='/',
-                      edgecolor=None)
-            plot_gtis(insun_gti_ext.data, color='r', label='INSUN', hatch='x',
-                      edgecolor=None)
-            light_curve_path = pipeline.xpbin(l2_file_path, tbins=100000, 
-                                              algorithm='LC', overwrite=True)
-            light_curve = xBinnedLightCurve.from_file_list(light_curve_path)
-            rate, rate_error = light_curve.rate(), light_curve.rate_error()
-            plt.ylabel('Rate [Hz]')
-            plt.xlabel('MET[s]')
-            plt.errorbar(light_curve.TIME, rate, rate_error, fmt='o')
-        
-    plt.show()
+            inecl_starts, inecl_stops = create_ineclipse_gtis(*hk_file_list)
+            inecl_path = intersect_gti(l2_file_path, l1_file_paths, 
+                                       inecl_starts, inecl_stops,
+                                       tag='inecl')
+            
+            insun_starts, insun_stops = create_ineclipse_gtis(*hk_file_list,
+                                                              complement=True)
+            insun_path = intersect_gti(l2_file_path, l1_file_paths, 
+                                       insun_starts, insun_stops,
+                                       tag='insun')
+            make_plot(l2_file_path, inecl_path, insun_path,
+                      figname=f'DU{du_id}, {l2_file_path}')
+            
+    if show:    
+        plt.show()
 
 
 if __name__ == '__main__':

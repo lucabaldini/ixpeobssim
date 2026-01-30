@@ -125,30 +125,101 @@ def pointing_direction(sc_data, met):
     return ra_spline(met), dec_spline(met)
 
 
+def mask_to_gti(time, mask, *, t_start=None, t_end=None):
+    """
+    Convert a boolean mask into half-open GTIs [t_start, t_stop).
+
+    If t_start or t_end are provided, they define the observation
+    boundaries. Otherwise, time[0] and time[-1] are used.
+
+    Arguments
+    ----------
+    time : ndarray
+        1D monotonically increasing time array.
+    mask : ndarray of bool
+        True inside GTIs.
+    t_start : float or None, optional
+        Observation start time. Must satisfy t_start <= time[0].
+    t_end : float or None, optional
+        Observation end time. Must satisfy t_end >= time[-1].
+
+    Returns
+    -------
+    tstart, tstop : ndarray
+        Start and stop times of GTIs (half-open).
+    """
+    assert mask.ndim == 1
+    assert time.size == mask.size
+    if t_start is not None and t_start > time[0]:
+        raise ValueError(
+            't_start must be <= time[0] '
+            f'(t_start={t_start}, time[0]={time[0]})'
+        )
+    if t_end is not None and t_end < time[-1]:
+        raise ValueError(
+            't_end must be >= time[-1] '
+            f'(t_end={t_end}, time[-1]={time[-1]})'
+        )
+    # Convert to int and perform edge detection
+    mask_i = mask.astype(int)
+    edges = numpy.ediff1d(mask_i)
+    # Indices where a GTI starts (0 → 1 transition)
+    start_idx = numpy.where(edges > 0)[0] + 1
+    # Indices where a GTI ends (1 → 0 transition)
+    stop_idx  = numpy.where(edges < 0)[0] + 1
+
+    # Handle open interval at start
+    if mask_i[0]:
+        start_idx = numpy.insert(start_idx, 0, -1)
+    # Handle open interval at end
+    if mask_i[-1]:
+        stop_idx = numpy.append(stop_idx, mask_i.size)
+    assert start_idx.size == stop_idx.size
+    # Map indices to times
+    tstart = numpy.where(
+        start_idx == -1,
+        time[0] if t_start is None else t_start,
+        time[start_idx]
+    )
+    tstop = numpy.where(
+        stop_idx == mask_i.size,
+        time[-1] if t_end is None else t_end,
+        time[stop_idx]
+    )
+    return tstart, tstop
+
+
 def create_ineclipse_gtis(*hk_file_paths, complement=False):
-    """ Create arrays of start and stop times corresponding to time periods when 
-    the spacecraft is not INSUN (a.k.a. not illuminated by the sun).
-    If complement is True, return the INSUN intervals instead"""
-    tstart = []
-    tstop = []
+    """
+    Create arrays of start and stop times defining Good Time Intervals (GTIs)
+    corresponding to spacecraft eclipse conditions.
+
+    By default (complement=False), the function returns intervals when the
+    spacecraft is NOT INSUN (i.e. in eclipse).
+
+    If complement=True, the returned intervals correspond to INSUN periods.
+    """
+    # Lists collecting GTI start/stop times from all input HK files
+    tstart_all = []
+    tstop_all = []
     for file_path in hk_file_paths:
-        hdul = fits.open(file_path)
-        data = hdul['HK'].data
-        adsec2ecl = data['ADSEC2ECL']
-        adsec2sun = data['ADSEC2SUN']
-        time = data['TIME']
-        if complement:
-            mask = (adsec2ecl >= 0) * (adsec2sun < 0)
-        else:
-            mask = (adsec2ecl < 0) | (adsec2sun >= 0)
-        mask = mask.astype(int)
-        mask_switch = numpy.ediff1d(mask)
-        start_idx = numpy.where(mask_switch > 0)[0] + 1
-        if mask[0]:
-            start_idx = numpy.append(numpy.array([0]), start_idx)
-        stop_idx = numpy.where(mask_switch < 0)[0]
-        if mask[-1]:
-            stop_idx = numpy.append(stop_idx, numpy.array([len(mask)-1]))
-        tstart.append(time[start_idx])
-        tstop.append(time[stop_idx])
-    return numpy.concatenate(tstart), numpy.concatenate(tstop)
+        with fits.open(file_path) as hdul:
+            data = hdul['HK'].data
+            # Angular distances (sign encodes geometry / visibility)
+            adsec2ecl = data['ADSEC2ECL']
+            adsec2sun = data['ADSEC2SUN']
+            time = data['TIME']
+            if not numpy.all(numpy.diff(time) >= 0):
+                raise ValueError(f'TIME column in {file_path} is not monotonic')
+            # Build a boolean mask selecting the desired condition:
+            #  - complement=False → eclipse / not INSUN
+            #  - complement=True  → INSUN
+            if complement:
+                mask = (adsec2ecl >= 0) * (adsec2sun < 0)
+            else:
+                mask = (adsec2ecl < 0) | (adsec2sun >= 0)
+            tstart, tstop = mask_to_gti(time, mask)
+            tstart_all.append(tstart)
+            tstop_all.append(tstop)
+    # Concatenate GTIs from all input files into single arrays
+    return numpy.concatenate(tstart_all), numpy.concatenate(tstop_all)

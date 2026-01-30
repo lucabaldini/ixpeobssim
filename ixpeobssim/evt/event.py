@@ -20,6 +20,7 @@
 from __future__ import print_function, division
 
 import numbers
+import os
 from functools import lru_cache
 
 from astropy.io import fits
@@ -1398,7 +1399,7 @@ class xEventFile:
         gti_list = self.get_gti_list()
         return gti_list.filter_event_times(self.time_data())
     
-    def filter_gtis(self):
+    def apply_gti_filter(self):
         """
         Filter the file according to its GTI list. This is relevant when the
         GTI list is updated after file creation.
@@ -1414,6 +1415,7 @@ class xEventFile:
         for start, stop in zip(gti_start, gti_stop):
             gti_masks.append((_time < stop) * (_time > start))
         return self.filter(numpy.logical_or.reduce(gti_masks))
+
 
 class xEventFileFriend:
 
@@ -1664,3 +1666,27 @@ class xEventFileFriend:
         rate_err = numpy.sqrt(rate_hist.content) / lvt_hist.content
         rate_hist.set_content(rate, rate_hist.entries, rate_err)
         return rate_hist
+
+
+def intersect_gti(l2_file_path, l1_file_paths, gti_starts, gti_stops,
+              tag='filtered'):
+    """ To Be Documented
+    """
+    evt = xEventFile(l2_file_path)
+    gti_list = evt.get_gti_list()
+    new_starts, new_stops = gti_list.merge_gti(gti_starts, gti_stops)
+    gti_extension = evt.hdu_list[xBinTableHDUGTI.NAME]
+    gti_extension.data['START'] = new_starts
+    gti_extension.data['STOP'] = new_stops
+    filtered_hdul = evt.apply_gti_filter()
+    out_path = os.path.splitext(l2_file_path)[0] + f'_{tag}.fits'
+    filtered_hdul.writeto(out_path, overwrite=True)
+    friend = xEventFileFriend(out_path, l1_file_paths)
+    livetime = friend.livetime()
+    print (f'new_lt = {livetime}')
+    hdul = friend.file_list2[0].hdu_list
+    for hdu in hdul:
+        hdu.header['LIVETIME'] = livetime
+    hdul.flush()
+    hdul.close()
+    return out_path

@@ -28,49 +28,13 @@ from ixpeobssim.utils.logging_ import logger
 # pylint: disable=invalid-name
 
 
-class EdgeType(IntEnum):
-    """
-    Enumeration representing the types of edges that can occur in Good
-    Time Intervals (GTIs) and Bad Time Intervals (BTIs).
-
-    Members:
-        GTI_START: Beginning of a good time interval.
-        GTI_STOP: End of a good time interval.
-        BTI_START: Beginning of a bad time interval.
-        BTI_STOP: End of a bad time interval.
-    """
-    GTI_START = 0
-    GTI_STOP = 1
-    BTI_START = 2
-    BTI_STOP = 3
-
 
 class UnexpectedEdgeType(RuntimeError):
     """
-    Custom exception raised when an unexpected sequence of GTI/BTI edges is
-    encountered (e.g. two GTI start ina row without a GTI stop in between).
-
-    Attributes:
-        msg (str): A detailed error message describing the unexpected edge and
-        current state.
+    Custom exception raised when an unexpected sequence of GTI edges is
+    encountered (e.g. two GTI start in a row without a GTI stop in between).
     """
-    def __init__(self, edge_time, edge_type, in_old_gti, in_bti):
-        """
-        Initialize the exception with the edge time, type, and current interval
-        state.
-
-        Args:
-            edge_time: The time of the edge event.
-            edge_type: The type of the edge (GTI_START, GTI_STOP, etc.).
-            in_old_gti (bool): True if currently inside an old GTI.
-            in_bti (bool): True if currently inside a BTI.
-        """
-        self.msg = f'Unexpected edge type {str(EdgeType(edge_type))} at time '\
-                   f'{edge_time}, when "in_old_gti" is {in_old_gti} and '\
-                   f'"in_bti" is {in_bti}'
-
-    def __str__(self):
-        return self.msg
+    pass
 
 
 class xGTIList(list):
@@ -103,6 +67,13 @@ class xGTIList(list):
         for start, stop in zip(tstarts, tstops):
             gtis.append([start, stop])
         return cls(start_met, stop_met, *gtis)
+
+    @staticmethod
+    def validate_intervals(start, stop):
+        if len(start) != len(stop):
+            raise ValueError('start/stop length mismatch')
+        if not numpy.all(start < stop):
+            raise ValueError('non-positive interval detected')
 
     def append_gti(self, start, stop):
         """Append a new GTI to the list.
@@ -166,13 +137,10 @@ class xGTIList(list):
         logger.info('Done, %d entries remaining.', len(time_))
         return time_, mask
 
-    def update(self, bti_start, bti_stop):
+    def remove_bti(self, bti_start, bti_stop):
         """
         Update Good Time Intervals (GTIs) by removing Bad Time Intervals (BTIs)
         from them.
- 
-        This function merges and processes the GTI and BTI edges in chronological
-        order, producing new GTIs that exclude the periods defined as BTIs.
  
         Args:
             bti_start (numpy.ndarray): Array of start times for BTIs.
@@ -182,73 +150,40 @@ class xGTIList(list):
             Tuple[numpy.ndarray, numpy.ndarray]: Arrays of start and stop times for
             the new GTIs.
         """
-        gti_start = numpy.array(self.start_mets())
-        gti_stop = numpy.array(self.stop_mets())
+        gti_start, gti_stop = self.start_mets(), self.stop_mets()
+        self.validate_intervals(bti_start, bti_stop)
+        helper = xGTIListMergerHelper()
+        
+        def merge_rule():
+            """ BTI are treated as negative GTIs
+            """
+            return helper.in_old_gti and not helper.in_new_gti
+        
+        return helper.combine_intervals(gti_start, gti_stop, bti_start,
+                                        bti_stop, merge_rule)
+    
+    def merge_gti(self, new_gti_start, new_gti_stop):
+        """
+        Update Good Time Intervals (GTIs) by performing the *intersection* with 
+        the given GTIs.
  
-        # Combine all edge times and types
-        edge_times = numpy.hstack((gti_start, gti_stop, bti_start, bti_stop))
-        edge_types = numpy.array(
-            [EdgeType.GTI_START] * len(gti_start) +
-            [EdgeType.GTI_STOP] * len(gti_stop) +
-            [EdgeType.BTI_START] * len(bti_start) +
-            [EdgeType.BTI_STOP] * len(bti_stop)
-        )
-
-        # Sort edges by time (stable sort ensures start precedes stop if times are equal)
-        idx = numpy.argsort(edge_times, kind='mergesort')
-        edge_times = edge_times[idx]
-        edge_types = edge_types[idx]
-
-        # State trackers
-        in_old_gti = False
-        in_bti = False
-        new_gti_start = []
-        new_gti_stop = []
-
-        # Process each edge in time order
-        for edge_time, edge_type in zip(edge_times, edge_types):
-            # Case 1: outside both GTI and BTI
-            if not in_old_gti and not in_bti:
-                if edge_type == EdgeType.GTI_START:
-                    new_gti_start.append(edge_time)
-                    in_old_gti = True
-                elif edge_type == EdgeType.BTI_START:
-                    in_bti = True
-                else:
-                    raise UnexpectedEdgeType(edge_time, edge_type, in_old_gti,
-                                             in_bti)
-            # Case 2: inside BTI but not GTI
-            elif not in_old_gti and in_bti:
-                if edge_type == EdgeType.GTI_START:
-                    in_old_gti = True
-                elif edge_type == EdgeType.BTI_STOP:
-                    in_bti = False
-                else:
-                    raise UnexpectedEdgeType(edge_time, edge_type, in_old_gti,
-                                             in_bti)
-            # Case 3: inside GTI but not BTI
-            elif in_old_gti and not in_bti:
-                if edge_type == EdgeType.GTI_STOP:
-                    in_old_gti = False
-                    new_gti_stop.append(edge_time)
-                elif edge_type == EdgeType.BTI_START:
-                    in_bti = True
-                    new_gti_stop.append(edge_time)  # End current GTI at BTI start
-                else:
-                    raise UnexpectedEdgeType(edge_time, edge_type, in_old_gti,
-                                             in_bti)
-            # Case 4: inside both GTI and BTI
-            else:
-                if edge_type == EdgeType.GTI_STOP:
-                    in_old_gti = False
-                elif edge_type == EdgeType.BTI_STOP:
-                    in_bti = False
-                    new_gti_start.append(edge_time)  # Start new GTI after BTI ends
-                else:
-                    raise UnexpectedEdgeType(edge_time, edge_type, in_old_gti,
-                                             in_bti)
-
-        return numpy.array(new_gti_start), numpy.array(new_gti_stop)
+        Args:
+            new_gti_start (numpy.ndarray): Array of start times for GTIs.
+            new_gti_stop (numpy.ndarray): Array of stop times for GTIs.
+ 
+        Returns:
+            Tuple[numpy.ndarray, numpy.ndarray]: Arrays of start and stop times 
+            for the intersection GTIs.
+        """
+        gti_start, gti_stop = self.start_mets(), self.stop_mets()
+        self.validate_intervals(new_gti_start, new_gti_stop)
+        helper = xGTIListMergerHelper()
+        
+        def merge_rule():
+            return helper.in_old_gti and helper.in_new_gti
+        
+        return helper.combine_intervals(gti_start, gti_stop, new_gti_start,
+                                        new_gti_stop, merge_rule)
  
     def __str__(self):
         """String formatting.
@@ -260,6 +195,125 @@ class xGTIList(list):
                 (text, i + 1, start, stop, start - self.start_met,
                  stop - self.start_met)
         return text
+
+
+class xGTIListMergerHelper:
+    """
+    """
+
+    class EdgeType(IntEnum):
+        """
+        Enumeration representing the types of edges that can occur in Good
+        Time Intervals (GTIs) and Bad Time Intervals (BTIs).
+
+        Members:
+            OLD_GTI_START: Beginning of a good time interval.
+            OLD_GTI_STOP: End of a good time interval.
+            NEW_GTI_START: Beginning of a bad time interval.
+            NEW_GTI_STOP: End of a bad time interval.
+        """
+        OLD_GTI_START = 0
+        OLD_GTI_STOP = 1
+        NEW_GTI_START = 2
+        NEW_GTI_STOP = 3
+
+
+    EDGE_PRIORITY = {
+        EdgeType.NEW_GTI_STOP:  0,
+        EdgeType.OLD_GTI_STOP:  1,
+        EdgeType.NEW_GTI_START: 2,
+        EdgeType.OLD_GTI_START: 3,
+    }
+
+    def __init__(self):
+        self.in_old_gti = False
+        self.in_new_gti = False
+    
+
+    def _error_msg(self, edge_type):
+        return  f'Unexpected edge type {edge_type.name} when '\
+                f'"in_old_gti" is {self.in_old_gti} and '\
+                f'"in_new_gti" is {self.in_new_gti}'
+
+    def update_state(self, edge):
+        """
+        """
+        if edge == self.EdgeType.OLD_GTI_START:
+            if self.in_old_gti:
+                raise UnexpectedEdgeType(self._error_msg(edge))
+            self.in_old_gti = True
+        elif edge == self.EdgeType.OLD_GTI_STOP:
+            if not self.in_old_gti:
+                raise UnexpectedEdgeType(self._error_msg(edge))
+            self.in_old_gti = False
+        elif edge == self.EdgeType.NEW_GTI_START:
+            if self.in_new_gti:
+                raise UnexpectedEdgeType(self._error_msg(edge))
+            self.in_new_gti = True
+        elif edge == self.EdgeType.NEW_GTI_STOP:
+            if not self.in_new_gti:
+                raise UnexpectedEdgeType(self._error_msg(edge))
+            self.in_new_gti = False
+    
+    def sweep_intervals(self, edge_times, edge_types, is_active):
+        """
+        Generic sweep-line engine for interval algebra.
+
+        Intervals are half-open: [start, stop)
+
+        Parameters
+        ----------
+        edge_times : ndarray
+        edge_types : ndarray
+        is_active : callable() -> bool
+            Returns True when output GTI should be active.
+
+        Returns
+        -------
+        start, stop : ndarray
+        """
+
+        # Sort edges by (time, priority)
+        order = numpy.lexsort((
+            [self.EDGE_PRIORITY[t] for t in edge_types],
+            edge_times
+        ))
+        edge_times = edge_times[order]
+        edge_types = edge_types[order]
+
+        start = []
+        stop = []
+
+        prev_active = False
+
+        for t, etype in zip(edge_times, edge_types):
+            self.update_state(etype)
+            active = is_active(self)
+
+            if not prev_active and active:
+                start.append(t)
+            elif prev_active and not active:
+                stop.append(t)
+
+            prev_active = active
+
+        if prev_active:
+            raise RuntimeError('Unclosed interval at end of sweep')
+
+        return numpy.array(start), numpy.array(stop)
+
+    def combine_intervals(self, old_start, old_stop, new_start, new_stop, 
+                          rule):
+        """
+        """
+        edge_times = numpy.hstack((old_start, old_stop, new_start, new_stop))
+        edge_types = (
+            [self.EdgeType.OLD_GTI_START] * len(old_start) +
+            [self.EdgeType.OLD_GTI_STOP]  * len(old_stop)  +
+            [self.EdgeType.NEW_GTI_START] * len(new_start) +
+            [self.EdgeType.NEW_GTI_STOP]  * len(new_stop)
+        )
+        return self.sweep_intervals(edge_times, edge_types, rule)
 
 
 class xSimpleGTIList(xGTIList):
