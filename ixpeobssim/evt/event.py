@@ -1414,6 +1414,9 @@ class xEventFile:
         _time = self.time_data()
         for start, stop in zip(gti_start, gti_stop):
             gti_masks.append((_time < stop) * (_time > start))
+        if not gti_masks:
+            raise ValueError('GTI extension empty. Cannot filter the '\
+                             'observation.')
         return self.filter(numpy.logical_or.reduce(gti_masks))
 
 
@@ -1546,21 +1549,21 @@ class xEventFileFriend:
         If lv1_gti is True, use GTI from level 1 (default is 2).
         Note: the mask must be of the size of the full LV1 sample.
         """
+        lvt = self.file_list2[0].livetime()
+        lvt_array = self.l1value('LIVETIME', all_events=True)
+        if lvt_array is None:
+            raise ValueError('Livetime cannot be computed when LV1 is missing')
+        gti_mask = self.gti_clip_mask(all_events=True, lv1_gti=lv1_gti)
+        tot_lvt = lvt_array[gti_mask].sum() / 1.e6
         if time_mask is None:
-            lvt = self.file_list2[0].livetime()
-        else:
-            lvt_array = self.l1value('LIVETIME', all_events=True)
-            if lvt_array is None:
-                raise ValueError('Livetime cannot be computed when LV1 is missing')
-            gti_mask = self.gti_clip_mask(all_events=True, lv1_gti=lv1_gti)
-            tot_lvt = lvt_array[gti_mask].sum() / 1.e6
-            logger.info ('Total livetime: %s', tot_lvt)
-            if time_mask is not None:
-                gti_mask *= (~time_mask)
-            rej_lt = numpy.sum(lvt_array[gti_mask]) / 1.e6
-            logger.info ('Rejected livetime: %s', rej_lt)
-            lvt = tot_lvt - rej_lt
-            logger.info ('Final livetime: %s ', lvt)
+            logger.info ('Livetime: %s', tot_lvt)
+            return tot_lvt
+        logger.info ('Total livetime: %s', tot_lvt)
+        gti_mask *= (~time_mask)
+        rej_lt = numpy.sum(lvt_array[gti_mask]) / 1.e6
+        logger.info ('Rejected livetime: %s', rej_lt)
+        lvt = tot_lvt - rej_lt
+        logger.info ('Final livetime: %s ', lvt)
         return lvt
 
     @staticmethod
@@ -1669,24 +1672,31 @@ class xEventFileFriend:
 
 
 def intersect_gti(l2_file_path, l1_file_paths, gti_starts, gti_stops,
-              tag='filtered'):
+                  tag='filtered'):
     """ To Be Documented
     """
     evt = xEventFile(l2_file_path)
     gti_list = evt.get_gti_list()
     new_starts, new_stops = gti_list.merge_gti(gti_starts, gti_stops)
-    gti_extension = evt.hdu_list[xBinTableHDUGTI.NAME]
-    gti_extension.data['START'] = new_starts
-    gti_extension.data['STOP'] = new_stops
-    filtered_hdul = evt.apply_gti_filter()
+    new_gti_ext = xBinTableHDUGTI([new_starts, new_stops])
+    new_gti_ext.header = evt.hdu_list[xBinTableHDUGTI.NAME].header
+    evt.hdu_list[xBinTableHDUGTI.NAME] = new_gti_ext
     out_path = os.path.splitext(l2_file_path)[0] + f'_{tag}.fits'
-    filtered_hdul.writeto(out_path, overwrite=True)
+    try:
+        filtered_hdul = evt.apply_gti_filter()
+        logger.info(f'Writing to {out_path}')
+        filtered_hdul.writeto(out_path, overwrite=True)
+    except ValueError as e:
+        logger.error(e)
+        return None
     friend = xEventFileFriend(out_path, l1_file_paths)
     livetime = friend.livetime()
-    print (f'new_lt = {livetime}')
-    hdul = friend.file_list2[0].hdu_list
+    lv2_evt_file = friend.file_list2[0]
+    ontime = lv2_evt_file.get_gti_list().total_good_time()
+    hdul = lv2_evt_file.hdu_list
     for hdu in hdul:
         hdu.header['LIVETIME'] = livetime
-    hdul.flush()
+        hdu.header['ONTIME'] = ontime
+    hdul.writeto(out_path, overwrite=True)
     hdul.close()
     return out_path

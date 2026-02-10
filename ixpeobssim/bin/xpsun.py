@@ -47,8 +47,8 @@ PARSER.add_argument('folder', type=str,
                     help='path to the input observation folder')
 PARSER.add_argument('--l2files', type=str, default=None, nargs='+',
                     help='level 2 file list')
-PARSER.add_argument('--show', type=bool, action='store_true', default=False,
-                    help='show selection plot')
+PARSER.add_argument('--show', action='store_true', default=False,
+                    help='show insun selection plots')
        
 
 def build_l2_file_dict_from_folder(folder):
@@ -130,9 +130,9 @@ def make_plot(obs_path, insun_path, inecl_path, figname=''):
     inecl_file = xEventFile(inecl_path)
     insun_file = xEventFile(insun_path)
     plt.figure(f'{figname}')
-    plot_gtis(inecl_file.gti_data, label='INECLIPSE', hatch='/',
+    plot_gtis(inecl_file.gti_data(), label='INECLIPSE', hatch='/',
               edgecolor=None)
-    plot_gtis(insun_file.gti_data, color='r', label='INSUN', hatch='x',
+    plot_gtis(insun_file.gti_data(), color='r', label='INSUN', hatch='x',
               edgecolor=None)
     light_curve_path = pipeline.xpbin(obs_path, tbins=100000, 
                                       algorithm='LC', overwrite=True)
@@ -176,6 +176,7 @@ def main():
             inecl_path = intersect_gti(l2_file_path, l1_file_paths, 
                                        inecl_starts, inecl_stops,
                                        tag='inecl')
+            
             
             insun_starts, insun_stops = create_ineclipse_gtis(*hk_file_list,
                                                               complement=True)

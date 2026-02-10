@@ -176,16 +176,18 @@ def mask_to_gti(time, mask, *, t_start=None, t_end=None):
         stop_idx = numpy.append(stop_idx, mask_i.size)
     assert start_idx.size == stop_idx.size
     # Map indices to times
-    tstart = numpy.where(
-        start_idx == -1,
-        time[0] if t_start is None else t_start,
-        time[start_idx]
-    )
-    tstop = numpy.where(
-        stop_idx == mask_i.size,
-        time[-1] if t_end is None else t_end,
-        time[stop_idx]
-    )
+    tstart = numpy.empty_like(start_idx, dtype=time.dtype)
+    tstop  = numpy.empty_like(stop_idx,  dtype=time.dtype)
+
+    m_start = (start_idx == -1)
+    m_stop  = (stop_idx == mask_i.size)
+
+    tstart[m_start] = time[0] if t_start is None else t_start
+    tstart[~m_start] = time[start_idx[~m_start]]
+
+    tstop[m_stop] = time[-1] if t_end is None else t_end
+    tstop[~m_stop] = time[stop_idx[~m_stop]]
+
     return tstart, tstop
 
 
@@ -193,11 +195,11 @@ def create_ineclipse_gtis(*hk_file_paths, complement=False):
     """
     Create arrays of start and stop times defining Good Time Intervals (GTIs)
     corresponding to spacecraft eclipse conditions.
-
+        
     By default (complement=False), the function returns intervals when the
-    spacecraft is NOT INSUN (i.e. in eclipse).
+    spacecraft is not affected by the sun.
 
-    If complement=True, the returned intervals correspond to INSUN periods.
+    If complement=True, the returned intervals correspond to everything else.
     """
     # Lists collecting GTI start/stop times from all input HK files
     tstart_all = []
@@ -215,9 +217,9 @@ def create_ineclipse_gtis(*hk_file_paths, complement=False):
             #  - complement=False → eclipse / not INSUN
             #  - complement=True  → INSUN
             if complement:
-                mask = (adsec2ecl >= 0) * (adsec2sun < 0)
-            else:
                 mask = (adsec2ecl < 0) | (adsec2sun >= 0)
+            else:
+                mask = (adsec2sun < 0) * (adsec2ecl >= 0)
             tstart, tstop = mask_to_gti(time, mask)
             tstart_all.append(tstart)
             tstop_all.append(tstop)

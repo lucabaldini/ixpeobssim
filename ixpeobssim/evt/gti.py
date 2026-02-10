@@ -288,7 +288,7 @@ class xGTIListMergerHelper:
 
         for t, etype in zip(edge_times, edge_types):
             self.update_state(etype)
-            active = is_active(self)
+            active = is_active()
 
             if not prev_active and active:
                 start.append(t)
@@ -307,7 +307,7 @@ class xGTIListMergerHelper:
         """
         """
         edge_times = numpy.hstack((old_start, old_stop, new_start, new_stop))
-        edge_types = (
+        edge_types = numpy.asarray(
             [self.EdgeType.OLD_GTI_START] * len(old_start) +
             [self.EdgeType.OLD_GTI_STOP]  * len(old_stop)  +
             [self.EdgeType.NEW_GTI_START] * len(new_start) +

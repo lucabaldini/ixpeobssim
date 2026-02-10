@@ -635,7 +635,7 @@ class xDraggableColorbar:
     def redraw(self):
         """Redraw the colorbar and the related mappable object
         """
-        self.cbar.draw_all()
+        self.cbar._draw_all()
         self.ax.figure.canvas.draw()
 
     def update_cmap(self, index):
