@@ -39,7 +39,7 @@ class UnexpectedEdgeType(RuntimeError):
 
 class xGTIList(list):
 
-    """Small convenience class representing a list of good time interval.
+    """Class representing a list of good time interval.
 
     The interfaces are fairly minimal, but since we use this in quite
     different places, it was handy to collect the useful stuff in one place.
@@ -122,6 +122,21 @@ class xGTIList(list):
         iterator = iter(self.all_mets()[1:-1])
         return [(start, next(iterator)) for start in iterator]
 
+    def gti_mask(self, time_):
+        """
+        Return a boolean mask selecting the times falling inside the GTI in the 
+        list.
+        
+        Args
+        ---------
+
+        time_ : array of times to select
+        """
+        mask = numpy.zeros(time_.shape, dtype=bool)
+        for (start, stop) in self:
+            mask[numpy.logical_and(time_ >= start, time_ <= stop)] = True
+        return mask
+
     def filter_event_times(self, time_):
         """Filter a given array of event times and return a reduced array
         only containing the times within the good time intervals in the list,
@@ -130,9 +145,7 @@ class xGTIList(list):
         of periodic sources.
         """
         logger.info('Filtering %d event times according to the GTIs...', len(time_))
-        mask = numpy.zeros(time_.shape, dtype=bool)
-        for (start, stop) in self:
-            mask[numpy.logical_and(time_ >= start, time_ <= stop)] = True
+        mask = self.gti_mask(time_)
         time_ = time_[mask]
         logger.info('Done, %d entries remaining.', len(time_))
         return time_, mask

@@ -1371,7 +1371,7 @@ class xEventFile:
                             history=None, overwrite=True, filter_in_place=True):
         """Write to file a subselection of events.
 
-        Arguments
+        Args
         ---------
 
         selection_mask : array
@@ -1396,28 +1396,11 @@ class xEventFile:
         logger.info('Done.')
     
     def gti_mask(self):
+        """
+        Return a boolean mask selecting events falling inside GTI.
+        """
         gti_list = self.get_gti_list()
-        return gti_list.filter_event_times(self.time_data())
-    
-    def apply_gti_filter(self):
-        """
-        Filter the file according to its GTI list. This is relevant when the
-        GTI list is updated after file creation.
-        """
-        gti = self.gti_data()
-        if gti is None:
-            logger.error('GTI extension not present. Cannot filter the observation')
-            return self.hdu_list
-        gti_masks = []
-        gti_start = gti['START']
-        gti_stop = gti['STOP']
-        _time = self.time_data()
-        for start, stop in zip(gti_start, gti_stop):
-            gti_masks.append((_time < stop) * (_time > start))
-        if not gti_masks:
-            raise ValueError('GTI extension empty. Cannot filter the '\
-                             'observation.')
-        return self.filter(numpy.logical_or.reduce(gti_masks))
+        return gti_list.gti_mask(self.time_data())
 
 
 class xEventFileFriend:
@@ -1549,7 +1532,6 @@ class xEventFileFriend:
         If lv1_gti is True, use GTI from level 1 (default is 2).
         Note: the mask must be of the size of the full LV1 sample.
         """
-        lvt = self.file_list2[0].livetime()
         lvt_array = self.l1value('LIVETIME', all_events=True)
         if lvt_array is None:
             raise ValueError('Livetime cannot be computed when LV1 is missing')
@@ -1615,15 +1597,14 @@ class xEventFileFriend:
         """
         _gti_data = self.gti_data(lv1=lv1_gti)
         tstart, tstop = _gti_data['START'], _gti_data['STOP']
-        time = self.l1value('TIME', all_events=all_events)
-        gti = []
+        time_ = self.l1value('TIME', all_events=all_events)
         logger.info('Performing GTI selection...')
-        for start, stop in zip(tstart, tstop):
-            gti.append((time < stop) * (time > start))
-        gti_mask = numpy.logical_or.reduce(gti)
+        mask = numpy.zeros(time_.shape, dtype=bool)
+        for (start, stop) in zip(tstart, tstop):
+            mask[numpy.logical_and(time_ >= start, time_ <= stop)] = True
         logger.info('Kept %s events out of %s after GTI selection',
-                    numpy.sum(gti_mask), len(time))
-        return gti_mask
+                    numpy.sum(mask), len(time_))
+        return mask
 
     def build_livetime_histogram(self, tbins, discard_bti=True):
         """ Create a time histogram of the livetime from the class l1, l2 files.
@@ -1673,30 +1654,21 @@ class xEventFileFriend:
 
 def intersect_gti(l2_file_path, l1_file_paths, gti_starts, gti_stops,
                   tag='filtered'):
-    """ To Be Documented
+    """  
     """
-    evt = xEventFile(l2_file_path)
-    gti_list = evt.get_gti_list()
+    obs = xEventFileFriend(l2_file_path, l1_file_paths)
+    l2_file = obs.file_list2[0]
+    gti_list = l2_file.get_gti_list()
     new_starts, new_stops = gti_list.merge_gti(gti_starts, gti_stops)
     new_gti_ext = xBinTableHDUGTI([new_starts, new_stops])
-    new_gti_ext.header = evt.hdu_list[xBinTableHDUGTI.NAME].header
-    evt.hdu_list[xBinTableHDUGTI.NAME] = new_gti_ext
+    new_gti_ext.header = l2_file.hdu_list[xBinTableHDUGTI.NAME].header
+    l2_file.hdu_list[xBinTableHDUGTI.NAME] = new_gti_ext
     out_path = os.path.splitext(l2_file_path)[0] + f'_{tag}.fits'
-    try:
-        filtered_hdul = evt.apply_gti_filter()
-        logger.info(f'Writing to {out_path}')
-        filtered_hdul.writeto(out_path, overwrite=True)
-    except ValueError as e:
-        logger.error(e)
-        return None
-    friend = xEventFileFriend(out_path, l1_file_paths)
-    livetime = friend.livetime()
-    lv2_evt_file = friend.file_list2[0]
-    ontime = lv2_evt_file.get_gti_list().total_good_time()
-    hdul = lv2_evt_file.hdu_list
-    for hdu in hdul:
-        hdu.header['LIVETIME'] = livetime
-        hdu.header['ONTIME'] = ontime
-    hdul.writeto(out_path, overwrite=True)
-    hdul.close()
+    header_keywords = {'LIVETIME' : obs.livetime()}
+    l2_file.write_fits_selected(l2_file.gti_mask(), 
+                                out_path,
+                                header_keywords=header_keywords,
+                                history=None,
+                                overwrite=True,
+                                filter_in_place=True)
     return out_path

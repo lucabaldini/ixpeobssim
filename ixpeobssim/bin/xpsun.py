@@ -124,7 +124,7 @@ def find_hk_file_list_in_folder(folder):
     return file_list
 
 
-def make_plot(obs_path, insun_path, inecl_path, figname=''):
+def make_plot(obs_path, inecl_path, insun_path, figname=''):
     """
     """
     inecl_file = xEventFile(inecl_path)
@@ -159,7 +159,7 @@ def main():
     """
     """
     args = PARSER.parse_args()
-    show = True
+    show = args.show
     if args.l2files is not None:
         l2_file_dict = build_l2_file_dict_from_file_list(args.l2files)
     else:
@@ -183,10 +183,10 @@ def main():
             insun_path = intersect_gti(l2_file_path, l1_file_paths, 
                                        insun_starts, insun_stops,
                                        tag='insun')
-            make_plot(l2_file_path, inecl_path, insun_path,
-                      figname=f'DU{du_id}, {l2_file_path}')
-            
-    if show:    
+            if show:    
+                make_plot(l2_file_path, inecl_path, insun_path,
+                          figname=f'DU{du_id}, {l2_file_path}')
+    if show:
         plt.show()
 
 
