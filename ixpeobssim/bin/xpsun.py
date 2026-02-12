@@ -48,7 +48,8 @@ PARSER.add_argument('folder', type=str,
 PARSER.add_argument('--l2files', type=str, default=None, nargs='+',
                     help='level 2 file list')
 PARSER.add_argument('--show', action='store_true', default=False,
-                    help='show insun selection plots')
+                    help='show INSUN/INECLIPSE bands over the observation '\
+                         'light curve')
        
 
 def build_l2_file_dict_from_folder(folder):

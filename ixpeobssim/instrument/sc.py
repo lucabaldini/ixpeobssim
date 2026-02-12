@@ -199,7 +199,13 @@ def create_ineclipse_gtis(*hk_file_paths, complement=False):
     By default (complement=False), the function returns intervals when the
     spacecraft is not affected by the sun.
 
-    If complement=True, the returned intervals correspond to everything else.
+    The INECLIPSE region is defined by the sign of the angles ADSEC2SUN and 
+    ADSEC2ECL, the former refering to the position of sun relative to the 
+    spacecraft, the latter to the condition of Earth-occultation.
+    The region is defined as: (ADSEC2SUN < 0) & (ADSEC2ECL >= 0): such 
+    selection has been confirmed by spectral analysis of observation data.
+    Every other combination of signs shows contamination of solar-induced
+    background.
     """
     # Lists collecting GTI start/stop times from all input HK files
     tstart_all = []
@@ -219,7 +225,7 @@ def create_ineclipse_gtis(*hk_file_paths, complement=False):
             if complement:
                 mask = (adsec2ecl < 0) | (adsec2sun >= 0)
             else:
-                mask = (adsec2sun < 0) * (adsec2ecl >= 0)
+                mask = (adsec2sun < 0) & (adsec2ecl >= 0)
             tstart, tstop = mask_to_gti(time, mask)
             tstart_all.append(tstart)
             tstop_all.append(tstop)
