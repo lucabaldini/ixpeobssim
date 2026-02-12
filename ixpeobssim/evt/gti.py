@@ -211,7 +211,9 @@ class xGTIList(list):
 
 
 class xGTIListMergerHelper:
-    """
+    """ Helper class encapsulating most of the logic for combining two sets of  
+    GTIs. Provides internal flags for keeping track of whether we are inside
+    the OLD/NEW GTIs and the logic for switching state based on edge detection.
     """
 
     class EdgeType(IntEnum):
@@ -239,6 +241,8 @@ class xGTIListMergerHelper:
     }
 
     def __init__(self):
+        """
+        """
         self.in_old_gti = False
         self.in_new_gti = False
     
@@ -249,7 +253,9 @@ class xGTIListMergerHelper:
                 f'"in_new_gti" is {self.in_new_gti}'
 
     def update_state(self, edge):
-        """
+        """ Change the internal state based on the given edge type. Rise an 
+        appropriate error in case of erroneous transitions (e.g. encoutering a 
+        OLD_GTI_START when already inside a OLD_GTI). 
         """
         if edge == self.EdgeType.OLD_GTI_START:
             if self.in_old_gti:
@@ -274,7 +280,10 @@ class xGTIListMergerHelper:
 
         Intervals are half-open: [start, stop)
 
-        Parameters
+        The user provided function is_active defines when the resulting GTIs 
+        should be considered active.
+
+        Args
         ----------
         edge_times : ndarray
         edge_types : ndarray
@@ -317,7 +326,8 @@ class xGTIListMergerHelper:
 
     def combine_intervals(self, old_start, old_stop, new_start, new_stop, 
                           rule):
-        """
+        """ Combine the given intervals based on the given rule. This function 
+        mostly prepare the input arrays for sweep_intervals().
         """
         edge_times = numpy.hstack((old_start, old_stop, new_start, new_stop))
         edge_types = numpy.asarray(

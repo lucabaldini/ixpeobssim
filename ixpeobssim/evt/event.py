@@ -1654,7 +1654,13 @@ class xEventFileFriend:
 
 def intersect_gti(l2_file_path, l1_file_paths, gti_starts, gti_stops,
                   tag='filtered'):
-    """  
+    """Create a new observation file selecting only events that fall into the 
+    intersection of the initial GTIs and the given GTIs. The livetime is updated
+    by resumming the LIVETIME column in level 1 files - this is not exact, but
+    it should be a reasonable approximation for most uses.
+    NOTE: the reason this is not a xEventFileFriend member function is that 
+    it is supposed to work on a single level 2 file, while an xEventFileFriend 
+    file can be instantiated with a list of level 2 files.
     """
     obs = xEventFileFriend(l2_file_path, l1_file_paths)
     l2_file = obs.file_list2[0]
@@ -1664,7 +1670,10 @@ def intersect_gti(l2_file_path, l1_file_paths, gti_starts, gti_stops,
     new_gti_ext.header = l2_file.hdu_list[xBinTableHDUGTI.NAME].header
     l2_file.hdu_list[xBinTableHDUGTI.NAME] = new_gti_ext
     out_path = os.path.splitext(l2_file_path)[0] + f'_{tag}.fits'
-    header_keywords = {'LIVETIME' : obs.livetime()}
+    header_keywords = {
+        'LIVETIME' : obs.livetime(),
+        'ONTIME'   : l2_file.total_good_time()
+        }
     l2_file.write_fits_selected(l2_file.gti_mask(), 
                                 out_path,
                                 header_keywords=header_keywords,
