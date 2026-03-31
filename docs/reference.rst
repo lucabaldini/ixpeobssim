@@ -101,6 +101,15 @@ xpeselect
    :shell:
 
 
+.. _reference-xpsun:
+
+xpsun
+~~~~~
+.. program-output:: export PYTHONPATH=../:$PYTHONPATH; python ../ixpeobssim/bin/xpsun.py --help
+   :ellipsis: 0,11
+   :shell:
+
+
 .. _reference-xpxspec:
 
 xpxspec
