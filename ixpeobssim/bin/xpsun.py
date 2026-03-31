@@ -26,6 +26,77 @@ the sun.
 This application uses housekeeping information to split observation files 
 into an INSUN and an INECLIPSE section, based on sun visibility. The livetime 
 of the two parts is updated based on LV1 data.
+
+Required input folder structure
+-------------------------------
+The application expects a standard IXPE observation folder layout::
+
+    <folder>/
+        event_l2/   Level-2 calibrated event files
+                    (matched by ``ixpe*_det<DU>_evt2_v??.fits*``)
+        event_l1/   Level-1 event files used to recompute LIVETIME
+                    (matched by ``ixpe*_det<DU>_evt1_v??.fits*``)
+        hk/         Housekeeping files containing spacecraft attitude data
+                    (matched by ``ixpe*_all_adc_0110_v??.fits*``)
+
+xpsun supports both .fits and .fits.gz files, but the latter will prevent
+memory mapping potentially leading to several tens of gigabites of RAM usage.
+Consider uncompressing files for large data sets.
+
+level-2 files can be passed explicitly via ``--l2files`` instead of using
+automatic parsing; the level-1 and HK files are always located by scanning
+the observation folder. Beware: level 1 files are all those contained in the
+event_l1 folder, so if some processing products are present they will all
+be included leading to potential issues. A clean folder structure is recommended
+when running xpsun. In case of level 2 subselections, use --l2files to 
+specify the files to process.
+
+GTI creation
+------------
+The core of the sun/eclipse separation is the ``create_ineclipse_gtis()``
+function (in ``ixpeobssim.instrument.sc``), which reads the HK file columns:
+
+* **ADSEC2SUN** -- angular distance of the sun relative to the spacecraft
+* **ADSEC2ECL** -- angular distance encoding the Earth-occultation geometry
+
+The INECLIPSE condition is defined as:
+
+    ``(ADSEC2SUN < 0) AND (ADSEC2ECL >= 0)``
+
+while the INSUN condition is its complement:
+
+    ``(ADSEC2ECL < 0) OR (ADSEC2SUN >= 0)``
+
+The boolean mask over the HK TIME column is converted into arrays of GTI
+start/stop pairs.
+
+Event filtering
+---------------
+For each detector unit and each level-2 file, the ``intersect_gti()`` function
+(in ``ixpeobssim.evt.event``) performs the following steps:
+
+1. Reads the existing GTI table from the level-2 event file.
+2. Intersects it with the INSUN (or INECLIPSE) GTI intervals, producing a
+   merged set of good-time intervals.
+3. Replaces the GTI extension in the FITS file with the new intervals.
+4. Filters the event list, keeping only rows whose TIME falls within the
+   new GTIs.
+5. Recomputes LIVETIME by summing the LIVETIME column from matching level-1
+   files over the new GTI intervals, and updates the ONTIME keyword from the
+   total good time.
+6. Writes the result to a new file with a ``_insun`` or ``_inecl`` tag
+   appended to the original filename.
+
+Output files
+------------
+For an input file ``ixpe01234567_det1_evt2_v02.fits``, the application
+produces:
+
+* ``ixpe01234567_det1_evt2_v02_insun.fits``  -- events in sun-illuminated GTIs
+* ``ixpe01234567_det1_evt2_v02_inecl.fits``  -- events in eclipse GTIs
+
+Both files retain the same FITS structure as the original level-2 file,
+with updated GTI, LIVETIME and ONTIME values.
 """
 
 import glob
@@ -42,7 +113,7 @@ from ixpeobssim.utils.matplotlib_ import plt
 from ixpeobssim.utils.os_ import filter_input_file_list
 
 
-PARSER = xArgumentParser()
+PARSER = xArgumentParser(description=__description__)
 PARSER.add_argument('folder', type=str,
                     help='path to the input observation folder')
 PARSER.add_argument('--l2files', type=str, default=None, nargs='+',
