@@ -3,6 +3,18 @@
 Release notes
 =============
 
+* Merging pull request https://github.com/lucabaldini/ixpeobssim/pull/670
+* This is major release with new functionalities related to handling the
+  background. There should be no breaking changes.
+* New tool xpsun.py to separate time windows when the detector is illuminated/not
+  illuminated by the sun (see the corresponding help for usage).
+* New flags in xpbin.py for creating flare-subtracted binned files.
+* New, improved static background template, based on data collected during
+  occultation, used by default.
+* Arithmetics implemented for the xBinnedMap class.
+* New functionalities to manipulate GTIs.
+* Updated documentation.
+
 
 *ixpeobssim (31.1.1) - Mon, 29 Sep 2025 13:51:39 +0200*
 
