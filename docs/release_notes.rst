@@ -3,6 +3,9 @@
 Release notes
 =============
 
+
+*ixpeobssim (32.0.0) - Fri, 10 Apr 2026 12:29:34 +0200*
+
 * Merging pull request https://github.com/lucabaldini/ixpeobssim/pull/670
 * This is major release with new functionalities related to handling the
   background. There should be no breaking changes.
