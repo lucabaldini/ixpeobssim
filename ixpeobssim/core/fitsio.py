@@ -365,6 +365,20 @@ class xFITSImageBase:
         self.data += other.data
         return self
 
+    def __isub__(self, other):
+        """Support for image subtraction.
+        """
+        assert isinstance(other, self.__class__)
+        assert self.data.shape == other.data.shape
+        self.data -= other.data
+        return self
+    
+    def __imul__(self, scalar):
+        """Multiplication by a scalar
+        """
+        self.data *= scalar
+        return self
+
     def get(self, keyword, default=None):
         """Retrieve the value of a primary header keyword.
         """

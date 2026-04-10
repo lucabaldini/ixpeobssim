@@ -47,7 +47,7 @@ class TestPmapSubtraction(unittest.TestCase):
         pipeline.reset('toy_point_source_bkg', overwrite=True)
         cls.source_list = pipeline.xpobssim(duration=DURATION_SRC,
                                              saa=False, occult=False)
-        pipeline.reset('instrumental_bkg_smcx1', overwrite=True)
+        pipeline.reset('instrumental_bkg', overwrite=True)
         cls.bkg_list = pipeline.xpobssim(duration=DURATION_BKG,
                                           saa=False, occult=False)
         pipeline.reset('toy_point_source_subtest', overwrite=True)

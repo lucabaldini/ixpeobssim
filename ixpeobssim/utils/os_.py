@@ -33,9 +33,21 @@ import shutil
 from ixpeobssim.utils.logging_ import logger, abort
 
 
+
+def filter_input_file_list(file_list):
+    """ Out of a list of files return only those with valid input file
+    extensions, .e. '.fits', or '.fits.gz' """
+    return [name for name in file_list if 
+            name.endswith('.fits') or name.endswith('.fits.gz')]
+
+
+
 def check_input_file(file_path, extension=None):
     """Make sure that an input file exists (and, optionally, has the right
     extension).
+    We accept a list of extensions, specifically to support the case where a 
+    file can be given in compressed form (astropy handles 'fits' and 'gz' 
+    transparently).
 
     Note that we abort the execution with no mercy if anything fails.
     """
@@ -45,7 +57,13 @@ def check_input_file(file_path, extension=None):
         abort('Input file %s does not exists' % file_path)
     if not os.path.isfile(file_path):
         abort('Input file %s is not a file' % file_path)
-    if extension is not None and not file_path.endswith('.%s' % extension):
+    if extension is not None:
+        if isinstance(extension, str):
+            if file_path.endswith('.%s' % extension):
+                    return
+        for ext in extension:
+            if file_path.endswith('.%s' % ext):
+                    return
         abort('Input file %s is not a .%s file' % (file_path, extension))
 
 

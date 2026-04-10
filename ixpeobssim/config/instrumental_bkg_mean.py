@@ -14,8 +14,8 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-"""First instrumental background parametrization based on actual data---a short
-observation of SMC X-1.
+"""Instrumental background derived from the mean of suitable observations
+of point-like sources (Second observation of Bl lac, 3c279, 1es1959+650)
 """
 
 from __future__ import print_function, division
@@ -36,8 +36,9 @@ __model__ = file_path_to_model_name(__file__)
 
 RA = 45.
 DEC = 45.
+file_path = os.path.join(IXPEOBSSIM_SRCMODEL, 'ascii', 'instrumental_bkg_mean.txt')
 
-bkg = xTemplateInstrumentalBkg()
+bkg = xTemplateInstrumentalBkg(file_path = file_path)
 
 ROI_MODEL = xROIModel(RA, DEC, bkg)
 

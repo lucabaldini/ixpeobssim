@@ -33,15 +33,18 @@ import sys
 
 from ixpeobssim.utils.logging_ import logger, abort
 from ixpeobssim.utils.os_ import check_input_file
-from ixpeobssim.binning import BINNING_WRITE_DICT
-
+from ixpeobssim.binning import BINNING_WRITE_DICT, BINNING_READ_DICT
+from ixpeobssim.instrument.gpd import GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X,\
+    GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y
+from ixpeobssim.instrument.mma import fiducial_backscal
 
 BIN_ALGS = list(BINNING_WRITE_DICT.keys())
 TBIN_ALGS = ['FILE', 'LIN', 'LOG']
 EBIN_ALGS = ['FILE', 'LIN', 'LOG', 'EQP', 'LIST']
 PRJCTS = ['AIT', 'ZEA', 'ARC', 'CAR', 'GLS', 'MER', 'NCP', 'SIN', 'STG', 'TAN']
 COORD_SYS = ['CEL', 'GAL']
-UNIVERSAL_KWARGS = ['algorithm', 'help', 'overwrite', 'suffix']
+UNIVERSAL_KWARGS = ['algorithm', 'help', 'overwrite', 'suffix', 'insun',
+                    'ineclipse']
 
 # Complete the help based on the actual implementation of the binning classes.
 __description__ += '\nSupported binning algorithms\n'
@@ -100,6 +103,103 @@ def _check_kwargs(**kwargs):
             logger.error('Option "%s" not supported for "%s" binning algorithm.', key, algorithm)
             abort()
 
+def build_deflaring_binning(kwargs, algorithm):
+    """Auxiliary function to create insun and ineclipse binned products
+    """
+    binning_class = BINNING_WRITE_DICT[algorithm]
+    inecl = binning_class(kwargs['ineclipse'], **kwargs)
+    insun = binning_class(kwargs['insun'], **kwargs)
+    inecl.bin_()
+    insun.bin_()
+    return inecl, insun
+
+def flare_subtraction(evt_binned, kwargs, algorithm, outfile):
+    """
+    """
+    inecl_bin, insun_bin = build_deflaring_binning(kwargs, algorithm)
+    inecl_out = inecl_bin.get('outfile')
+    insun_out = insun_bin.get('outfile')
+    if algorithm in ['PP', 'ARMAP', 'EFLUX', 'LC', 'LTCUBE']:
+        logger.error('Flare subtraction not implemented for %s algorithm' \
+                     %algorithm)
+    if algorithm in ['PHA1', 'PHA1Q', 'PHA1U', 'PHA1QN', 'PHA1UN']:
+        return subtract_flare_pha(evt_binned, algorithm, inecl_out, insun_out,
+                                  outfile)
+    if algorithm == 'PCUBE':
+        return subtract_flare_pcube(evt_binned, inecl_out, insun_out, outfile)
+    # to be defined
+    if algorithm in ['CMAP', 'MDPMAP', 'MDPMAPCUBE', 'PMAP', 'PMAPCUBE']:
+        subtract_flare_map(evt_binned, algorithm, inecl_out, insun_out, outfile)
+    return evt_binned
+
+def subtract_flare_pha(evt_binned, algorithm, inecl_out, insun_out, outfile):
+    """
+    """
+    read = BINNING_READ_DICT[algorithm]
+    inecl = read(inecl_out)
+    insun = read(insun_out)
+    flare = insun
+    flare -= inecl
+    flare.write(file_path=insun_out.replace('insun', 'flare'))
+    flare_backscal = flare.backscal()
+    if flare_backscal is None:
+        flare_backscal = fiducial_backscal(GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X,
+                                            GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y)
+    evt_backscal = evt_binned.backscal()
+    if evt_backscal is None:
+        evt_backscal = fiducial_backscal(GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X,
+                                            GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y)
+    flare *= (evt_backscal / flare_backscal)
+    evt_binned -= flare
+    evt_binned.write(file_path=outfile)
+    return evt_binned
+
+def subtract_flare_pcube(evt_binned, inecl_out, insun_out, outfile):
+    """
+    """
+    read = BINNING_READ_DICT['PCUBE']
+    inecl = read(inecl_out)
+    insun = read(insun_out)
+    insun_lt = insun.primary_header['LIVETIME']
+    inecl_lt = inecl.primary_header['LIVETIME']
+    # Normalize inecl to insun livetime
+    inecl *= (insun_lt / inecl_lt)
+    # Flare content is contained only in the insun part, no need to rescale
+    flare = insun
+    flare -= inecl
+    flare.write(file_path=insun_out.replace('insun', 'flare'))
+    flare_backscal = flare.backscal()
+    if flare_backscal is None:
+        flare_backscal = fiducial_backscal(GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X,
+                                           GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y)
+    evt_backscal = evt_binned.backscal()
+    if evt_backscal is None:
+        evt_backscal = fiducial_backscal(GPD_DEFAULT_FIDUCIAL_HALF_SIDE_X,
+                                         GPD_DEFAULT_FIDUCIAL_HALF_SIDE_Y)
+    flare *= (evt_backscal / flare_backscal)
+    evt_binned -= flare
+    evt_binned.write(file_path=outfile)
+    return evt_binned
+
+def subtract_flare_map(evt_binned, algorithm, inecl_out, insun_out, outfile):
+    """
+    """
+    read = BINNING_READ_DICT[algorithm]
+    inecl = read(inecl_out)
+    insun = read(insun_out)
+    insun_lt = insun.primary_header['LIVETIME']
+    inecl_lt = inecl.primary_header['LIVETIME']
+    # Normalize inecl to insun livetime
+    inecl *= (insun_lt / inecl_lt)
+    # Flare content is contained only in the insun part, no need to rescale
+    flare = insun
+    flare -= inecl
+    flare.write(file_path=insun_out.replace('insun', 'flare'))
+    flare_average = flare.average()
+    evt_binned -= flare_average
+    evt_binned.write(file_path=outfile)
+    return evt_binned
+
 
 def xpbin(**kwargs):
     """Application to bin the data.
@@ -108,17 +208,36 @@ def xpbin(**kwargs):
     http://fermi.gsfc.nasa.gov/ssc/data/analysis/scitools/help/gtbin.txt
     """
     #_check_kwargs(**kwargs)
+    # The following lines should logically go in _check_kwargs, but the call
+    #  to that function has been commented years ago and I was not able to find
+    # the reason why that happened, so I won't risk uncommenting it.
+    if (kwargs['insun'] is None and kwargs['ineclipse'] is not None) or \
+        (kwargs['ineclipse'] is None and kwargs['insun'] is not None):
+        PARSER.print_help()
+        logger.error('The optional arguments --insun and --ineclipse must '\
+                         'always be set/unset simultaneously.')
+        abort()
     outlist = []
     for file_path in kwargs.get('filelist'):
         check_input_file(file_path, 'fits')
-        event_binning = BINNING_WRITE_DICT[kwargs['algorithm']](file_path, **kwargs)
+        binning_algorithm = kwargs['algorithm']
+        binning_class = BINNING_WRITE_DICT[binning_algorithm]
+        event_binning = binning_class(file_path, **kwargs)
         outfile = event_binning.get('outfile')
+        if kwargs['ineclipse'] is not None:
+            outfile = outfile.replace('.fits', '_deflared.fits')
         outlist.append(outfile)
         if os.path.exists(outfile) and not event_binning.get('overwrite'):
             logger.info('Output file %s already exists.' % outfile)
             logger.info('Remove it or set "overwrite = True" to overwite it.')
+            continue
         else:
             event_binning.bin_()
+        evt_binned = BINNING_READ_DICT[binning_algorithm](
+                                                   event_binning.get('outfile'))
+        if kwargs['ineclipse'] is not None:
+            evt_binned = flare_subtraction(evt_binned, kwargs,
+                                           binning_algorithm, outfile)
     return outlist
 
 
@@ -162,6 +281,12 @@ PARSER.add_argument('--phibins', type=int, default=75,
                     help='number of bins for LIN/LOG phi binning')
 PARSER.add_argument('--thetabins', type=int, default=17,
                     help='number of bins for off-axis angle binning')
+PARSER.add_argument('--insun', type=str, default=None,
+                    help='INSUN file for background flare subtraction. '\
+                         '(mandatory if --ineclipse is set)')
+PARSER.add_argument('--ineclipse', type=str, default=None,
+                    help='INECLIPSE file for background flare subtraction'\
+                         '(mandatory if --insun is set)')
 PARSER.add_mc()
 PARSER.add_overwrite()
 
