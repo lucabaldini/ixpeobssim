@@ -3,6 +3,9 @@
 Release notes
 =============
 
+
+*ixpeobssim (32.0.1) - Tue, 14 Apr 2026 12:32:28 +0200*
+
 * Merging pull request https://github.com/lucabaldini/ixpeobssim/pull/746
 * Adding a __init__.py file to the ixpeobssim.bkg and adding the entire folder
   to the MANIFEST.in to make sure that the background templates are included in
