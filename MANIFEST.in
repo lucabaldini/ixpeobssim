@@ -1,4 +1,5 @@
 graft ixpeobssim/benchmarks
+graft ixpeobssim/bkg
 graft ixpeobssim/caldb
 graft ixpeobssim/config
 graft ixpeobssim/examples

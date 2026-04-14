@@ -3,6 +3,13 @@
 Release notes
 =============
 
+* Merging pull request https://github.com/lucabaldini/ixpeobssim/pull/746
+* Adding a __init__.py file to the ixpeobssim.bkg and adding the entire folder
+  to the MANIFEST.in to make sure that the background templates are included in
+  the package when installed via pip.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/745
+
 
 *ixpeobssim (32.0.0) - Fri, 10 Apr 2026 12:29:34 +0200*
 
