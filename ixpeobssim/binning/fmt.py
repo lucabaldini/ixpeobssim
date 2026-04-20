@@ -94,7 +94,9 @@ class xBinTableHDUPCUBE(xBinTableHDUBase):
         ('PA_ERR'  , 'E', 'deg', '1-sigma uncertainty on the polarization angle'),
         ('P_VALUE' , 'E', ''   , 'p-value for the null hypothesis (no polarization)'),
         ('CONFID'  , 'E', ''   , 'confidence of the polarization detection'),
-        ('SIGNIF'  , 'E', ''   , 'detection significance in equivalent gaussian sigma')
+        ('SIGNIF'  , 'E', ''   , 'detection significance in equivalent gaussian sigma'),
+        ('EFLUX'   , 'E', 'erg/cm^2/s', 'integral energy flux'),
+        ('EFLUXERR', 'E', 'erg/cm^2/s', '1-sigma uncertainty on the integral energy flux')
         ]
     COL_NAMES = [col_name for col_name, *_ in DATA_SPECS]
     # Be careful: these need to be in synch with the DATA_SPECS above.

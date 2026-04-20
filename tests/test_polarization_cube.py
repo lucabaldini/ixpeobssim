@@ -46,6 +46,7 @@ class TestPolarizationCube(unittest.TestCase):
         pipeline.reset('toy_pollin', overwrite=True)
         file_list = pipeline.xpobssim(duration=10000., seed=13)
         cls.file_list = pipeline.xpbin(*file_list, algorithm='PCUBE', ebins=3)
+        cls.file_list_nocorr = pipeline.xpbin(*file_list, algorithm='PCUBE', ebins=3, acceptcorr=False, suffix='nocorr')
 
     def test_plot(self):
         """Plot the thing.
@@ -69,7 +70,7 @@ class TestPolarizationCube(unittest.TestCase):
         cube2 = xBinnedPolarizationCube(file_path)
         cube2 += cube1
         for key in ['ENERG_LO', 'ENERG_HI', 'E_MEAN', 'MU', 'COUNTS', 'W2', 'I',
-            'Q', 'U', 'PD', 'PD_ERR', 'PA', 'PA_ERR']:
+            'Q', 'U', 'PD', 'PD_ERR', 'PA', 'PA_ERR', 'EFLUX', 'EFLUXERR']:
             val1 = cube1.__getattr__(key)
             val2 = cube2.__getattr__(key)
             logger.info('%s\n  -> %s\n     %s', key, val1, val2)
@@ -77,9 +78,19 @@ class TestPolarizationCube(unittest.TestCase):
                 self.assertTrue(numpy.allclose(2 * val1, val2))
             elif key in ['PD_ERR', 'PA_ERR']:
                 self.assertTrue(numpy.allclose(val1, numpy.sqrt(2.) * val2, rtol=1.e-3))
+            elif key in ['EFLUX']:
+                self.assertTrue(numpy.allclose(val1, val2, rtol=1.e-3, atol=1e-11))
+            elif key in ['EFLUXERR']:
+                self.assertTrue(numpy.allclose(val1, numpy.sqrt(2.) * val2, rtol=1.e-3, atol=1e-12))
             else:
                 self.assertTrue(numpy.allclose(val1, val2))
 
+    def test_acceptcorr(self):
+        file_path = self.file_list_nocorr[0]
+        cube = xBinnedPolarizationCube(file_path)
+        val = cube.__getattr__('FRAC_W')
+        trueval = 1.0
+        self.assertTrue(numpy.allclose(val, trueval))
 
 
 if __name__ == '__main__':
