@@ -4,6 +4,13 @@ Release notes
 =============
 
 
+* Merging pull request https://github.com/lucabaldini/ixpeobssim/pull/747
+* Adding new response files for calendar years 2025 and 2026, that should
+  match precisely what is available on the HEASARC CALDB for the same time intervals.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/745
+
+
 *ixpeobssim (32.0.1) - Tue, 14 Apr 2026 12:32:28 +0200*
 
 * Merging pull request https://github.com/lucabaldini/ixpeobssim/pull/746
