@@ -4,6 +4,8 @@ Release notes
 =============
 
 
+*ixpeobssim (33.0.0) - Fri, 29 May 2026 06:29:25 +0200*
+
 * Merging pull request https://github.com/lucabaldini/ixpeobssim/pull/747
 * Adding new response files for calendar years 2025 and 2026, that should
   match precisely what is available on the HEASARC CALDB for the same time
