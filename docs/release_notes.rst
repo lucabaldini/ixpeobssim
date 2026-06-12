@@ -4,6 +4,44 @@ Release notes
 =============
 
 
+*ixpeobssim (33.0.0) - Fri, 29 May 2026 06:29:25 +0200*
+
+* Merging pull request https://github.com/lucabaldini/ixpeobssim/pull/747
+* Adding new response files for calendar years 2025 and 2026, that should
+  match precisely what is available on the HEASARC CALDB for the same time
+  intervals (modulo the fact that ixpeobssim uses the arf files, while
+  ixpecalcarf recalculates everything starting from the modulation factor and
+  the quantum efficiency).
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/738
+
+
+
+*ixpeobssim (32.0.1) - Tue, 14 Apr 2026 12:32:28 +0200*
+
+* Merging pull request https://github.com/lucabaldini/ixpeobssim/pull/746
+* Adding a __init__.py file to the ixpeobssim.bkg and adding the entire folder
+  to the MANIFEST.in to make sure that the background templates are included in
+  the package when installed via pip.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/745
+
+
+*ixpeobssim (32.0.0) - Fri, 10 Apr 2026 12:29:34 +0200*
+
+* Merging pull request https://github.com/lucabaldini/ixpeobssim/pull/670
+* This is major release with new functionalities related to handling the
+  background. There should be no breaking changes.
+* New tool xpsun.py to separate time windows when the detector is illuminated/not
+  illuminated by the sun (see the corresponding help for usage).
+* New flags in xpbin.py for creating flare-subtracted binned files.
+* New, improved static background template, based on data collected during
+  occultation, used by default.
+* Arithmetics implemented for the xBinnedMap class.
+* New functionalities to manipulate GTIs.
+* Updated documentation.
+
+
 *ixpeobssim (31.1.1) - Mon, 29 Sep 2025 13:51:39 +0200*
 
 * Merging pull request https://github.com/lucabaldini/ixpeobssim/pull/742

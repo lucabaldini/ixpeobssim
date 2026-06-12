@@ -25,7 +25,7 @@ from ixpeobssim.utils.astro import xy_columns_kwargs, set_xy_header_limits, buil
 from ixpeobssim.utils.logging_ import logger
 from ixpeobssim.utils.time_ import MISSION_START_MJD, MISSION_START_MJDREFF
 from ixpeobssim.utils.time_ import met_to_string
-from ixpeobssim.utils.units_ import arcsec_to_degrees, degrees_to_arcmin
+from ixpeobssim.utils.units_ import arcsec_to_degrees
 
 # pylint: disable=invalid-name, too-many-ancestors, too-many-arguments, no-member
 

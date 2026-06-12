@@ -37,7 +37,7 @@ import os
 
 import numpy
 
-from ixpeobssim import IXPEOBSSIM_CONFIG_ASCII, IXPEOBSSIM_CONFIG_FITS
+from ixpeobssim import IXPEOBSSIM_CONFIG_ASCII, IXPEOBSSIM_CONFIG_FITS, IXPEOBSSIM_SRCMODEL
 from ixpeobssim.config import bootstrap_display, file_path_to_model_name
 from ixpeobssim.srcmodel.bkg import xTemplateInstrumentalBkg
 from ixpeobssim.srcmodel.img import xFITSImage
@@ -58,6 +58,7 @@ DEC_PNT = 58.8117778
 # Maximum polarization degree, and corresponding radius.
 MAX_POL_DEG = 0.5
 MAX_RADIUS = arcmin_to_degrees(2.8)
+BKG_FILE_PATH = os.path.join(IXPEOBSSIM_SRCMODEL, 'ascii', 'instrumental_bkg_mean.txt')
 
 def _load_spec(file_name, emin=1., emax=15.):
     """Convenience function to load a spectral csv file.
@@ -106,7 +107,8 @@ therm_comp = xExtendedSource('Cas A thermal', le_img_file_path, therm_spec,
     therm_pol_deg, therm_pol_ang)
 non_therm_comp = xExtendedSource('Cas A non-thermal', he_img_file_path, non_therm_spec,
     non_therm_pol_deg, non_therm_pol_ang)
-instrumental_bkg = xTemplateInstrumentalBkg()
+    
+instrumental_bkg = xTemplateInstrumentalBkg(file_path = BKG_FILE_PATH)
 
 # Create the actual ROI object.
 ROI_MODEL = xROIModel(RA_PNT, DEC_PNT)

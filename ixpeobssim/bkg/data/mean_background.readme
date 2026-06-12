@@ -1,0 +1,17 @@
+# Succinct log file detailing the data preparation for the backgroun template averaging
+# existing observations.
+
+#For all observations from which to extract the background
+xpradialprofile.py /data/observation/event_l2/ixpe*v0?.fits
+
+#extract the following informations: central 'ra' and 'dec' of the source, (output
+#by xpradialprofile), radius 'rad' at which the PSF becomes two order of magnitude 
+#smaller than the total signal (roughly from the plot)
+
+xpselect.py /data/observation/event_l2/ixpe*v0?.fits --ra ra --dec dec --rad rad \
+ --suffix bkg
+
+xpbin.py /data/observation/event_l2/ixpe*v0?.fits --alg PHA1 --irfname ixpe:obssim:v11
+
+#The output files are stored in this folder, and can be used by xpbkgtemplate.py to
+#generate a template file

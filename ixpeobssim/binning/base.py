@@ -31,6 +31,26 @@ from ixpeobssim.utils.astro import build_wcs
 from ixpeobssim.utils.logging_ import logger, abort
 from ixpeobssim.utils.units_ import arcmin_to_arcsec, arcsec_to_degrees
 
+
+def broadcast_to_map_shape(v, shape):
+    """Broadcast an input array-like `v` to the target 3D `shape`.
+
+    If broadcasting fails, returns an array of zeros with the 
+    requested shape.
+    """
+    arr = numpy.array(v)
+    if arr.shape == shape:
+        return arr.copy()
+    try:
+        return numpy.broadcast_to(arr, shape).copy()
+    except Exception:
+        if arr.ndim == 1 and arr.shape[0] == shape[0]:
+            return numpy.broadcast_to(arr[:, None, None], shape).copy()
+        try:
+            return numpy.broadcast_to(arr.reshape((shape[0],) + arr.shape), shape).copy()
+        except Exception:
+            return numpy.zeros(shape)
+
 # pylint: disable=invalid-name, too-many-arguments, no-member
 
 
@@ -633,6 +653,16 @@ class xBinnedFileBase:
         """String formatting.
         """
         return '%s content:\n%s' % (self.__class__.__name__, self.__data_dict)
+    
+    def backscal(self):
+        """Return the value of the BACKSCAL header keyword, if present.
+        """
+        try:
+            return self.primary_header['BACKSCAL']
+        except KeyError:
+            logger.warning('%s has no BACKSCAL header keyword set' % \
+                           self.__class__.__name__)
+            return None
 
 
 
