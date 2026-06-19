@@ -58,7 +58,7 @@ DEC_PNT = 58.8117778
 # Maximum polarization degree, and corresponding radius.
 MAX_POL_DEG = 0.5
 MAX_RADIUS = arcmin_to_degrees(2.8)
-BKG_FILE_PATH = os.path.join(IXPEOBSSIM_SRCMODEL, 'ascii', 'instrumental_bkg_mean.txt')
+BKG_FILE_PATH = os.path.join(IXPEOBSSIM_SRCMODEL, 'ascii', 'instrumental_bkg_template.txt')
 
 def _load_spec(file_name, emin=1., emax=15.):
     """Convenience function to load a spectral csv file.
