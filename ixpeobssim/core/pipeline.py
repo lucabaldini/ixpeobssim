@@ -68,6 +68,7 @@ from xpstokesrandom import xpstokesrandom as _xpstokesrandom, PARSER as XPSTOKES
 from xpstokesshuffle import xpstokesshuffle as _xpstokesshuffle, PARSER as XPSTOKESSHUFFLE_PARSER
 from xpvisibility import xpvisibility as _xpvisibility, PARSER as XPVISIBILITY_PARSER
 from xpxspec import xpxspec as _xpxspec, PARSER as XPXSPEC_PARSER
+from xpsun import xpsun as _xpsun, PARSER as XPSUN_PARSER
 
 
 """Global setup parameters.
@@ -319,7 +320,7 @@ def _command_line_switches(*args, **kwargs):
         # else branch of this conditional statement.
         # And, for completeness, the same holds for --chrgmaps, --chrgparams,
         # --cmapfiles and --arffiles
-        if key in ('modelfiles', 'chrgmaps', 'chrgparams', 'cmapfiles', 'arffiles'):
+        if key in ('modelfiles', 'chrgmaps', 'chrgparams', 'cmapfiles', 'arffiles', 'l2files'):
             if value is not None:
                 value = value.strip('[]').replace(',', ' ').replace('\'', '')
         else:
@@ -518,6 +519,11 @@ def xpxspec(*args, **kwargs):
     """App wrapper.
     """
     return _xpxspec(**_parse_args(XPXSPEC_PARSER, *args, **kwargs))
+
+def xpsun(*args, **kwargs):
+    """App wrapper.
+    """
+    return _xpsun(**_parse_args(XPSUN_PARSER, *args, **kwargs))
 
 
 def standard_ensamble_processing(file_list, mc=True):
