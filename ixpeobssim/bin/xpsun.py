@@ -121,6 +121,7 @@ PARSER.add_argument('--l2files', type=str, default=None, nargs='+',
 PARSER.add_argument('--show', action='store_true', default=False,
                     help='show INSUN/INECLIPSE bands over the observation '\
                          'light curve')
+PARSER.add_overwrite()
        
 
 def build_l2_file_dict_from_folder(folder):
@@ -226,40 +227,64 @@ def plot_gtis(gti_data, color='g', alpha=0.3, label=None, **plot_opts):
         span.set_label(label)
         plt.legend()
 
-
-def main():
+def xpsun(**kwargs):
+    """ xpsun main app splitting the level 2 file into insun and ineclipse parts, 
+    optionally plotting the light curve with the GTIs overlaid.
     """
-    """
-    args = PARSER.parse_args()
-    show = args.show
-    if args.l2files is not None:
-        l2_file_dict = build_l2_file_dict_from_file_list(args.l2files)
+    folder = kwargs['folder']
+    show = kwargs.get('show', False)
+    l2files = kwargs.get('l2files', None)
+    overwrite=kwargs.get('overwrite', False)
+    if l2files is not None:
+        l2_file_dict = build_l2_file_dict_from_file_list(l2files)
     else:
-        l2_file_dict = build_l2_file_dict_from_folder(args.folder)
+        l2_file_dict = build_l2_file_dict_from_folder(folder)
     
-    l1_file_dict = build_l1_file_dict_from_folder(args.folder,
+    l1_file_dict = build_l1_file_dict_from_folder(folder,
                                                   du_ids=l2_file_dict.keys())
-    hk_file_list = find_hk_file_list_in_folder(args.folder)
+    hk_file_list = find_hk_file_list_in_folder(folder)
+
+    inecl_paths = []
+    insun_paths = []
+
     for du_id, l2_file_paths in l2_file_dict.items():
         l1_file_paths = l1_file_dict[du_id]
         for l2_file_path in l2_file_paths:
             logger.info('Processing file %s ...' % l2_file_path)
-            inecl_starts, inecl_stops = create_ineclipse_gtis(*hk_file_list)
-            inecl_path = intersect_gti(l2_file_path, l1_file_paths, 
+            base = os.path.splitext(l2_file_path)[0]
+            # These are necessary for overwrite and are redefined in intersect_gti, but we need 
+            # them here to check for existing files before running the processing
+            inecl_path = base + '_inecl.fits'
+            insun_path = base + '_insun.fits'
+            if os.path.exists(inecl_path) and not overwrite:
+                logger.warning('Output file %s already exists, skipping.', inecl_path)
+            else:
+                inecl_starts, inecl_stops = create_ineclipse_gtis(*hk_file_list)
+                inecl_path = intersect_gti(l2_file_path, l1_file_paths, 
                                        inecl_starts, inecl_stops,
                                        tag='inecl')
-            
-            
-            insun_starts, insun_stops = create_ineclipse_gtis(*hk_file_list,
-                                                              complement=True)
-            insun_path = intersect_gti(l2_file_path, l1_file_paths, 
-                                       insun_starts, insun_stops,
-                                       tag='insun')
+            inecl_paths.append(inecl_path)
+            if os.path.exists(insun_path) and not overwrite:
+                logger.warning('Output file %s already exists, skipping.', insun_path)
+            else:
+                insun_starts, insun_stops = create_ineclipse_gtis(*hk_file_list,
+                                                                  complement=True)
+                insun_path = intersect_gti(l2_file_path, l1_file_paths, 
+                                           insun_starts, insun_stops,
+                                           tag='insun')
+            insun_paths.append(insun_path)
             if show:    
                 make_plot(l2_file_path, inecl_path, insun_path,
                           figname=f'DU{du_id}, {l2_file_path}')
     if show:
         plt.show()
+    return inecl_paths, insun_paths
+
+def main():
+    """
+    """
+    args = PARSER.parse_args()
+    xpsun(**args.__dict__)
 
 
 if __name__ == '__main__':
