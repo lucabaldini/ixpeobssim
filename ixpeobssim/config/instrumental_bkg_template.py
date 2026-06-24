@@ -36,7 +36,7 @@ __model__ = file_path_to_model_name(__file__)
 
 RA = 45.
 DEC = 45.
-file_path = os.path.join(IXPEOBSSIM_SRCMODEL, 'ascii', 'instrumental_bkg_mean.txt')
+file_path = os.path.join(IXPEOBSSIM_SRCMODEL, 'ascii', 'instrumental_bkg_template.txt')
 
 bkg = xTemplateInstrumentalBkg(file_path = file_path)
 
