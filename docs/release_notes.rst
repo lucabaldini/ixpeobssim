@@ -3,6 +3,13 @@
 Release notes
 =============
 
+* Merging pull request https://github.com/lucabaldini/ixpeobssim/pull/750
+* Old background template "instrumental_bkg_mean.txt" removed.
+* All examples pointing to the new background template that only uses in-eclipse
+  data, i.e., with no flaring component.
+* Issue(s) closed:
+      * https://github.com/lucabaldini/ixpeobssim/issues/749
+
 
 *ixpeobssim (33.0.0) - Fri, 29 May 2026 06:29:25 +0200*
 
