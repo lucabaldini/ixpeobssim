@@ -4,6 +4,8 @@ Release notes
 =============
 
 
+*ixpeobssim (33.2.0) - Wed, 24 Jun 2026 12:43:23 +0200*
+
 *ixpeobssim (33.1.0) - Wed, 24 Jun 2026 12:43:09 +0200*
 
 * Merging pull request https://github.com/lucabaldini/ixpeobssim/pull/750
