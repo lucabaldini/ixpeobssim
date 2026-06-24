@@ -3,6 +3,9 @@
 Release notes
 =============
 
+
+*ixpeobssim (33.1.0) - Wed, 24 Jun 2026 12:43:09 +0200*
+
 * Merging pull request https://github.com/lucabaldini/ixpeobssim/pull/750
 * Merging pull request https://github.com/lucabaldini/ixpeobssim/pull/751
 * Old background template "instrumental_bkg_mean.txt" removed.
