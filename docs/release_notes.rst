@@ -4,6 +4,8 @@ Release notes
 =============
 
 
+*ixpeobssim (33.2.1) - Fri, 26 Jun 2026 16:57:34 +0200*
+
 * Merging pull request https://github.com/lucabaldini/ixpeobssim/pull/753
 * reathedocs config updated to get the documentation up and runnign again.
 * Issue(s) closed:
