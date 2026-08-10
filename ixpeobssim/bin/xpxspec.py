@@ -50,7 +50,6 @@ else:
     xspec_stat_methods = []
 
 
-
 def xpxspec(**kwargs):
     """Do a spectro-polarimetric fit in XSPEC
     """
@@ -60,7 +59,12 @@ def xpxspec(**kwargs):
     num_files = len(file_list)
     xspec_.load_input_files(*file_list)
     xspec_.select_energy_range(kwargs.get('emin'), kwargs.get('emax'))
-    xspec_.setup_fit_model(kwargs.get('model'), kwargs.get('params'))
+    paramsfile = kwargs.get('paramsfile')
+    if paramsfile is not None:
+        params = xspec_.read_parameter_file(paramsfile)
+    else:
+        params = kwargs.get('params')
+    xspec_.setup_fit_model(kwargs.get('model'), params)
     for par_index, par_value in kwargs.get('fixpars'):
         logger.info('Setting parameter %d to %f...', par_index, par_value)
         xspec_.fix_parameter(par_index, par_value)
@@ -97,6 +101,8 @@ PARSER.add_argument('--params', type=ast.literal_eval, default=None,
                     help='the initial values of the fit parameters')
 PARSER.add_argument('--fixpars', type=fixpars_opt, nargs='+', default=[],
                     help='freeze one or more fit-parameter value(s)')
+PARSER.add_argument('--paramsfile', type=str, default=None,
+                    help='path to the file specifying the fit parameters')
 PARSER.add_argument('--statmethod', type=str, default='chi',
                     choices=xspec_stat_methods,
                     help='the fit statistics to be used')

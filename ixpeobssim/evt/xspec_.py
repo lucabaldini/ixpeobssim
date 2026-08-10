@@ -256,6 +256,27 @@ class xXspecFitData:
         return stat_box
 
 
+def read_parameter_file(path):
+    """ Read the input parameters from file. We require a csv file with
+    one line per parameter and up to six columns (<val>, <sigma>, <hard_min>,
+    <soft_min>, <soft_max>, <hard_max>). Columns may be skipped by inserting
+    multiple commas, essentially following the syntax of the Standard XSPEC's
+    "newpar" command --- see
+    https://heasarc.gsfc.nasa.gov/xanadu/xspec/xspec11/manual/node35.html#SECTION00651000000000000000
+    Note that specifying the hard limits without the corresponding soft ones
+    may result in the ranges not being set correctly, please check the console
+    log for errors.
+    """
+    params = []
+    with open(path) as f:
+        for line in f:
+            if line.startswith("#"):
+                continue
+            else:
+                vals = line.split(',')
+                params.append(line.strip('\n'))
+    return params
+
 
 def compare_fit_data(fit_data, target_values, threshold=5.):
     """Compare the best-fit parameter values with the input model.
@@ -410,7 +431,7 @@ def load_local_models(package_name='ixpeobssim'):
     logger.info('Done.')
 
 
-def setup_fit_model(expression, par_values=None):
+def setup_fit_model(expression, parameters=None):
     """Create a model for spectral fitting in XSPEC.
 
     Note we abort if the model cannot be created---this can happen, e.g.,
@@ -429,11 +450,13 @@ def setup_fit_model(expression, par_values=None):
         logger.error('Could not create model "%s"', expression)
         logger.error('Did you forget to compile the local models?')
         abort('Cannot proceed with fitting')
-    if par_values is not None:
-        for i, par_value in enumerate(par_values):
+    if parameters is not None:
+        params_dict = {}
+        for i, param in enumerate(parameters):
             par_index = i + 1
-            logger.info('Setting parameter %d to %.2f..', par_index, par_value)
-            model(par_index).values = par_value
+            logger.info('Setting parameter %d to %s..', par_index, param)
+            params_dict[par_index] = param
+        model.setPars(params_dict)
     # If needed, freeze the phony normalization for additive, purely polarimetric
     # models.
     if expression in POLARIMETRIC_ADDITIVE_MODELS:
