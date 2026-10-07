@@ -37,7 +37,7 @@ if sys.flags.interactive:
 
 # pylint: disable=invalid-name
 
-def create_backgound_template(phalist, ssmooth, outfile, emin=0.01):
+def create_backgound_template(phalist, ssmooth, outfile, emin=0.01, signed=False):
     """Create a background template model starting from a series of PHA1
     background files.
 
@@ -53,6 +53,14 @@ def create_backgound_template(phalist, ssmooth, outfile, emin=0.01):
 
     The output file is written on a regular energy grid as a simple text file
     with two columns---energy and background rate.
+
+    Arguments
+    ---------
+    signed : bool
+        If False (default), the output is clipped to be non-negative, as
+        appropriate for an intensity (PHA1) spectrum. Set this to True when
+        processing PHA1Q/PHA1U (Stokes Q/U) files, which are signed quantities
+        and must not be clipped, or the polarization information is destroyed.
     """
     logger.info ('Loading background spectra from %s...', phalist)
 
@@ -113,7 +121,7 @@ def create_backgound_template(phalist, ssmooth, outfile, emin=0.01):
     # Create the output text file with the spline data.
     logger.info('Writing output file to %s...', outfile)
     x = numpy.linspace(emin, energy.max(), 250)
-    y = spline(x).clip(0.)
+    y = spline(x) if signed else spline(x).clip(0.)
 
     with open(outfile, 'w') as output_file:
         for _x, _y in zip(x, y):

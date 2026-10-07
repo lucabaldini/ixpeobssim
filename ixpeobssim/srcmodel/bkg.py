@@ -325,6 +325,15 @@ class xInstrumentalBkg(xModelComponentBase):
         detx, dety = xRadialBackgroundGenerator(self.radial_slope).rvs_xy(len(time_))
         return time_, mc_energy, detx, dety
 
+    def _rvs_phi(self, mc_energy, irf_set):
+        """Return the photoelectron azimuthal angles (sky reference frame).
+
+        The instrumental background is unpolarized by default; subclasses
+        wishing to inject polarization (e.g., xTemplateInstrumentalBkg) should
+        override this method.
+        """
+        return self.uniform_phi(len(mc_energy))
+
     def rvs_event_list(self, parent_roi, irf_set, **kwargs):
         """Overloaded method.
         """
@@ -344,7 +353,7 @@ class xInstrumentalBkg(xModelComponentBase):
         event_list.set_energy_columns(energy, pha, pi)
         # ... and azimuthal angle.
         roll_angle = kwargs.get('roll')
-        phi = self.uniform_phi(num_events)
+        phi = self._rvs_phi(mc_energy, irf_set)
         detphi = phi_to_detphi(phi, irf_set.du_id, roll_angle)
         event_list.set_phi_columns(phi, detphi)
         # Apply the dithering effect to the pointing direction (if needed).
@@ -410,14 +419,77 @@ class xTemplateInstrumentalBkg(xInstrumentalBkg):
     """Instrumental background based on a template.
     """
 
-    DEFAULT_PATH = os.path.join(IXPEOBSSIM_SRCMODEL, 'ascii', 'instrumental_bkg_template.txt')
+    DEFAULT_PHA1_PATH = os.path.join(IXPEOBSSIM_SRCMODEL, 'ascii', 'instrumental_bkg_template.txt')
+    DEFAULT_PHA1Q_PATH = os.path.join(IXPEOBSSIM_SRCMODEL, 'ascii', 'instrumental_bkg_template_q.txt')
+    DEFAULT_PHA1U_PATH = os.path.join(IXPEOBSSIM_SRCMODEL, 'ascii', 'instrumental_bkg_template_u.txt')
 
-    def __init__(self, file_path=DEFAULT_PATH, emin=0.1, emax=15., k=1, radial_slope=0.):
+
+    def __init__(self, file_path=DEFAULT_PHA1_PATH, emin=0.1, emax=15., k=1, radial_slope=0.,
+                 pha1q_file=DEFAULT_PHA1Q_PATH, pha1u_file=DEFAULT_PHA1U_PATH,
+                 use_polarization=True):
         """Constructor.
         """
         self.spline = load_spectral_spline(file_path, emin, emax, k=k)
+        self.use_polarization = use_polarization
+        self.pha1q_spline = None
+        self.pha1u_spline = None
+        if use_polarization:
+            self.pha1q_spline = load_spectral_spline(pha1q_file, emin, emax, k=k)
+            self.pha1u_spline = load_spectral_spline(pha1u_file, emin, emax, k=k)
         spec = lambda E, t=None: self.spline(E)
         xInstrumentalBkg.__init__(self, 'Instrumental background', spec, radial_slope)
+
+    def _bkg_polarization(self, mc_energy, irf_set):
+        """Return the (pol_deg, pol_ang) arrays inferred from the I/Q/U
+        templates at the given event energies, or zeros if polarization is
+        disabled or the templates are not loaded.
+        """
+        if self.use_polarization and self.pha1q_spline is not None and self.pha1u_spline is not None:
+            I = self.spline(mc_energy)
+            Q = self.pha1q_spline(mc_energy)
+            U = self.pha1u_spline(mc_energy)
+            # I can be zero (or negative, due to spline under/overshoot) at some
+            # energies---treat those bins as unpolarized rather than dividing by zero.
+            modulation = numpy.where(I > 0., numpy.sqrt(Q**2 + U**2) / I, 0.)
+            # The I/Q/U templates are built from measured (PHA1Q/PHA1U) Stokes
+            # parameters, i.e., modulation = mu(E) * pol_deg. Since modf.rvs_phi()
+            # multiplies its pol_deg argument by mu(E) again, we must divide it out
+            # here to recover the true polarization degree, or the injected signal
+            # gets diluted by mu(E) twice.
+            mu = irf_set.modf(mc_energy)
+            pol_deg = numpy.where(mu > 0., modulation / mu, 0.)
+            # Statistical noise in the Q/U extraction can push pol_deg slightly
+            # above 1, which is unphysical and rejected by modf.rvs_phi().
+            pol_deg = numpy.clip(pol_deg, 0., 1.)
+            pol_ang = 0.5 * numpy.arctan2(U, Q)
+            return pol_deg, pol_ang
+        return numpy.full(len(mc_energy), 0.), numpy.full(len(mc_energy), 0.)
+
+    def _rvs_phi(self, mc_energy, irf_set):
+        """Overloaded method---inject polarization via the modulation factor
+        response, since this is what xpobssim (rvs_event_list) actually uses.
+        """
+        pol_deg, pol_ang = self._bkg_polarization(mc_energy, irf_set)
+        if self.use_polarization:
+            return irf_set.modf.rvs_phi(mc_energy, pol_deg, pol_ang)
+        return xInstrumentalBkg._rvs_phi(self, mc_energy, irf_set)
+
+    def rvs_photon_list(self, parent_roi, irf_set, **kwargs):
+        """Overloaded method---inject polarization for the ixpesim
+        (photon-list) pathway as well, for consistency with rvs_event_list.
+        """
+        time_, mc_energy, detx, dety = self._seed_columns(irf_set, True, **kwargs)
+        num_events = len(time_)
+        if num_events == 0:
+            return xPhotonList()
+        photon_list = xPhotonList(time_, self.identifier)
+        dither_params = parse_dithering_kwargs(**kwargs)
+        roll_angle = kwargs.get('roll')
+        ra_pnt, dec_pnt = apply_dithering(time_, parent_roi.ra, parent_roi.dec, dither_params)
+        pol_deg, pol_ang = self._bkg_polarization(mc_energy, irf_set)
+        pol_ang = phi_to_detphi(pol_ang, irf_set.du_id, roll_angle)
+        photon_list.fill(mc_energy, ra_pnt, dec_pnt, detx, dety, pol_deg, pol_ang)
+        return photon_list
 
 
 

@@ -72,22 +72,19 @@ In terms of simulation facilities, the two most important data structures are
   component with a power-law energy spectrum with adjustable normalization and
   spectral index;
 * :class:`ixpeobssim.srcmodel.bkg.xTemplateInstrumentalBkg`: a background
-  component with an energy spectrum derived from an actual observation---typically
-  by using a dim point source and removing the source counts at the center of the
-  field of view, and then properly rescaling the the relevant area.
-* The current implementation of the X-ray instrumental background is based on the
-  average value of counts in the full IXPE band obtained from years of
-  data taken in occultation (e.g.: when the source is blocked by the Earth).
-  In addition an in-eclipse (e.g..: when the sun is not shining on the detector)
-  filter and a particle cut (Di Marco, et al. AJ 165, 143 (2023)) are applied.
-* To our knowledge, this background component is stable over
-  time and shows no significant polarization, although a mild trend of counting
-  rate decrease over multiple years may be expected. It is always a good idea to
-  check that the static background component does not overshoot the data.
+  component with an energy spectrum derived from a 5' region centered in the field
+  of view of occultation data extracted from the first 3 years of observations
+* The current implementation of the X-ray instrumental background is based on an 
+  in-eclipse (e.g..: when the sun is not shining on the detector) filter applied
+  downstream of the standard particle cut (Di Marco, et al. AJ 165, 143 (2023)).
+* To our knowledge, this background component is mildly polarized and stable,
+  although mild and not yet significant trend of counting rate decrease has been
+  observed. It is always a good idea to check that the static background component
+  does not overshoot the data.
 
-By default the instrumental background is generated uniformly in instrument
-coordinates, although we do support a generic linear radial dependence,
-as briefly summarized in the next section.
+By default the instrumental background is generated uniformly in instrument and
+with a polarized template both in instrument coordinates, although we do support
+a generic linear radial dependence, as briefly summarized in the next section.
 
 
 Radial dependence
@@ -144,13 +141,16 @@ Creating a template
 ~~~~~~~~~~~~~~~~~~~
 
 :ref:`reference-xpbkgtemplate` provides a tool to generate an instrumental background starting
-from an input pha1 file. The tool is designed specifically to work with dark fields
-extracted from ixpe observation, and as such it requires the pha1 file to have
-a backscal keyword defined in its header to account for the size of the extraction
-region.
+from one or multiple input pha1/1q/1u files. The tool is designed specifically
+to work with dark fields extracted from ixpe observations, and as such it requires
+the pha1/1q/1u file(s) to have a backscal keyword defined in its header to account
+for the size of the extraction region. Notice that in the case in which a the user is
+interested in generating a polarized template from pha1q/u files, the --signed option
+must be specified.
 
-The rate of the background is then extracted from each file that is provided,
-multiplied by its livetime and normalized with respect to the total detector area.
+The rate of the background is extracted from each file that is provided,
+multiplied by its livetime and normalized with respect to the total detector area
+and in the case of pha1q/u weighted by the modulation function.
 Everything is then averaged and rescaled back to physical units to create an
 average spectrum which is smoothed with a spline and saved as an ascii file that
 can be used as an argument to generate an :class:`ixpeobssim.srcmodel.bkg.xTemplateInstrumentalBkg`

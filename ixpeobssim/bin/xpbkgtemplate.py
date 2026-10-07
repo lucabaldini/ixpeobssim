@@ -54,6 +54,11 @@ PARSER.add_argument('--ssmooth', type=float, default=5.e-4,
         of the input data points. (s=0 is effectively an interpolating spline, \
         but the actual value depends on the scale of the input data and it is \
         not trivial to establish a priori.)')
+PARSER.add_argument('--signed', action='store_true', default=False,
+        help='Do not clip the output to non-negative values. This must be set \
+        when processing PHA1Q/PHA1U (Stokes Q/U) files, which are signed \
+        quantities---clipping them at zero destroys part of the polarization \
+        signal. Leave unset (default) for plain PHA1 (intensity) files.')
 PARSER.add_outfile(default=os.path.join(IXPEOBSSIM_SRCMODEL, 'ascii',
         'instrumental_bkg_template.txt'))
 
@@ -62,8 +67,9 @@ def xpbkgtemplate(**kwargs):
     filelist = kwargs.get('filelist')
     ssmooth = kwargs.get('ssmooth')
     outfile = kwargs.get('outfile')
+    signed = kwargs.get('signed')
     logger.info (f'loading background spectra from {filelist}...')
-    instr.create_backgound_template(filelist, ssmooth=ssmooth, outfile=outfile)
+    instr.create_backgound_template(filelist, ssmooth=ssmooth, outfile=outfile, signed=signed)
 
 
 

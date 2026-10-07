@@ -26,6 +26,7 @@ import astropy.io.fits as fits
 
 from ixpeobssim.core.hist import xHistogram1d
 from ixpeobssim.config.instrumental_bkg import bkg
+from ixpeobssim.config.instrumental_bkg_template import bkg as template_bkg
 from ixpeobssim.utils.matplotlib_ import plt, setup_gca
 from ixpeobssim.instrument.gpd import GPD_PHYSICAL_AREA, fiducial_area
 import ixpeobssim.core.pipeline as pipeline
@@ -40,7 +41,7 @@ class TestInstrumentalBackground(unittest.TestCase):
     """Unit test for the instrumental background.
     """
 
-    def test(self, duration=1.e6):
+    def test_powerlaw_bkg(self, duration=1.e6):
         """Note this is run with zero deadtime, no SAA nor Earth occultation in
         order to be able to compute the normalization correctly.
         """
@@ -68,6 +69,34 @@ class TestInstrumentalBackground(unittest.TestCase):
         energy = numpy.linspace(1.0, 15, 100)
         plt.plot(energy, bkg.photon_spectrum(energy), label='Model')
         setup_gca(logx=True, logy=True, ymin=3.e-6, ymax=5.e-3, grids=True, legend=True)
+
+    def test_template_bkg(self, duration=1.e6):
+            """same as before, but now testing the instrumental background template.
+            """
+            pipeline.reset('instrumental_bkg_template', overwrite=True)
+            evt_file_list = pipeline.xpobssim(duration=duration, deadtime=0., saa=False,
+                occult=False, scdata=False)
+            binning = numpy.linspace(1., 12., 100)
+            bin_width = binning[1] - binning[0]
+            hist = xHistogram1d(binning, xlabel='Energy [keV]')
+            for file_path in evt_file_list:
+                with fits.open(file_path) as hdu_list:
+                    data = hdu_list['MONTE_CARLO'].data
+                    hist.fill(data['MC_ENERGY'])
+            scale = duration * bin_width * (fiducial_area() / 100.) * 3.
+            x = hist.bin_centers(0)
+            y = hist.content
+            chisq = (((y - scale * template_bkg.photon_spectrum(x)) / numpy.sqrt(y))**2.).sum()
+            ndof = len(y)
+            delta = abs((chisq - ndof) / numpy.sqrt(2. * ndof))
+            self.assertTrue(delta <= 5.)
+    
+            plt.figure('Background template spectrum')
+            hist *= 1. / scale
+            hist.plot(label='Simulation output')
+            energy = numpy.linspace(1.0, 15, 100)
+            plt.plot(energy, template_bkg.photon_spectrum(energy), label='Model')
+            setup_gca(logx=True, logy=True, ymin=3.e-6, ymax=5.e-3, grids=True, legend=True)
 
     def test_gtis(self, duration=1.e6):
         """And this is running the same thing with non trivial GTIs to avoid
